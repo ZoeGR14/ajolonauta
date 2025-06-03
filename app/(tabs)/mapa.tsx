@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { StyleSheet, View } from "react-native";
-import MapView from "react-native-maps";
+import MapView, { Geojson } from "react-native-maps";
+
+import geojsonData from "../../assets/data/metro.json";
 
 export default function Mapa() {
   const [origin, setOrigin] = useState({
@@ -12,7 +14,18 @@ export default function Mapa() {
 
   return (
     <View style={styles.container}>
-      <MapView style={styles.map} initialRegion={origin} />
+      <MapView
+        style={styles.map}
+        initialRegion={origin}
+        customMapStyle={mapStyle}
+      >
+        <Geojson
+          geojson={geojsonData}
+          strokeColor="blue"
+          fillColor="red"
+          strokeWidth={2}
+        />
+      </MapView>
     </View>
   );
 }
@@ -29,3 +42,31 @@ const styles = StyleSheet.create({
     height: "100%",
   },
 });
+
+const mapStyle = [
+  {
+    featureType: "poi",
+    stylers: [
+      {
+        visibility: "off",
+      },
+    ],
+  },
+  {
+    featureType: "road",
+    elementType: "labels.icon",
+    stylers: [
+      {
+        visibility: "off",
+      },
+    ],
+  },
+  {
+    featureType: "transit",
+    stylers: [
+      {
+        visibility: "off",
+      },
+    ],
+  },
+];
