@@ -1159,7 +1159,7 @@
     {
       "type": "Feature",
       "properties": {
-        "routes": ["Línea B", "Línea 5"],
+        "routes": ["Línea B"],
         "name": "Deportivo Oceanía"
       },
       "geometry": {
@@ -1446,7 +1446,7 @@
     {
       "type": "Feature",
       "properties": {
-        "routes": ["Línea 5"],
+        "routes": ["Línea 5", "Línea B"],
         "name": "Oceanía"
       },
       "geometry": {
