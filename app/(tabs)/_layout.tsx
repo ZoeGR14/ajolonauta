@@ -1,63 +1,59 @@
 import Entypo from "@expo/vector-icons/Entypo";
 import { Tabs } from "expo-router";
-import { StatusBar, View } from "react-native";
 
 export default function RootLayout() {
   return (
-    <View style={{ flex: 1 }}>
-      <StatusBar backgroundColor="lightblue" />
-      <Tabs
-        screenOptions={{
-          tabBarActiveTintColor: "midnightblue",
-          headerShown: false,
+    <Tabs
+      screenOptions={{
+        tabBarActiveTintColor: "midnightblue",
+        headerShown: false,
+      }}
+    >
+      <Tabs.Screen
+        name="avisos"
+        options={{
+          title: "Avisos",
+          tabBarIcon: () => (
+            <Entypo name="megaphone" size={20} color="midnightblue" />
+          ),
         }}
-      >
-        <Tabs.Screen
-          name="avisos"
-          options={{
-            title: "Avisos",
-            tabBarIcon: () => (
-              <Entypo name="megaphone" size={20} color="midnightblue" />
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="mapa"
-          options={{
-            title: "Rutas",
-            tabBarIcon: () => (
-              <Entypo name="map" size={20} color="midnightblue" />
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="sos"
-          options={{
-            title: "SOS",
-            tabBarIcon: () => (
-              <Entypo name="phone" size={20} color="midnightblue" />
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="misRutas"
-          options={{
-            title: "Mis Rutas",
-            tabBarIcon: () => (
-              <Entypo name="tag" size={20} color="midnightblue" />
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="perfil"
-          options={{
-            title: "Perfil",
-            tabBarIcon: () => (
-              <Entypo name="user" size={20} color="midnightblue" />
-            ),
-          }}
-        />
-      </Tabs>
-    </View>
+      />
+      <Tabs.Screen
+        name="mapa"
+        options={{
+          title: "Rutas",
+          tabBarIcon: () => (
+            <Entypo name="map" size={20} color="midnightblue" />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="sos"
+        options={{
+          title: "SOS",
+          tabBarIcon: () => (
+            <Entypo name="phone" size={20} color="midnightblue" />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="misRutas"
+        options={{
+          title: "Mis Rutas",
+          tabBarIcon: () => (
+            <Entypo name="tag" size={20} color="midnightblue" />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="perfil"
+        options={{
+          title: "Perfil",
+          tabBarIcon: () => (
+            <Entypo name="user" size={20} color="midnightblue" />
+          ),
+        }}
+      />
+    </Tabs>
   );
 }
