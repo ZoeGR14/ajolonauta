@@ -1,0 +1,62 @@
+[
+  {
+    "linea": "Línea 1",
+    "nombre": "Observatorio",
+    "color": "#F56394"
+  },
+  {
+    "linea": "Línea 2",
+    "nombre": "Cuatro Caminos",
+    "color": "#0064A8"
+  },
+  {
+    "linea": "Línea 3",
+    "nombre": "Indios Verdes",
+    "color": "#aa992c"
+  },
+  {
+    "linea": "Línea 4",
+    "nombre": "Martín Carrera",
+    "color": "#6FB7AE"
+  },
+  {
+    "linea": "Línea 5",
+    "nombre": "Politécnico",
+    "color": "#FDDF00"
+  },
+  {
+    "linea": "Línea 6",
+    "nombre": "El rosario",
+    "color": "#FF1100"
+  },
+  {
+    "linea": "Línea 7",
+    "nombre": "El rosario",
+    "color": "#FF6309"
+  },
+  {
+    "linea": "Línea 8",
+    "nombre": "Garibaldi Lagunilla",
+    "color": "#018749"
+  },
+  {
+    "linea": "Línea 9",
+    "nombre": "Pantitlán",
+    "color": "#5B2C2A"
+  },
+  {
+    "linea": "Línea A",
+    "nombre": "Pantitlán",
+    "color": "#A3277C"
+  },
+  {
+    "linea": "Línea B",
+    "nombre": "Buenavista",
+    "color": "#A8A8A8"
+  },
+  {
+    "linea": "Línea 12",
+    "nombre": "Mixcoac",
+    "color": "#c49411"
+  }
+]
