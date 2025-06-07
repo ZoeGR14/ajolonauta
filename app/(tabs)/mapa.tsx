@@ -1,7 +1,6 @@
 import Checkbox from "expo-checkbox";
 import React, { useCallback, useMemo, useState } from "react";
 import {
-  Alert,
   Button,
   Modal,
   StyleSheet,
@@ -9,7 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import MapView, { Geojson, Polyline } from "react-native-maps";
+import MapView, { Marker, Polyline } from "react-native-maps";
 
 import geojsonData from "../../assets/data/metro.json";
 import terminales from "../../assets/data/terminales.json";
@@ -47,30 +46,28 @@ const orderStations = (
 
   return orderedStations;
 };
+const origin = {
+  latitude: 19.435721,
+  longitude: -99.13149,
+  latitudeDelta: 0.1,
+  longitudeDelta: 0.8,
+};
 
+let lineas = [
+  "Línea 1",
+  "Línea 2",
+  "Línea 3",
+  "Línea 4",
+  "Línea 5",
+  "Línea 6",
+  "Línea 7",
+  "Línea 8",
+  "Línea 9",
+  "Línea A",
+  "Línea B",
+  "Línea 12",
+];
 export default function Mapa() {
-  const origin = {
-    latitude: 19.435721,
-    longitude: -99.13149,
-    latitudeDelta: 0.1,
-    longitudeDelta: 0.8,
-  };
-
-  let lineas = [
-    "Línea 1",
-    "Línea 2",
-    "Línea 3",
-    "Línea 4",
-    "Línea 5",
-    "Línea 6",
-    "Línea 7",
-    "Línea 8",
-    "Línea 9",
-    "Línea A",
-    "Línea B",
-    "Línea 12",
-  ];
-
   const [checkedItems, setCheckedItems] = useState(
     lineas.reduce((acc, line) => ({ ...acc, [line]: false }), {})
   );
@@ -143,27 +140,23 @@ export default function Mapa() {
         toolbarEnabled={false}
       >
         {lineas.map(
-          (num, index) =>
+          (line, i) =>
             //@ts-ignore
-            checkedItems[num] && (
-              <Geojson
-                geojson={{
-                  type: "FeatureCollection",
-                  //@ts-ignore
-                  features: geojsonData.features.filter((line) =>
-                    line.properties.routes.includes(num)
-                  ),
-                }}
-                color="#fa4c25"
-                onPress={(linea) =>
-                  Alert.alert(
-                    linea.feature.properties?.routes.join(", "),
-                    linea.feature.properties?.name
-                  )
-                }
-                key={index}
-              />
-            )
+            checkedItems[line] &&
+            geojsonData.features
+              .filter((l) => l.properties.routes.includes(line))
+              .map((a, i2) => (
+                <Marker
+                  coordinate={{
+                    latitude: a.geometry.coordinates[1],
+                    longitude: a.geometry.coordinates[0],
+                  }}
+                  key={i + i2}
+                  title={a.properties.name}
+                  description={a.properties.routes.join(", ")}
+                  pinColor="#FE5508"
+                />
+              ))
         )}
 
         {polylines.map(

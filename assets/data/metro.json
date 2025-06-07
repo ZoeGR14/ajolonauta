@@ -566,7 +566,7 @@
       "type": "Feature",
       "properties": {
         "routes": ["Línea 6", "Línea 7"],
-        "name": "El rosario"
+        "name": "El Rosario"
       },
       "geometry": {
         "coordinates": [-99.199934, 19.504703],
