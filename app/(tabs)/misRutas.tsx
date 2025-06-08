@@ -1,5 +1,5 @@
-import React from "react";
-import { StyleSheet, View } from "react-native";
+import React, { useState } from "react";
+import { StatusBar, StyleSheet, TextInput, View } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
 import geojsonData from "../../assets/data/metro.json";
 import terminales from "../../assets/data/terminales.json";
@@ -65,6 +65,10 @@ export function dijkstra(
   startNode: string,
   endNode: string
 ) {
+  if (!graph[startNode] || !graph[endNode]) {
+    return { distance: Infinity, path: [] };
+  }
+
   const distances: Record<string, number> = {};
   const previousNodes: Record<string, string | null> = {};
   const priorityQueue = new PriorityQueue<string>();
@@ -103,7 +107,6 @@ export function dijkstra(
             });
           }
         } else if (graph[tempNode]) {
-          // Si es el nodo de inicio, y no hay un "prevNode", tomamos sus coordenadas directamente.
           path.unshift({
             nombre: tempNode,
             coordenadas: graph[tempNode]?.coordenada || {
@@ -126,6 +129,8 @@ export function dijkstra(
       }
     });
   }
+
+  return { distance: Infinity, path: [] };
 }
 
 // Construcción de grafo
@@ -219,9 +224,11 @@ const lines = lineas
   }));
 
 export default function MisRutas() {
+  //@ts-ignore
   const grafo = construirGrafo(lines);
-  const start = "El Rosario";
-  const end = "Tláhuac";
+  const [start, setStart] = useState("");
+  const [end, setEnd] = useState("");
+
   const result = dijkstra(grafo, start, end);
 
   const coordenadas = result?.path.map((s) => ({
@@ -231,30 +238,67 @@ export default function MisRutas() {
 
   return (
     <View style={styles.container}>
-      <MapView
-        style={{ width: "100%", height: "100%" }}
-        initialRegion={origin}
-        customMapStyle={mapStyle}
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: "white",
+          paddingTop: StatusBar.currentHeight,
+          justifyContent: "center",
+          gap: 10,
+          paddingHorizontal: 20,
+        }}
       >
-        {polylines.map((p, index) => (
-          <Polyline
-            coordinates={p.estaciones}
-            key={index}
-            strokeWidth={5}
-            strokeColor={p.color}
-          />
-        ))}
-        {result?.path.map((r, i) => (
-          <Marker coordinate={r.coordenadas} key={i} title={r.nombre} />
-        ))}
-        {coordenadas && coordenadas.length > 0 && (
-          <Polyline
-            coordinates={coordenadas}
-            strokeWidth={5}
-            strokeColor="blue"
-          />
-        )}
-      </MapView>
+        <TextInput
+          style={{
+            padding: 10,
+            borderColor: "black",
+            borderRadius: 3,
+            borderWidth: 1,
+          }}
+          value={start}
+          onChangeText={setStart}
+        />
+        <TextInput
+          style={{
+            padding: 10,
+            borderColor: "black",
+            borderRadius: 3,
+            borderWidth: 1,
+          }}
+          value={end}
+          onChangeText={setEnd}
+        />
+      </View>
+
+      <View style={{ flex: 4 }}>
+        <MapView
+          style={{ width: "100%", height: "100%" }}
+          initialRegion={origin}
+          customMapStyle={mapStyle}
+          showsCompass={false}
+          toolbarEnabled={false}
+        >
+          {polylines.map((p, index) => (
+            <Polyline
+              coordinates={p.estaciones}
+              key={index}
+              strokeWidth={5}
+              strokeColor={p.color}
+            />
+          ))}
+          {result?.path.map((r, i) => (
+            <Marker coordinate={r.coordenadas} key={i} title={r.nombre} />
+          ))}
+          {coordenadas && coordenadas.length > 0 && (
+            <Polyline
+              coordinates={coordenadas}
+              strokeWidth={5}
+              strokeColor="blue"
+            />
+          )}
+        </MapView>
+      </View>
+      {/**/}
     </View>
   );
 }
@@ -263,8 +307,5 @@ export default function MisRutas() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    gap: 20,
   },
 });
