@@ -257,6 +257,7 @@ export default function MisRutas() {
           }}
           value={start}
           onChangeText={setStart}
+          placeholder="Estación de Origen"
         />
         <TextInput
           style={{
@@ -267,6 +268,7 @@ export default function MisRutas() {
           }}
           value={end}
           onChangeText={setEnd}
+          placeholder="Estación de Destino"
         />
       </View>
 
