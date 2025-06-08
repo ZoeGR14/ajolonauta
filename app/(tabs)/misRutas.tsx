@@ -1,8 +1,16 @@
-import React, { useMemo } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import React from "react";
+import { StyleSheet, View } from "react-native";
+import MapView, { Marker, Polyline } from "react-native-maps";
 import geojsonData from "../../assets/data/metro.json";
 import terminales from "../../assets/data/terminales.json";
-import { euclidiana, lineas, orderStations } from "./mapa";
+import {
+  euclidiana,
+  lineas,
+  mapStyle,
+  orderStations,
+  origin,
+  polylines,
+} from "./mapa";
 
 // Definición de tipos
 interface Coordinate {
@@ -15,7 +23,12 @@ interface Station extends Coordinate {
 }
 
 interface GraphNode {
-  conexiones: { nombre: string; peso: number }[];
+  coordenada: Coordinate;
+  conexiones: {
+    nombre: string;
+    peso: number;
+    coordenadas: Coordinate;
+  }[];
 }
 
 // PriorityQueue optimizada
@@ -38,7 +51,17 @@ class PriorityQueue<T> {
 
 // Implementación de Dijkstra
 export function dijkstra(
-  graph: Record<string, GraphNode>,
+  graph: Record<
+    string,
+    {
+      coordenada: { latitude: number; longitude: number };
+      conexiones: {
+        coordenadas: { latitude: number; longitude: number };
+        nombre: string;
+        peso: number;
+      }[];
+    }
+  >,
   startNode: string,
   endNode: string
 ) {
@@ -62,16 +85,39 @@ export function dijkstra(
     if (currentDistance > distances[currentNode]) continue;
 
     if (currentNode === endNode) {
-      const path: string[] = [];
+      const path: {
+        nombre: string;
+        coordenadas: { latitude: number; longitude: number };
+      }[] = [];
       let tempNode: string | null = endNode;
       while (tempNode !== null) {
-        path.unshift(tempNode);
+        const prevNode = previousNodes[tempNode];
+        if (prevNode !== null) {
+          const connection = graph[prevNode]?.conexiones.find(
+            (conn) => conn.nombre === tempNode
+          );
+          if (connection) {
+            path.unshift({
+              nombre: tempNode,
+              coordenadas: connection.coordenadas,
+            });
+          }
+        } else if (graph[tempNode]) {
+          // Si es el nodo de inicio, y no hay un "prevNode", tomamos sus coordenadas directamente.
+          path.unshift({
+            nombre: tempNode,
+            coordenadas: graph[tempNode]?.coordenada || {
+              latitude: 0,
+              longitude: 0,
+            },
+          });
+        }
         tempNode = previousNodes[tempNode];
       }
       return { distance: distances[endNode], path };
     }
 
-    graph[currentNode]?.conexiones.forEach(({ nombre, peso }) => {
+    graph[currentNode]?.conexiones.forEach(({ nombre, peso, coordenadas }) => {
       const distance = currentDistance + peso;
       if (distance < distances[nombre]) {
         distances[nombre] = distance;
@@ -80,18 +126,24 @@ export function dijkstra(
       }
     });
   }
-
-  return { distance: Infinity, path: null };
 }
 
 // Construcción de grafo
-function construirGrafo(lineas: { estaciones: Station[] }[]) {
+function construirGrafo(
+  lineas: { estaciones: Station[]; color: string; linea: string }[]
+) {
   const grafo: Record<string, GraphNode> = {};
 
   lineas.forEach(({ estaciones }) => {
     estaciones.forEach((estacion, index) => {
       if (!grafo[estacion.nombre]) {
-        grafo[estacion.nombre] = { conexiones: [] };
+        grafo[estacion.nombre] = {
+          conexiones: [],
+          coordenada: {
+            latitude: estacion.latitude,
+            longitude: estacion.longitude,
+          },
+        };
       }
 
       if (index > 0) {
@@ -99,6 +151,10 @@ function construirGrafo(lineas: { estaciones: Station[] }[]) {
         grafo[estacion.nombre].conexiones.push({
           nombre: anterior.nombre,
           peso: euclidiana(estacion, anterior),
+          coordenadas: {
+            latitude: anterior.latitude,
+            longitude: anterior.longitude,
+          },
         });
       }
 
@@ -107,6 +163,10 @@ function construirGrafo(lineas: { estaciones: Station[] }[]) {
         grafo[estacion.nombre].conexiones.push({
           nombre: siguiente.nombre,
           peso: euclidiana(estacion, siguiente),
+          coordenadas: {
+            latitude: siguiente.latitude,
+            longitude: siguiente.longitude,
+          },
         });
       }
     });
@@ -115,69 +175,86 @@ function construirGrafo(lineas: { estaciones: Station[] }[]) {
   return grafo;
 }
 
+const lines = lineas
+  .map((l) => {
+    const completa = geojsonData.features.filter((lines) =>
+      lines.properties.routes.includes(l)
+    );
+
+    const terminal = terminales.find((t) => t.linea === l)?.nombre;
+    let coordenadaInicial: Station = {
+      latitude: 0,
+      longitude: 0,
+      nombre: "",
+    };
+
+    const coordenadas: Station[] = completa.map((linea) => {
+      const [longitude, latitude] = linea.geometry.coordinates;
+      return { latitude, longitude, nombre: linea.properties.name };
+    });
+
+    if (terminal) {
+      const terminalData = completa.find(
+        (linea) => linea.properties.name === terminal
+      );
+      if (terminalData) {
+        const [longitude, latitude] = terminalData.geometry.coordinates;
+        coordenadaInicial = { latitude, longitude, nombre: terminal };
+      }
+    }
+
+    const color = terminales.find((t) => t.linea === l)?.color || "black";
+
+    return {
+      startStation: coordenadaInicial,
+      stations: coordenadas,
+      color,
+      linea: l,
+    };
+  })
+  .map((p) => ({
+    estaciones: orderStations(p.startStation, p.stations),
+    color: p.color,
+    linea: p.linea,
+  }));
+
 export default function MisRutas() {
-  const lines = useMemo(() => {
-    return lineas
-      .map((l) => {
-        const completa = geojsonData.features.filter((lines) =>
-          lines.properties.routes.includes(l)
-        );
-
-        const terminal = terminales.find((t) => t.linea === l)?.nombre;
-        let coordenadaInicial: Station = {
-          latitude: 0,
-          longitude: 0,
-          nombre: "",
-        };
-
-        const coordenadas: Station[] = completa.map((linea) => {
-          const [longitude, latitude] = linea.geometry.coordinates;
-          return { latitude, longitude, nombre: linea.properties.name };
-        });
-
-        if (terminal) {
-          const terminalData = completa.find(
-            (linea) => linea.properties.name === terminal
-          );
-          if (terminalData) {
-            const [longitude, latitude] = terminalData.geometry.coordinates;
-            coordenadaInicial = { latitude, longitude, nombre: terminal };
-          }
-        }
-
-        const color = terminales.find((t) => t.linea === l)?.color || "black";
-
-        return {
-          startStation: coordenadaInicial,
-          stations: coordenadas,
-          color,
-          linea: l,
-        };
-      })
-      .map((p) => ({
-        estaciones: orderStations(p.startStation, p.stations),
-        color: p.color,
-        linea: p.linea,
-      }));
-  }, []);
-  //@ts-ignore
   const grafo = construirGrafo(lines);
-  const start = "Ciudad Azteca";
-  const end = "Barranca del Muerto";
+  const start = "El Rosario";
+  const end = "Tláhuac";
   const result = dijkstra(grafo, start, end);
 
-  if (result.path) {
-    console.log(
-      `La ruta más corta de ${start} a ${end} es: ${result.path.join(" -> ")}`
-    );
-    console.log(`Distancia total: ${result.distance}`);
-  } else {
-    console.log(`No se encontró una ruta de ${start} a ${end}.`);
-  }
+  const coordenadas = result?.path.map((s) => ({
+    latitude: s.coordenadas.latitude,
+    longitude: s.coordenadas.longitude,
+  }));
 
   return (
     <View style={styles.container}>
-      <Text>MisRutas</Text>
+      <MapView
+        style={{ width: "100%", height: "100%" }}
+        initialRegion={origin}
+        customMapStyle={mapStyle}
+      >
+        {polylines.map((p, index) => (
+          <Polyline
+            coordinates={p.estaciones}
+            key={index}
+            strokeWidth={5}
+            strokeColor={p.color}
+          />
+        ))}
+        {result?.path.map((r, i) => (
+          <Marker coordinate={r.coordenadas} key={i} title={r.nombre} />
+        ))}
+        {coordenadas && coordenadas.length > 0 && (
+          <Polyline
+            coordinates={coordenadas}
+            strokeWidth={5}
+            strokeColor="blue"
+          />
+        )}
+      </MapView>
     </View>
   );
 }

@@ -72,6 +72,39 @@ export const lineas = [
   "Línea B",
   "Línea 12",
 ];
+
+export const polylines = lineas
+  .map((l) => {
+    const completa = geojsonData.features.filter((lines) =>
+      lines.properties.routes.includes(l)
+    );
+
+    const terminal = terminales.find((t) => t.linea === l)?.nombre;
+    let coordenadaInicial = { latitude: 0, longitude: 0 };
+
+    const coordenadas = completa.map((linea) => {
+      const [longitude, latitude] = linea.geometry.coordinates;
+      if (linea.properties.name === terminal) {
+        coordenadaInicial = { latitude, longitude };
+      }
+      return { latitude, longitude };
+    });
+
+    const color = terminales.find((t) => t.linea === l)?.color;
+
+    return {
+      startStation: coordenadaInicial,
+      stations: coordenadas,
+      color,
+      linea: l,
+    };
+  })
+  .map((p) => ({
+    estaciones: orderStations(p.startStation, p.stations),
+    color: p.color,
+    linea: p.linea,
+  }));
+
 export default function Mapa() {
   const [checkedItems, setCheckedItems] = useState(
     lineas.reduce((acc, line) => ({ ...acc, [line]: false }), {})
@@ -83,40 +116,6 @@ export default function Mapa() {
   }, []);
 
   const [modal, setModal] = useState(false);
-
-  const polylines = useMemo(() => {
-    const puntos = lineas.map((l) => {
-      const completa = geojsonData.features.filter((lines) =>
-        lines.properties.routes.includes(l)
-      );
-
-      const terminal = terminales.find((t) => t.linea === l)?.nombre;
-      let coordenadaInicial = { latitude: 0, longitude: 0 };
-
-      const coordenadas = completa.map((linea) => {
-        const [longitude, latitude] = linea.geometry.coordinates;
-        if (linea.properties.name === terminal) {
-          coordenadaInicial = { latitude, longitude };
-        }
-        return { latitude, longitude };
-      });
-
-      const color = terminales.find((t) => t.linea === l)?.color;
-
-      return {
-        startStation: coordenadaInicial,
-        stations: coordenadas,
-        color,
-        linea: l,
-      };
-    });
-
-    return puntos.map((p) => ({
-      estaciones: orderStations(p.startStation, p.stations),
-      color: p.color,
-      linea: p.linea,
-    }));
-  }, [lineas]);
 
   const handleSelectAll = useCallback(() => {
     const areAllSelected = Object.values(checkedItems).every(Boolean);
@@ -260,7 +259,7 @@ const styles = StyleSheet.create({
   },
 });
 
-const mapStyle = [
+export const mapStyle = [
   {
     featureType: "poi",
     stylers: [
