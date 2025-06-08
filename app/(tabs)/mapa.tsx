@@ -13,7 +13,7 @@ import MapView, { Marker, Polyline } from "react-native-maps";
 import geojsonData from "../../assets/data/metro.json";
 import terminales from "../../assets/data/terminales.json";
 
-const euclidiana = (
+export const euclidiana = (
   punto1: { latitude: any; longitude: any },
   punto2: { latitude: any; longitude: any }
 ) => {
@@ -23,12 +23,16 @@ const euclidiana = (
   );
 };
 
-const orderStations = (
-  startStation: { latitude: any; longitude: any },
-  stations: { latitude: any; longitude: any }[]
+export const orderStations = (
+  startStation: { latitude: any; longitude: any; nombre?: string },
+  stations: any[]
 ) => {
   let orderedStations = [startStation];
-  let remainingStations = [...stations];
+  let remainingStations = stations.filter(
+    (station) =>
+      station.latitude !== startStation.latitude ||
+      station.longitude !== startStation.longitude
+  );
 
   while (remainingStations.length > 0) {
     let lastStation = orderedStations[orderedStations.length - 1];
@@ -46,14 +50,15 @@ const orderStations = (
 
   return orderedStations;
 };
-const origin = {
+
+export const origin = {
   latitude: 19.435721,
   longitude: -99.13149,
   latitudeDelta: 0.1,
   longitudeDelta: 0.8,
 };
 
-let lineas = [
+export const lineas = [
   "Línea 1",
   "Línea 2",
   "Línea 3",

@@ -533,7 +533,7 @@
       "type": "Feature",
       "properties": {
         "routes": ["Línea 6"],
-        "name": "Axcapotzalco"
+        "name": "UAM Azcapotzalco"
       },
       "geometry": {
         "coordinates": [-99.186416, 19.490827],
@@ -1524,7 +1524,7 @@
       "type": "Feature",
       "properties": {
         "routes": ["Línea 4"],
-        "name": "\nCanal del Norte"
+        "name": "Canal del Norte"
       },
       "geometry": {
         "coordinates": [-99.116035, 19.448849],
