@@ -13,30 +13,21 @@ import MapView, { Marker, Polyline } from "react-native-maps";
 import geojsonData from "../../assets/data/metro.json";
 import terminales from "../../assets/data/terminales.json";
 
-// Definición de tipos
-interface Coordinate {
-  latitude: number;
-  longitude: number;
-}
-
-interface Station extends Coordinate {
-  nombre?: string;
-}
-
-// Función para calcular la distancia euclidiana
-export const euclidiana = (punto1: Coordinate, punto2: Coordinate): number => {
+export const euclidiana = (
+  punto1: { latitude: any; longitude: any },
+  punto2: { latitude: any; longitude: any }
+) => {
   return Math.sqrt(
     Math.pow(punto1.latitude - punto2.latitude, 2) +
       Math.pow(punto1.longitude - punto2.longitude, 2)
   );
 };
 
-// Función para ordenar estaciones por distancia más corta
 export const orderStations = (
-  startStation: Station,
-  stations: Station[]
-): Station[] => {
-  let orderedStations: Station[] = [startStation];
+  startStation: { latitude: any; longitude: any; nombre?: string },
+  stations: any[]
+) => {
+  let orderedStations = [startStation];
   let remainingStations = stations.filter(
     (station) =>
       station.latitude !== startStation.latitude ||
@@ -60,7 +51,6 @@ export const orderStations = (
   return orderedStations;
 };
 
-// Configuración del mapa
 export const origin = {
   latitude: 19.435721,
   longitude: -99.13149,
@@ -68,7 +58,7 @@ export const origin = {
   longitudeDelta: 0.8,
 };
 
-export const lineas: string[] = [
+export const lineas = [
   "Línea 1",
   "Línea 2",
   "Línea 3",
@@ -83,43 +73,49 @@ export const lineas: string[] = [
   "Línea 12",
 ];
 
+export const polylines = lineas
+  .map((l) => {
+    const completa = geojsonData.features.filter((lines) =>
+      lines.properties.routes.includes(l)
+    );
+
+    const terminal = terminales.find((t) => t.linea === l)?.nombre;
+    let coordenadaInicial = { latitude: 0, longitude: 0 };
+
+    const coordenadas = completa.map((linea) => {
+      const [longitude, latitude] = linea.geometry.coordinates;
+      if (linea.properties.name === terminal) {
+        coordenadaInicial = { latitude, longitude };
+      }
+      return { latitude, longitude };
+    });
+
+    const color = terminales.find((t) => t.linea === l)?.color;
+
+    return {
+      startStation: coordenadaInicial,
+      stations: coordenadas,
+      color,
+      linea: l,
+    };
+  })
+  .map((p) => ({
+    estaciones: orderStations(p.startStation, p.stations),
+    color: p.color,
+    linea: p.linea,
+  }));
+
 export default function Mapa() {
-  const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>(
+  const [checkedItems, setCheckedItems] = useState(
     lineas.reduce((acc, line) => ({ ...acc, [line]: false }), {})
   );
 
   const toggleCheckbox = useCallback((line: string) => {
+    //@ts-ignore
     setCheckedItems((prev) => ({ ...prev, [line]: !prev[line] }));
   }, []);
 
-  const [modal, setModal] = useState<boolean>(false);
-
-  const polylines = useMemo(() => {
-    return lineas.map((l) => {
-      const completa = geojsonData.features.filter((lines) =>
-        lines.properties.routes.includes(l)
-      );
-
-      const terminal = terminales.find((t) => t.linea === l)?.nombre;
-      let coordenadaInicial: Coordinate = { latitude: 0, longitude: 0 };
-
-      const coordenadas: Coordinate[] = completa.map((linea) => {
-        const [longitude, latitude] = linea.geometry.coordinates;
-        if (linea.properties.name === terminal) {
-          coordenadaInicial = { latitude, longitude };
-        }
-        return { latitude, longitude };
-      });
-
-      const color = terminales.find((t) => t.linea === l)?.color || "black";
-
-      return {
-        estaciones: orderStations(coordenadaInicial, coordenadas),
-        color,
-        linea: l,
-      };
-    });
-  }, []);
+  const [modal, setModal] = useState(false);
 
   const handleSelectAll = useCallback(() => {
     const areAllSelected = Object.values(checkedItems).every(Boolean);
@@ -238,8 +234,15 @@ const styles = StyleSheet.create({
   checkboxTextBold: { paddingLeft: 10, fontWeight: "bold" },
 });
 
-const mapStyle = [
-  { featureType: "poi", stylers: [{ visibility: "off" }] },
+export const mapStyle = [
+  {
+    featureType: "poi",
+    stylers: [
+      {
+        visibility: "off",
+      },
+    ],
+  },
   {
     featureType: "road",
     elementType: "labels.icon",
