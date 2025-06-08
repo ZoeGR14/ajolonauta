@@ -1,8 +1,10 @@
+import { Feather } from "@expo/vector-icons";
 import Checkbox from "expo-checkbox";
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import {
+  Animated,
   Button,
-  Modal,
+  Dimensions,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -13,114 +15,120 @@ import MapView, { Marker, Polyline } from "react-native-maps";
 import geojsonData from "../../assets/data/metro.json";
 import terminales from "../../assets/data/terminales.json";
 
-export const euclidiana = (
-  punto1: { latitude: any; longitude: any },
-  punto2: { latitude: any; longitude: any }
-) => {
-  return Math.sqrt(
-    Math.pow(punto1.latitude - punto2.latitude, 2) +
-      Math.pow(punto1.longitude - punto2.longitude, 2)
-  );
-};
+// Tipos
+interface Coordinate {
+  latitude: number;
+  longitude: number;
+}
 
-export const orderStations = (
-  startStation: { latitude: any; longitude: any; nombre?: string },
-  stations: any[]
-) => {
-  let orderedStations = [startStation];
-  let remainingStations = stations.filter(
-    (station) =>
-      station.latitude !== startStation.latitude ||
-      station.longitude !== startStation.longitude
+interface Station extends Coordinate {
+  nombre?: string;
+}
+
+// Utilidades
+export const euclidiana = (p1: Coordinate, p2: Coordinate): number =>
+  Math.sqrt(
+    Math.pow(p1.latitude - p2.latitude, 2) +
+    Math.pow(p1.longitude - p2.longitude, 2)
   );
 
-  while (remainingStations.length > 0) {
-    let lastStation = orderedStations[orderedStations.length - 1];
-    let nearestStation = remainingStations.reduce((nearest, station) =>
-      euclidiana(lastStation, station) < euclidiana(lastStation, nearest)
-        ? station
-        : nearest
-    );
+export const orderStations = (startStation: Station, stations: Station[]) => {
+  let ordered = [startStation];
+  let remaining = stations.filter(
+    (s) =>
+      s.latitude !== startStation.latitude ||
+      s.longitude !== startStation.longitude
+  );
 
-    orderedStations.push(nearestStation);
-    remainingStations = remainingStations.filter(
-      (station) => station !== nearestStation
+  while (remaining.length > 0) {
+    const last = ordered[ordered.length - 1];
+    const nearest = remaining.reduce((closest, s) =>
+      euclidiana(last, s) < euclidiana(last, closest) ? s : closest
     );
+    ordered.push(nearest);
+    remaining = remaining.filter((s) => s !== nearest);
   }
 
-  return orderedStations;
+  return ordered;
 };
 
-export const origin = {
+const origin = {
   latitude: 19.435721,
   longitude: -99.13149,
   latitudeDelta: 0.1,
   longitudeDelta: 0.8,
 };
 
-export const lineas = [
-  "Línea 1",
-  "Línea 2",
-  "Línea 3",
-  "Línea 4",
-  "Línea 5",
-  "Línea 6",
-  "Línea 7",
-  "Línea 8",
-  "Línea 9",
-  "Línea A",
-  "Línea B",
-  "Línea 12",
+const lineas = [
+  "Línea 1", "Línea 2", "Línea 3", "Línea 4",
+  "Línea 5", "Línea 6", "Línea 7", "Línea 8",
+  "Línea 9", "Línea A", "Línea B", "Línea 12",
 ];
 
-export const polylines = lineas
-  .map((l) => {
-    const completa = geojsonData.features.filter((lines) =>
-      lines.properties.routes.includes(l)
-    );
-
-    const terminal = terminales.find((t) => t.linea === l)?.nombre;
-    let coordenadaInicial = { latitude: 0, longitude: 0 };
-
-    const coordenadas = completa.map((linea) => {
-      const [longitude, latitude] = linea.geometry.coordinates;
-      if (linea.properties.name === terminal) {
-        coordenadaInicial = { latitude, longitude };
-      }
-      return { latitude, longitude };
-    });
-
-    const color = terminales.find((t) => t.linea === l)?.color;
-
-    return {
-      startStation: coordenadaInicial,
-      stations: coordenadas,
-      color,
-      linea: l,
-    };
-  })
-  .map((p) => ({
-    estaciones: orderStations(p.startStation, p.stations),
-    color: p.color,
-    linea: p.linea,
-  }));
-
 export default function Mapa() {
-  const [checkedItems, setCheckedItems] = useState(
-    lineas.reduce((acc, line) => ({ ...acc, [line]: false }), {})
+  const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>(
+    Object.fromEntries(lineas.map((line) => [line, false]))
   );
 
   const toggleCheckbox = useCallback((line: string) => {
-    //@ts-ignore
     setCheckedItems((prev) => ({ ...prev, [line]: !prev[line] }));
   }, []);
 
-  const [modal, setModal] = useState(false);
+  const [modal, setModal] = useState<boolean>(false);
+  const slideAnim = useRef(new Animated.Value(Dimensions.get("window").width)).current;
+
+  const openPanel = () => {
+    setModal(true);
+    Animated.timing(slideAnim, {
+      toValue: Dimensions.get("window").width / 2,
+      duration: 300,
+      useNativeDriver: false,
+    }).start();
+  };
+
+  const closePanel = () => {
+    Animated.timing(slideAnim, {
+      toValue: Dimensions.get("window").width,
+      duration: 300,
+      useNativeDriver: false,
+    }).start(() => setModal(false));
+  };
+
+  const getColorForLine = (line: string): string => {
+    return terminales.find((t) => t.linea === line)?.color || "transparent";
+  };
+
+  const polylines = useMemo(() => {
+    return lineas.map((linea) => {
+      const features = geojsonData.features.filter((f) =>
+        f.properties.routes.includes(linea)
+      );
+
+      const terminal = terminales.find((t) => t.linea === linea)?.nombre;
+      let initial: Coordinate = { latitude: 0, longitude: 0 };
+
+      const coords: Station[] = features.map((f) => {
+        const [lon, lat] = f.geometry.coordinates;
+        if (f.properties.name === terminal) {
+          initial = { latitude: lat, longitude: lon };
+        }
+        return { latitude: lat, longitude: lon, nombre: f.properties.name };
+      });
+
+      const color = terminales.find((t) => t.linea === linea)?.color || "black";
+
+      return {
+        estaciones: orderStations(initial, coords),
+        color,
+        linea,
+      };
+    });
+  }, []);
 
   const handleSelectAll = useCallback(() => {
-    const areAllSelected = Object.values(checkedItems).every(Boolean);
+    const allSelected = Object.values(checkedItems).every(Boolean);
     setCheckedItems(
-      Object.fromEntries(lineas.map((line) => [line, !areAllSelected]))
+      Object.fromEntries(lineas.map((line) => [line, !allSelected]))
     );
   }, [checkedItems]);
 
@@ -139,20 +147,20 @@ export default function Mapa() {
         toolbarEnabled={false}
       >
         {lineas.map(
-          (line, i) =>
+          (line) =>
             checkedItems[line] &&
             geojsonData.features
-              .filter((l) => l.properties.routes.includes(line))
-              .map((a, i2) => (
+              .filter((f) => f.properties.routes.includes(line))
+              .map((f, i) => (
                 <Marker
+                  key={`${line}-${i}`}
                   coordinate={{
-                    latitude: a.geometry.coordinates[1],
-                    longitude: a.geometry.coordinates[0],
+                    latitude: f.geometry.coordinates[1],
+                    longitude: f.geometry.coordinates[0],
                   }}
-                  key={`${i}-${i2}`}
-                  title={a.properties.name}
-                  description={a.properties.routes.join(", ")}
-                  pinColor="#FE5508"
+                  title={f.properties.name}
+                  description={f.properties.routes.join(", ")}
+                  pinColor="#000dc9"
                 />
               ))
         )}
@@ -161,55 +169,64 @@ export default function Mapa() {
           (p, index) =>
             checkedItems[p.linea] && (
               <Polyline
+                key={p.linea}
                 coordinates={p.estaciones}
-                key={index}
                 strokeWidth={5}
                 strokeColor={p.color}
               />
             )
         )}
       </MapView>
+
       <View style={styles.buttonContainer}>
         <TouchableOpacity
           style={styles.infoButton}
           activeOpacity={0.9}
-          onPress={() => setModal(true)}
+          onPress={openPanel}
         >
-          <Text style={styles.infoText}>?</Text>
+          <Feather name="menu" size={28} color="white" />
         </TouchableOpacity>
       </View>
-      <Modal
-        visible={modal}
-        animationType="slide"
-        onRequestClose={() => setModal(false)}
-      >
-        <View style={styles.modalContainer}>
+
+      {modal && (
+        <Animated.View style={[styles.slidePanel, { left: slideAnim }]}>
           {lineas.map((line) => (
-            <View key={line} style={styles.row}>
+            <TouchableOpacity
+              key={line}
+              style={[
+                styles.row,
+                checkedItems[line] && {
+                  backgroundColor: getColorForLine(line),
+                  borderRadius: 8,
+                  paddingHorizontal: 10,
+                },
+              ]}
+              activeOpacity={0.8}
+              onPress={() => toggleCheckbox(line)}
+            >
               <Checkbox
                 value={checkedItems[line]}
                 onValueChange={() => toggleCheckbox(line)}
                 color="midnightblue"
               />
               <Text style={styles.checkboxText}>{line}</Text>
-            </View>
+            </TouchableOpacity>
           ))}
-          <View style={styles.row}>
+          <TouchableOpacity style={styles.row} onPress={handleSelectAll}>
             <Checkbox
               value={isAllSelected}
               onValueChange={handleSelectAll}
               color="green"
             />
             <Text style={styles.checkboxTextBold}>Seleccionar Todos</Text>
-          </View>
-          <Button title="Cerrar Modal" onPress={() => setModal(false)} />
-        </View>
-      </Modal>
+          </TouchableOpacity>
+          <Button title="Cerrar" onPress={closePanel} />
+        </Animated.View>
+      )}
     </View>
   );
 }
 
-// Estilos
 const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: "center", alignItems: "center" },
   map: { width: "100%", height: "100%" },
@@ -222,14 +239,22 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: 25,
   },
-  infoText: { color: "white", fontWeight: "bold", fontSize: 24 },
-  modalContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    gap: 20,
+  slidePanel: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    width: Dimensions.get("window").width / 2,
+    backgroundColor: "white",
+    padding: 20,
+    elevation: 10,
+    zIndex: 99,
   },
-  row: { flexDirection: "row", alignItems: "center" },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
+    paddingVertical: 8,
+  },
   checkboxText: { paddingLeft: 10 },
   checkboxTextBold: { paddingLeft: 10, fontWeight: "bold" },
 });
@@ -237,11 +262,7 @@ const styles = StyleSheet.create({
 export const mapStyle = [
   {
     featureType: "poi",
-    stylers: [
-      {
-        visibility: "off",
-      },
-    ],
+    stylers: [{ visibility: "off" }],
   },
   {
     featureType: "road",
