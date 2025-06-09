@@ -1,20 +1,29 @@
-import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from "react-native";
 import { Feather } from "@expo/vector-icons";
+import React from "react";
+import {
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 export default function MyAccountScreen() {
   return (
     <View style={styles.container}>
-
-      {/* Imagen de perfil grande y centrada */}
       <View style={styles.profileWrapper}>
-        <Image
-          source={{ uri: "https://i.pinimg.com/736x/54/34/81/5434817e23dca00394b77ca6b38dc895.jpg" }}
-          style={styles.profileImage}
-        />
-        <TouchableOpacity style={styles.editButton}>
-          <Feather name="edit" size={20} color="#e68059" />
-        </TouchableOpacity>
+        <View style={styles.imageContainer}>
+          <Image
+            source={{
+              uri: "https://i.pinimg.com/736x/54/34/81/5434817e23dca00394b77ca6b38dc895.jpg",
+            }}
+            style={styles.profileImage}
+          />
+          <TouchableOpacity style={styles.editButton}>
+            <Feather name="edit" size={20} color="#e68059" />
+          </TouchableOpacity>
+        </View>
         <Text style={styles.name}>Kang Seul-Gi</Text>
         <Text style={styles.number}>55-4545-4545</Text>
       </View>
@@ -49,21 +58,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     paddingTop: 60,
     paddingHorizontal: 20,
-  },
-  profileWrapper: {
-    alignItems: "center",
-    marginBottom: 30,
-  },
-  profileImage: {
-    width: 150,
-    height: 150,
-    borderRadius: 70,
-  },
-  editButton: {
-    marginTop: 10,
-    backgroundColor: "#fff3e0",
-    padding: 8,
-    borderRadius: 20,
   },
   name: {
     fontSize: 18,
@@ -103,5 +97,33 @@ const styles = StyleSheet.create({
     color: "red",
     fontWeight: "bold",
     fontSize: 16,
+  },
+  profileWrapper: {
+    alignItems: "center",
+    marginTop: 20,
+    marginBottom: 20,
+  },
+  imageContainer: {
+    position: "relative",
+    width: 160,
+    height: 160,
+  },
+  profileImage: {
+    width: 160,
+    height: 160,
+    borderRadius: 80,
+  },
+  editButton: {
+    position: "absolute",
+    bottom: 3, // 🔧 distancia desde la parte inferior del círculo
+    right: 15,  // 🔧 distancia desde el borde derecho del círculo
+    backgroundColor: "white",
+    borderRadius: 20,
+    padding: 6,
+    elevation: 3, // sombra en Android
+    shadowColor: "#000", // sombra en iOS
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
   },
 });

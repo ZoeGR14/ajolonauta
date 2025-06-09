@@ -169,7 +169,7 @@ export default function Mapa() {
                   }}
                   title={f.properties.name}
                   description={f.properties.routes.join(", ")}
-                  pinColor="#000dc9"
+                  pinColor="#E68059"
                 />
               ))
         )}
@@ -216,7 +216,7 @@ export default function Mapa() {
               <Checkbox
                 value={checkedItems[line]}
                 onValueChange={() => toggleCheckbox(line)}
-                color="midnightblue"
+                color="#E68059"
               />
               <Text style={styles.checkboxText}>{line}</Text>
             </TouchableOpacity>
@@ -237,11 +237,23 @@ export default function Mapa() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: "center", alignItems: "center" },
-  map: { width: "100%", height: "100%" },
-  buttonContainer: { position: "absolute", top: 20, right: 20 },
+  container: { 
+    flex: 1, 
+    justifyContent: "center", 
+    alignItems: "center",
+  },
+  map: { 
+    width: "100%", 
+    height: "100%", 
+  },
+  buttonContainer: { 
+    position: "absolute", 
+    top: 20, 
+    right: 20 
+  },
   infoButton: {
-    backgroundColor: "midnightblue",
+    backgroundColor: "#E68059",
+    marginTop: 25,
     width: 50,
     height: 50,
     justifyContent: "center",
@@ -254,6 +266,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     width: Dimensions.get("window").width / 2,
     backgroundColor: "white",
+    paddingTop: 50,
     padding: 20,
     elevation: 10,
     zIndex: 99,
@@ -264,8 +277,14 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     paddingVertical: 8,
   },
-  checkboxText: { paddingLeft: 10 },
-  checkboxTextBold: { paddingLeft: 10, fontWeight: "bold" },
+  checkboxText: { 
+    paddingLeft: 10 
+  },
+  checkboxTextBold: { 
+    paddingLeft: 10,
+    backgroundColor: "transparent", 
+    fontWeight: "bold" 
+  },
 });
 
 export const mapStyle = [

@@ -1,14 +1,14 @@
+import { Feather } from "@expo/vector-icons";
 import React from "react";
 import {
+  Alert,
+  FlatList,
+  Linking,
+  Pressable,
   StyleSheet,
   Text,
   View,
-  FlatList,
-  Pressable,
-  Linking,
-  Alert,
 } from "react-native";
-import { Feather } from "@expo/vector-icons";
 
 export default function SOS() {
   const contactos = [
@@ -16,7 +16,7 @@ export default function SOS() {
     { nombre: "Mamá", telefono: "4444444444" },
   ];
   const emergencia = [
-    { nombre: "Emergencias", telefono: "911" },
+    { nombre: "E M E R G E N C I A S", telefono: "911" },
   ];
 
   const llamar = (telefono: string) => {
@@ -29,12 +29,11 @@ export default function SOS() {
     <View style={styles.container}>
       <Text style={styles.title}>CONTACTOS DE EMERGENCIA</Text>
 
-      {/* Emergencia primero, con estilo distinto */}
       {emergencia.map((item) => (
         <View key={item.telefono} style={styles.contactoEmergencia}>
-          <Text style={styles.nombre}>{item.nombre}</Text>
+          <Text style={[styles.nombre, styles.textoE]}>{item.nombre}</Text>
           <Pressable
-            style={styles.btnLlamar}
+            style={styles.btnLlamarE}
             onPress={() => llamar(item.telefono)}
           >
             <Feather name="phone-call" size={15} color="#bf5f3a" />
@@ -58,13 +57,14 @@ export default function SOS() {
         )}
       />
 
+      {/* Botón flotante en la esquina inferior derecha */}
       <Pressable
-        style={styles.btnNuevo}
+        style={styles.botonFlotante}
         onPress={() =>
           Alert.alert("Esto debería redireccionar a los contactos xd")
         }
       >
-        <Text style={styles.btnTexto}>+ Añadir contacto</Text>
+        <Feather name="plus" size={24} color="white" />
       </Pressable>
     </View>
   );
@@ -75,7 +75,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#f8fafc",
     padding: 20,
-    justifyContent: "center",
   },
   title: {
     fontSize: 22,
@@ -93,13 +92,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   contactoEmergencia: {
-    backgroundColor: "#8f1300a3", // color especial
+    backgroundColor: "#8f1300a3",
+    color: "white",
     padding: 16,
     borderRadius: 20,
     marginBottom: 12,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+  },
+  textoE:{
+    color: "white",
+    fontWeight: "bold",
+    fontSize: 18,
   },
   nombre: {
     fontSize: 16,
@@ -111,15 +116,26 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     borderRadius: 25,
   },
-  btnNuevo: {
-    marginTop: 30,
-    backgroundColor: "#c2613c",
-    padding: 12,
-    borderRadius: 8,
-    alignItems: "center",
+  btnLlamarE: {
+    backgroundColor: "#FFFFFF",
+    paddingVertical: 8,
+    paddingHorizontal: 8,
+    borderRadius: 25,
   },
-  btnTexto: {
-    color: "white",
-    fontWeight: "bold",
+  botonFlotante: {
+    position: "absolute",
+    bottom: 20,
+    right: 20,
+    backgroundColor: "#c2613c",
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 5, // sombra en Android
+    shadowColor: "#000", // sombra en iOS
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
   },
 });
