@@ -1,4 +1,8 @@
-import { Poppins_400Regular, Poppins_700Bold, useFonts } from "@expo-google-fonts/poppins";
+import {
+  Poppins_400Regular,
+  Poppins_700Bold,
+  useFonts,
+} from "@expo-google-fonts/poppins";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
@@ -37,10 +41,10 @@ export default function RootLayout() {
         }}
       />
       <StatusBar style="light" />
-      <Stack>
-        <Stack.Screen name="index" options={{ title: "[Nombre]" }} />
-        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="index" />
+        <Stack.Screen name="(auth)" />
+        <Stack.Screen name="(tabs)" />
       </Stack>
     </View>
   );

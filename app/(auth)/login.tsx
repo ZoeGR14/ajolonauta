@@ -1,25 +1,39 @@
-import { useRouter } from 'expo-router';
-import { Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Link, useRouter } from "expo-router";
+import { Text, TextInput, TouchableOpacity, View } from "react-native";
 
 export default function LoginScreen() {
-  const router = useRouter(); 
+  const router = useRouter();
 
   return (
-    <View style={{ flex: 1, justifyContent: 'center', padding: 20, backgroundColor: '#fff' }}>
+    <View
+      style={{
+        flex: 1,
+        justifyContent: "center",
+        padding: 20,
+        backgroundColor: "#fff",
+      }}
+    >
       {/* Título */}
-      <Text style={{ fontSize: 22, fontWeight: 'bold', marginBottom: 25, textAlign: 'center' }}>
+      <Text
+        style={{
+          fontSize: 22,
+          fontWeight: "bold",
+          marginBottom: 25,
+          textAlign: "center",
+        }}
+      >
         Iniciar Sesión
       </Text>
 
       {/* Campos del formulario */}
       <View style={{ marginBottom: 15 }}>
-        <Text style={{ marginBottom: 8, fontWeight: '500' }}>Usuario</Text>
+        <Text style={{ marginBottom: 8, fontWeight: "500" }}>Usuario</Text>
         <TextInput
           placeholder="Ingresa tu usuario"
           style={{
             height: 50,
             borderWidth: 1,
-            borderColor: '#ccc',
+            borderColor: "#ccc",
             borderRadius: 8,
             paddingHorizontal: 12,
           }}
@@ -27,14 +41,14 @@ export default function LoginScreen() {
       </View>
 
       <View style={{ marginBottom: 20 }}>
-        <Text style={{ marginBottom: 8, fontWeight: '500' }}>Contraseña</Text>
+        <Text style={{ marginBottom: 8, fontWeight: "500" }}>Contraseña</Text>
         <TextInput
           placeholder="Ingresa tu contraseña"
           secureTextEntry
           style={{
             height: 50,
             borderWidth: 1,
-            borderColor: '#ccc',
+            borderColor: "#ccc",
             borderRadius: 8,
             paddingHorizontal: 12,
           }}
@@ -44,16 +58,26 @@ export default function LoginScreen() {
       {/* Botón Login con navegación */}
       <TouchableOpacity
         style={{
-          backgroundColor: '#007AFF',
+          backgroundColor: "#007AFF",
           padding: 15,
           borderRadius: 8,
-          alignItems: 'center',
+          alignItems: "center",
           marginBottom: 20,
         }}
-        onPress={() => router.push('/avisos')} 
+        onPress={() => router.push("/avisos")}
       >
-        <Text style={{ color: 'white', fontWeight: 'bold' }}>Login</Text>
+        <Text style={{ color: "white", fontWeight: "bold" }}>Login</Text>
       </TouchableOpacity>
+
+      {/* Enlace a Login si ya tiene cuenta */}
+      <View style={{ flexDirection: "row", justifyContent: "center" }}>
+        <Link
+          href="./forgot-pass"
+          style={{ color: "#007AFF", fontWeight: "bold" }}
+        >
+          Olvidé mi contraseña
+        </Link>
+      </View>
     </View>
   );
 }

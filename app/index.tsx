@@ -11,14 +11,19 @@ export default function Index() {
 
       {/* Botón de Inicio de Sesión */}
       <TouchableOpacity style={styles.button}>
-        <Link href="/login" style={styles.buttonText}>Inicio de Sesión</Link>
-        <Link href="/login"></Link>
+        <Link href="/login" style={styles.buttonText}>
+          Inicio de Sesión
+        </Link>
       </TouchableOpacity>
 
       {/* Botón de Registro */}
       <TouchableOpacity style={[styles.button, styles.outlineButton]}>
-        <Link href="/signup" style={[styles.buttonText, styles.outlineButtonText]}>Registro de Usuario</Link>
-        <Link href="/signup"></Link>
+        <Link
+          href="/signup"
+          style={[styles.buttonText, styles.outlineButtonText]}
+        >
+          Registro de Usuario
+        </Link>
       </TouchableOpacity>
     </View>
   );
