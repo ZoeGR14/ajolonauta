@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { StatusBar, StyleSheet, TextInput, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import Autocomplete from "react-native-autocomplete-input";
 import MapView, { Marker, Polyline } from "react-native-maps";
 import geojsonData from "../../assets/data/metro.json";
 import terminales from "../../assets/data/terminales.json";
@@ -226,10 +227,35 @@ const lines = lineas
 export default function MisRutas() {
   //@ts-ignore
   const grafo = construirGrafo(lines);
+
   const [start, setStart] = useState("");
   const [end, setEnd] = useState("");
 
+  const [hideS, setHideS] = useState(false);
+  const [hideE, setHideE] = useState(false);
+
+  const handleSelectS = (estacion: string) => {
+    setStart(estacion);
+    setHideS(true); // Oculta la lista de resultados
+  };
+
+  const handleSelectE = (estacion: string) => {
+    setEnd(estacion);
+    setHideE(true); // Oculta la lista de resultados
+  };
+
   const result = dijkstra(grafo, start, end);
+  const estaciones = [
+    ...new Set(lines.flatMap((l) => l.estaciones.map((e) => e.nombre))),
+  ];
+
+  const filteredEstacionesS = start
+    ? estaciones.filter((n) => n?.includes(start))
+    : [];
+
+  const filteredEstacionesE = end
+    ? estaciones.filter((n) => n?.includes(end))
+    : [];
 
   const coordenadas = result?.path.map((s) => ({
     latitude: s.coordenadas.latitude,
@@ -242,33 +268,53 @@ export default function MisRutas() {
         style={{
           flex: 1,
           backgroundColor: "white",
-          paddingTop: StatusBar.currentHeight,
           justifyContent: "center",
           gap: 10,
           paddingHorizontal: 20,
+          paddingTop: 20,
         }}
       >
-        <TextInput
-          style={{
-            padding: 10,
-            borderColor: "black",
-            borderRadius: 3,
-            borderWidth: 1,
-          }}
-          value={start}
-          onChangeText={setStart}
+        <Autocomplete
+          data={filteredEstacionesS}
           placeholder="Estación de Origen"
-        />
-        <TextInput
-          style={{
-            padding: 10,
-            borderColor: "black",
-            borderRadius: 3,
-            borderWidth: 1,
+          defaultValue={start}
+          onChangeText={(text) => {
+            setStart(text);
+            setHideS(false);
           }}
-          value={end}
-          onChangeText={setEnd}
+          hideResults={hideS}
+          flatListProps={{
+            keyExtractor: (_, idx) => idx.toString(),
+            renderItem: ({ item }) => (
+              //@ts-ignore
+              <TouchableOpacity onPress={() => handleSelectS(item)}>
+                <Text style={{ padding: 10 }}>{item}</Text>
+              </TouchableOpacity>
+            ),
+          }}
+          inputContainerStyle={styles.input}
+          listContainerStyle={styles.list}
+        />
+        <Autocomplete
+          data={filteredEstacionesE}
           placeholder="Estación de Destino"
+          defaultValue={end}
+          onChangeText={(t) => {
+            setEnd(t);
+            setHideE(false);
+          }}
+          hideResults={hideE}
+          flatListProps={{
+            keyExtractor: (_, idx) => idx.toString(),
+            renderItem: ({ item }) => (
+              //@ts-ignore
+              <TouchableOpacity onPress={() => handleSelectE(item)}>
+                <Text style={{ padding: 10 }}>{item}</Text>
+              </TouchableOpacity>
+            ),
+          }}
+          inputContainerStyle={styles.input}
+          listContainerStyle={styles.list}
         />
       </View>
 
@@ -308,4 +354,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  input: { borderColor: "black", borderWidth: 1 },
+  list: { zIndex: 1 },
 });
