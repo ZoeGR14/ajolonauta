@@ -63,7 +63,7 @@ export default function SignUpScreen() {
       {/* Botón Sign Up con Firebase */}
       <TouchableOpacity
         style={{
-          backgroundColor: "#007AFF",
+          backgroundColor: "#e68059",
           padding: 15,
           borderRadius: 8,
           alignItems: "center",
@@ -77,7 +77,7 @@ export default function SignUpScreen() {
       {/* Enlace a Login si ya tiene cuenta */}
       <View style={{ flexDirection: "row", justifyContent: "center" }}>
         <Text style={{ marginRight: 5 }}>¿Ya tienes cuenta?</Text>
-        <Link href="./login" style={{ color: "#007AFF", fontWeight: "bold" }}>
+        <Link href="./login" style={{ color: "#e68059", fontWeight: "bold" }}>
           Iniciar Sesión
         </Link>
       </View>

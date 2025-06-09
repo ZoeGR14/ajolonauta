@@ -6,7 +6,7 @@ export default function Index() {
     <View style={styles.container}>
       {/* Logo - igual que en las otras pantallas */}
       <View style={styles.logoContainer}>
-        <Text style={styles.appName}>(Nombre)</Text>
+        <Text style={styles.appName}>AJOLONAUTA</Text>
       </View>
 
       {/* Botón de Inicio de Sesión */}
@@ -43,10 +43,10 @@ const styles = StyleSheet.create({
   appName: {
     fontSize: 32,
     fontWeight: "bold",
-    color: "#007AFF",
+    color: "#e68059",
   },
   button: {
-    backgroundColor: "#007AFF",
+    backgroundColor: "#e68059",
     padding: 15,
     borderRadius: 8,
     alignItems: "center",
@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
   outlineButton: {
     backgroundColor: "transparent",
     borderWidth: 1,
-    borderColor: "#007AFF",
+    borderColor: "#e68059",
   },
   buttonText: {
     color: "white",
@@ -63,6 +63,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   outlineButtonText: {
-    color: "#007AFF",
+    color: "#e68059",
   },
 });

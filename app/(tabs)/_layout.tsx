@@ -1,11 +1,11 @@
-import Entypo from "@expo/vector-icons/Entypo";
+import { Feather } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 
 export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: "#e68059", // texto cuando está activa
+        tabBarActiveTintColor: "#e68059",
         tabBarInactiveTintColor: "#e68059",
         tabBarStyle: {
           backgroundColor: "white",
@@ -21,8 +21,8 @@ export default function TabLayout() {
         options={{
           title: "Avisos",
           tabBarIcon: ({ focused }) => (
-            <Entypo
-              name="megaphone"
+            <Feather
+              name="alert-circle"
               size={20}
               color={focused ? "white" : "#e68059"}
               style={{
@@ -39,7 +39,7 @@ export default function TabLayout() {
         options={{
           title: "Rutas",
           tabBarIcon: ({ focused }) => (
-            <Entypo
+            <Feather
               name="map"
               size={20}
               color={focused ? "white" : "#e68059"}
@@ -57,7 +57,7 @@ export default function TabLayout() {
         options={{
           title: "SOS",
           tabBarIcon: ({ focused }) => (
-            <Entypo
+            <Feather
               name="phone"
               size={20}
               color={focused ? "white" : "#e68059"}
@@ -75,8 +75,8 @@ export default function TabLayout() {
         options={{
           title: "Mis Rutas",
           tabBarIcon: ({ focused }) => (
-            <Entypo
-              name="tag"
+            <Feather
+              name="bookmark"
               size={20}
               color={focused ? "white" : "#e68059"}
               style={{
@@ -93,7 +93,7 @@ export default function TabLayout() {
         options={{
           title: "Perfil",
           tabBarIcon: ({ focused }) => (
-            <Entypo
+            <Feather
               name="user"
               size={20}
               color={focused ? "white" : "#e68059"}

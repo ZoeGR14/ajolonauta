@@ -77,7 +77,7 @@ export default function LoginScreen() {
       {/* Botón Login con Firebase */}
       <TouchableOpacity
         style={{
-          backgroundColor: "#007AFF",
+          backgroundColor: "#e68059",
           padding: 15,
           borderRadius: 8,
           alignItems: "center",
@@ -92,7 +92,7 @@ export default function LoginScreen() {
       <View style={{ flexDirection: "row", justifyContent: "center" }}>
         <Link
           href="./forgot-pass"
-          style={{ color: "#007AFF", fontWeight: "bold" }}
+          style={{ color: "#e68059", fontWeight: "bold" }}
         >
           Olvidé mi contraseña
         </Link>

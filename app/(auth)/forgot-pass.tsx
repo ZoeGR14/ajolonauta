@@ -33,7 +33,7 @@ export default function ForgotPasswordScreen() {
       {/* Botón Enviar Instrucciones */}
       <TouchableOpacity
         style={{
-          backgroundColor: '#007AFF',
+          backgroundColor: '#e68059',
           padding: 15,
           borderRadius: 8,
           alignItems: 'center',
@@ -45,7 +45,7 @@ export default function ForgotPasswordScreen() {
 
       {/* Enlace para volver al Login */}
       <View style={{ flexDirection: 'row', justifyContent: 'center' }}>
-        <Link href="/login" style={{ color: '#007AFF', fontWeight: 'bold' }}>
+        <Link href="/login" style={{ color: '#e68059', fontWeight: 'bold' }}>
           Volver al Inicio de Sesión
         </Link>
       </View>
