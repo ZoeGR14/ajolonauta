@@ -1,12 +1,11 @@
 import { Poppins_400Regular, Poppins_700Bold, useFonts } from "@expo-google-fonts/poppins";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
+import { StatusBar } from "expo-status-bar";
 import { useCallback } from "react";
-import { StatusBar, Text, View } from "react-native";
+import { Platform, StatusBar as RNStatusBar, Text, View } from "react-native";
 
 SplashScreen.preventAutoHideAsync();
-
-StatusBar.setBackgroundColor("#E68059", true);
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
@@ -21,18 +20,25 @@ export default function RootLayout() {
   }, [fontsLoaded]);
 
   if (fontsLoaded && !(Text as any).defaultProps) {
-  (Text as any).defaultProps = {
-    style: { fontFamily: "Poppins_400Regular" },
-  };
-}
-
+    (Text as any).defaultProps = {
+      style: { fontFamily: "Poppins_600Regular" },
+    };
+  }
 
   if (!fontsLoaded) return null;
 
   return (
-    <View style={{ flex: 1, paddingTop: StatusBar.currentHeight }} onLayout={onLayoutRootView}>
+    <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
+      {/* Simula el fondo del status bar */}
+      <View
+        style={{
+          height: Platform.OS === "android" ? RNStatusBar.currentHeight : 44,
+          backgroundColor: "#e68059",
+        }}
+      />
+      <StatusBar style="light" />
       <Stack>
-        <Stack.Screen name="index" options={{ headerShown: false }} />
+        <Stack.Screen name="index" options={{ title: "[Nombre]" }} />
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       </Stack>
