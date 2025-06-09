@@ -1,33 +1,38 @@
-import { Link } from "expo-router";
-import { Text, TextInput, TouchableOpacity, View } from "react-native";
+
+import { Link, useRouter } from 'expo-router';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { useState } from 'react';
+import { Alert, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { auth } from '../../FirebaseConfig';
 
 export default function SignUpScreen() {
+  const router = useRouter();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const handleSignUp = async () => {
+    try {
+      await createUserWithEmailAndPassword(auth, email, password);
+      Alert.alert('Registro Exitoso', 'Cuenta creada correctamente');
+      router.push('/login'); // Redirige a login después de registrarse
+    } catch (error) {
+      Alert.alert('Error', 'No se pudo crear la cuenta, verifica los datos');
+    }
+  };
+
   return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: "center",
-        padding: 20,
-        backgroundColor: "#fff",
-      }}
-    >
-      {/* Título */}
-      <Text
-        style={{
-          fontSize: 24,
-          fontWeight: "bold",
-          marginBottom: 30,
-          textAlign: "center",
-        }}
-      >
+    <View style={{ flex: 1, justifyContent: 'center', padding: 20, backgroundColor: '#fff' }}>
+      <Text style={{ fontSize: 24, fontWeight: 'bold', marginBottom: 30, textAlign: 'center' }}>
         Regístrate
       </Text>
 
-      {/* Campo Usuario */}
+      {/* Campo Email */}
       <View style={{ marginBottom: 15 }}>
-        <Text style={{ marginBottom: 5, fontWeight: "500" }}>Usuario</Text>
+        <Text style={{ marginBottom: 5, fontWeight: '500' }}>Correo Electrónico</Text>
         <TextInput
-          placeholder="Crea tu nombre de usuario"
+          placeholder="Ingresa tu email"
+          value={email}
+          onChangeText={setEmail}
           style={{
             height: 50,
             borderWidth: 1,
@@ -44,6 +49,8 @@ export default function SignUpScreen() {
         <TextInput
           placeholder="Crea tu contraseña"
           secureTextEntry
+          value={password}
+          onChangeText={setPassword}
           style={{
             height: 50,
             borderWidth: 1,
@@ -53,24 +60,7 @@ export default function SignUpScreen() {
           }}
         />
       </View>
-
-      {/* Campo Teléfono */}
-      <View style={{ marginBottom: 25 }}>
-        <Text style={{ marginBottom: 5, fontWeight: "500" }}>Teléfono</Text>
-        <TextInput
-          placeholder="Ingresa tu número telefónico"
-          keyboardType="phone-pad"
-          style={{
-            height: 50,
-            borderWidth: 1,
-            borderColor: "#ccc",
-            borderRadius: 8,
-            padding: 10,
-          }}
-        />
-      </View>
-
-      {/* Botón Sign In */}
+      {/* Botón Sign Up con Firebase */}
       <TouchableOpacity
         style={{
           backgroundColor: "#007AFF",
@@ -79,8 +69,9 @@ export default function SignUpScreen() {
           alignItems: "center",
           marginBottom: 20,
         }}
+        onPress={handleSignUp} // Llama a la función de registro
       >
-        <Text style={{ color: "white", fontWeight: "bold" }}>Sign In</Text>
+        <Text style={{ color: 'white', fontWeight: 'bold' }}>Sign Up</Text>
       </TouchableOpacity>
 
       {/* Enlace a Login si ya tiene cuenta */}

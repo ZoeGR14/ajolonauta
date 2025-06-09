@@ -1,8 +1,23 @@
-import { Link, useRouter } from "expo-router";
-import { Text, TextInput, TouchableOpacity, View } from "react-native";
+
+import { Link, useRouter } from 'expo-router';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { useState } from 'react';
+import { Alert, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { auth } from '../../FirebaseConfig';
 
 export default function LoginScreen() {
   const router = useRouter();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const handleLogin = async () => {
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      router.push('/avisos'); // Redirige a "avisos" si el login es exitoso
+    } catch (error) {
+      Alert.alert('Error', 'Credenciales incorrectas o problema de conexión');
+    }
+  };
 
   return (
     <View
@@ -27,9 +42,11 @@ export default function LoginScreen() {
 
       {/* Campos del formulario */}
       <View style={{ marginBottom: 15 }}>
-        <Text style={{ marginBottom: 8, fontWeight: "500" }}>Usuario</Text>
+        <Text style={{ marginBottom: 8, fontWeight: '500' }}>Usuario (Email)</Text>
         <TextInput
-          placeholder="Ingresa tu usuario"
+          placeholder="Ingresa tu email"
+          value={email}
+          onChangeText={setEmail}
           style={{
             height: 50,
             borderWidth: 1,
@@ -45,6 +62,8 @@ export default function LoginScreen() {
         <TextInput
           placeholder="Ingresa tu contraseña"
           secureTextEntry
+          value={password}
+          onChangeText={setPassword}
           style={{
             height: 50,
             borderWidth: 1,
@@ -55,7 +74,7 @@ export default function LoginScreen() {
         />
       </View>
 
-      {/* Botón Login con navegación */}
+      {/* Botón Login con Firebase */}
       <TouchableOpacity
         style={{
           backgroundColor: "#007AFF",
@@ -64,7 +83,7 @@ export default function LoginScreen() {
           alignItems: "center",
           marginBottom: 20,
         }}
-        onPress={() => router.push("/avisos")}
+        onPress={handleLogin} // Llama a la función de autenticación
       >
         <Text style={{ color: "white", fontWeight: "bold" }}>Login</Text>
       </TouchableOpacity>
@@ -81,3 +100,4 @@ export default function LoginScreen() {
     </View>
   );
 }
+
