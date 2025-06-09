@@ -1,19 +1,11 @@
-import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Text, View } from 'react-native';
+import { WebView } from 'react-native-webview';
 
 export default function Avisos() {
   return (
-    <View style={styles.container}>
-      <Text>Avisos</Text>
+    <View style={{ flex: 1 }}>
+      <Text style={{ fontSize: 20, fontWeight: 'bold', padding: 10 }}>Últimos Avisos</Text>
+      <WebView source={{ uri: 'https://x.com/MetroCDMX' }} />
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    gap: 20,
-  },
-});
