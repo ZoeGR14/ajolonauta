@@ -5,7 +5,14 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: "midnightblue",
+        tabBarActiveTintColor: "midnightblue",       // texto cuando está activa
+        tabBarInactiveTintColor: "midnightblue",
+        tabBarStyle: {
+          backgroundColor: "white",
+          height: 70,
+          paddingBottom: 10,
+          paddingTop: 10
+        },
         headerShown: false,
       }}
     >
@@ -13,8 +20,17 @@ export default function TabLayout() {
         name="avisos"
         options={{
           title: "Avisos",
-          tabBarIcon: () => (
-            <Entypo name="megaphone" size={20} color="midnightblue" />
+          tabBarIcon: ({ focused }) => (
+            <Entypo
+              name="megaphone"
+              size={20}
+              color={focused ? "white" : "#e68059"}
+              style={{
+                backgroundColor: focused ? "#e68059" : "transparent",
+                borderRadius: 10,
+                padding: 4,
+              }}
+            />
           ),
         }}
       />
@@ -22,8 +38,17 @@ export default function TabLayout() {
         name="mapa"
         options={{
           title: "Rutas",
-          tabBarIcon: () => (
-            <Entypo name="map" size={20} color="midnightblue" />
+          tabBarIcon: ({ focused }) => (
+            <Entypo
+              name="map"
+              size={20}
+              color={focused ? "white" : "#e68059"}
+              style={{
+                backgroundColor: focused ? "#e68059" : "transparent",
+                borderRadius: 10,
+                padding: 4,
+              }}
+            />
           ),
         }}
       />
@@ -31,8 +56,17 @@ export default function TabLayout() {
         name="sos"
         options={{
           title: "SOS",
-          tabBarIcon: () => (
-            <Entypo name="phone" size={20} color="midnightblue" />
+          tabBarIcon: ({ focused }) => (
+            <Entypo
+              name="phone"
+              size={20}
+              color={focused ? "white" : "#e68059"}
+              style={{
+                backgroundColor: focused ? "#e68059" : "transparent",
+                borderRadius: 10,
+                padding: 4,
+              }}
+            />
           ),
         }}
       />
@@ -40,8 +74,17 @@ export default function TabLayout() {
         name="misRutas"
         options={{
           title: "Mis Rutas",
-          tabBarIcon: () => (
-            <Entypo name="tag" size={20} color="midnightblue" />
+          tabBarIcon: ({ focused }) => (
+            <Entypo
+              name="tag"
+              size={20}
+              color={focused ? "white" : "#e68059"}
+              style={{
+                backgroundColor: focused ? "#e68059" : "transparent",
+                borderRadius: 10,
+                padding: 4,
+              }}
+            />
           ),
         }}
       />
@@ -49,8 +92,17 @@ export default function TabLayout() {
         name="perfil"
         options={{
           title: "Perfil",
-          tabBarIcon: () => (
-            <Entypo name="user" size={20} color="midnightblue" />
+          tabBarIcon: ({ focused }) => (
+            <Entypo
+              name="user"
+              size={20}
+              color={focused ? "white" : "#e68059"}
+              style={{
+                backgroundColor: focused ? "#e68059" : "transparent",
+                borderRadius: 10,
+                padding: 4,
+              }}
+            />
           ),
         }}
       />

@@ -300,12 +300,10 @@ export default function MisRutas() {
           )}
         </MapView>
       </View>
-      {/**/}
     </View>
   );
 }
 
-// Estilos
 const styles = StyleSheet.create({
   container: {
     flex: 1,

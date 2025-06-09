@@ -4,7 +4,7 @@
     "slug": "app_movil",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/iconApp1.png",
     "scheme": "appmovil",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -33,7 +33,8 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
-      ]
+      ],
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true
