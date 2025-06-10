@@ -412,7 +412,7 @@
       "type": "Feature",
       "properties": {
         "routes": ["Línea 2"],
-        "name": "Zócalo"
+        "name": "Zócalo/Tenochtitlán"
       },
       "geometry": {
         "coordinates": [-99.132278, 19.432034],
@@ -445,7 +445,7 @@
       "type": "Feature",
       "properties": {
         "routes": ["Línea 6"],
-        "name": "La Villa"
+        "name": "La Villa / Basílica"
       },
       "geometry": {
         "coordinates": [-99.117622, 19.48132],
@@ -522,7 +522,7 @@
       "type": "Feature",
       "properties": {
         "routes": ["Línea 6"],
-        "name": "Ferrería"
+        "name": "Ferrería / Arena Ciudad de México"
       },
       "geometry": {
         "coordinates": [-99.173412, 19.490949],
@@ -555,7 +555,7 @@
       "type": "Feature",
       "properties": {
         "routes": ["Línea 6"],
-        "name": "Tezozomoc"
+        "name": "Tezozómoc"
       },
       "geometry": {
         "coordinates": [-99.1962, 19.494954],
@@ -610,7 +610,7 @@
       "type": "Feature",
       "properties": {
         "routes": ["Línea 2"],
-        "name": "Cuitlahuac"
+        "name": "Cuitláhuac"
       },
       "geometry": {
         "coordinates": [-99.181738, 19.457407],
@@ -676,7 +676,7 @@
       "type": "Feature",
       "properties": {
         "routes": ["Línea 3"],
-        "name": "Miguel A de Quevedo"
+        "name": "Miguel Ángel de Quevedo"
       },
       "geometry": {
         "coordinates": [-99.180858, 19.346234],
@@ -687,7 +687,7 @@
       "type": "Feature",
       "properties": {
         "routes": ["Línea 3"],
-        "name": "Viveros"
+        "name": "Viveros/Derechos Humanos"
       },
       "geometry": {
         "coordinates": [-99.175258, 19.35419],
@@ -731,7 +731,7 @@
       "type": "Feature",
       "properties": {
         "routes": ["Línea 3"],
-        "name": "Etiopía"
+        "name": "Etiopía / Plaza de la Transparencia"
       },
       "geometry": {
         "coordinates": [-99.156053, 19.396193],
@@ -764,7 +764,7 @@
       "type": "Feature",
       "properties": {
         "routes": ["Línea 3"],
-        "name": "Niños héroes"
+        "name": "Niños Héroes / Poder Judicial CDMX"
       },
       "geometry": {
         "coordinates": [-99.150302, 19.419467],
@@ -775,7 +775,7 @@
       "type": "Feature",
       "properties": {
         "routes": ["Línea A"],
-        "name": "Peñon Viejo"
+        "name": "Peñón Viejo"
       },
       "geometry": {
         "coordinates": [-99.016986, 19.373057],
@@ -808,7 +808,7 @@
       "type": "Feature",
       "properties": {
         "routes": ["Línea A"],
-        "name": "Canal de San Juán"
+        "name": "Canal de San Juan"
       },
       "geometry": {
         "coordinates": [-99.059558, 19.398642],
@@ -929,7 +929,7 @@
       "type": "Feature",
       "properties": {
         "routes": ["Línea 12"],
-        "name": "Metro periférico oriente"
+        "name": "Periférico Oriente"
       },
       "geometry": {
         "coordinates": [-99.07402, 19.31734],
@@ -940,7 +940,7 @@
       "type": "Feature",
       "properties": {
         "routes": ["Línea 1"],
-        "name": "Cuauhtemoc"
+        "name": "Cuauhtémoc"
       },
       "geometry": {
         "coordinates": [-99.154637, 19.425579],
@@ -951,7 +951,7 @@
       "type": "Feature",
       "properties": {
         "routes": ["Línea 12"],
-        "name": "Metro Calle 11"
+        "name": "Calle 11"
       },
       "geometry": {
         "coordinates": [-99.085779, 19.320499],
@@ -1006,7 +1006,7 @@
       "type": "Feature",
       "properties": {
         "routes": ["Línea B"],
-        "name": "Rio de los Remedios"
+        "name": "Río de los Remedios"
       },
       "geometry": {
         "coordinates": [-99.046726, 19.490544],
@@ -1061,7 +1061,7 @@
       "type": "Feature",
       "properties": {
         "routes": ["Línea 12"],
-        "name": "Veinte de noviembre"
+        "name": "Hospital 20 de Noviembre"
       },
       "geometry": {
         "coordinates": [-99.171095, 19.372005],
@@ -1083,7 +1083,7 @@
       "type": "Feature",
       "properties": {
         "routes": ["Línea B"],
-        "name": "Nezahualcoyotl"
+        "name": "Nezahualcóyotl"
       },
       "geometry": {
         "coordinates": [-99.054451, 19.4725],
@@ -1303,7 +1303,7 @@
       "type": "Feature",
       "properties": {
         "routes": ["Línea 1"],
-        "name": "Juanactlán"
+        "name": "Juanacatlán"
       },
       "geometry": {
         "coordinates": [-99.181309, 19.412728],
@@ -1359,7 +1359,7 @@
       "type": "Feature",
       "properties": {
         "routes": ["Línea 8"],
-        "name": "UAN-1"
+        "name": "UAM-I"
       },
       "geometry": {
         "coordinates": [-99.07445, 19.350991],
@@ -1502,7 +1502,7 @@
       "type": "Feature",
       "properties": {
         "routes": ["Línea B", "Línea 8"],
-        "name": "Garibaldi Lagunilla"
+        "name": "Garibaldi / Lagunilla"
       },
       "geometry": {
         "coordinates": [-99.138436, 19.444256],
