@@ -1,24 +1,24 @@
-import { Link } from "expo-router";
+import { useRouter } from "expo-router";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export default function Index() {
+  const router = useRouter();
+
   return (
     <View style={styles.container}>
       {/* Logo - igual que en las otras pantallas */}
       <View style={styles.logoContainer}>
-        <Text style={styles.appName}>(Nombre)</Text>
+        <Text style={styles.appName}></Text>
       </View>
 
       {/* Botón de Inicio de Sesión */}
-      <TouchableOpacity style={styles.button}>
-        <Link href="/login" style={styles.buttonText}>Inicio de Sesión</Link>
-        <Link href="/login"></Link>
+      <TouchableOpacity style={styles.button} onPress={() => router.push("/login")}>
+        <Text style={styles.buttonText}>Inicio de Sesión</Text>
       </TouchableOpacity>
 
       {/* Botón de Registro */}
-      <TouchableOpacity style={[styles.button, styles.outlineButton]}>
-        <Link href="/signup" style={[styles.buttonText, styles.outlineButtonText]}>Registro de Usuario</Link>
-        <Link href="/signup"></Link>
+      <TouchableOpacity style={[styles.button, styles.outlineButton]} onPress={() => router.push("/signup")}>
+        <Text style={[styles.buttonText, styles.outlineButtonText]}>Registro de Usuario</Text>
       </TouchableOpacity>
     </View>
   );
