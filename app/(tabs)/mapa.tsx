@@ -12,92 +12,9 @@ import {
 } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
 
+import { lineas, lines, mapStyle, origin } from "@/assets/data/info";
 import geojsonData from "../../assets/data/metro.json";
 import terminales from "../../assets/data/terminales.json";
-
-// Tipos
-interface Coordinate {
-  latitude: number;
-  longitude: number;
-}
-
-interface Station extends Coordinate {
-  nombre?: string;
-}
-
-// Utilidades
-export const euclidiana = (p1: Coordinate, p2: Coordinate): number =>
-  Math.sqrt(
-    Math.pow(p1.latitude - p2.latitude, 2) +
-      Math.pow(p1.longitude - p2.longitude, 2)
-  );
-
-export const orderStations = (startStation: Station, stations: Station[]) => {
-  let ordered = [startStation];
-  let remaining = stations.filter(
-    (s) =>
-      s.latitude !== startStation.latitude ||
-      s.longitude !== startStation.longitude
-  );
-
-  while (remaining.length > 0) {
-    const last = ordered[ordered.length - 1];
-    const nearest = remaining.reduce((closest, s) =>
-      euclidiana(last, s) < euclidiana(last, closest) ? s : closest
-    );
-    ordered.push(nearest);
-    remaining = remaining.filter((s) => s !== nearest);
-  }
-
-  return ordered;
-};
-
-export const origin = {
-  latitude: 19.435721,
-  longitude: -99.13149,
-  latitudeDelta: 0.1,
-  longitudeDelta: 0.8,
-};
-
-export const lineas = [
-  "Línea 1",
-  "Línea 2",
-  "Línea 3",
-  "Línea 4",
-  "Línea 5",
-  "Línea 6",
-  "Línea 7",
-  "Línea 8",
-  "Línea 9",
-  "Línea A",
-  "Línea B",
-  "Línea 12",
-];
-
-export const polylines = lineas.map((linea) => {
-  const features = geojsonData.features.filter((f) =>
-    f.properties.routes.includes(linea)
-  );
-
-  const terminal = terminales.find((t) => t.linea === linea)?.nombre;
-  let initial: Coordinate = { latitude: 0, longitude: 0 };
-
-  const coords: Station[] = features.map((f) => {
-    const [lon, lat] = f.geometry.coordinates;
-    if (f.properties.name === terminal) {
-      initial = { latitude: lat, longitude: lon };
-    }
-    return { latitude: lat, longitude: lon, nombre: f.properties.name };
-  });
-
-  const color = terminales.find((t) => t.linea === linea)?.color || "black";
-
-  return {
-    estaciones: orderStations(initial, coords),
-    color,
-    linea,
-  };
-});
 
 export default function Mapa() {
   const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>(
@@ -145,7 +62,6 @@ export default function Mapa() {
     () => Object.values(checkedItems).every(Boolean),
     [checkedItems]
   );
-
   return (
     <View style={styles.container}>
       <MapView
@@ -174,12 +90,15 @@ export default function Mapa() {
               ))
         )}
 
-        {polylines.map(
-          (p, index) =>
+        {lines.map(
+          (p) =>
             checkedItems[p.linea] && (
               <Polyline
                 key={p.linea}
-                coordinates={p.estaciones}
+                coordinates={p.estaciones.map((a) => ({
+                  latitude: a.latitude,
+                  longitude: a.longitude,
+                }))}
                 strokeWidth={5}
                 strokeColor={p.color}
               />
@@ -237,19 +156,19 @@ export default function Mapa() {
 }
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    justifyContent: "center", 
+  container: {
+    flex: 1,
+    justifyContent: "center",
     alignItems: "center",
   },
-  map: { 
-    width: "100%", 
-    height: "100%", 
+  map: {
+    width: "100%",
+    height: "100%",
   },
-  buttonContainer: { 
-    position: "absolute", 
-    top: 20, 
-    right: 20 
+  buttonContainer: {
+    position: "absolute",
+    top: 20,
+    right: 20,
   },
   infoButton: {
     backgroundColor: "#E68059",
@@ -277,25 +196,12 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     paddingVertical: 8,
   },
-  checkboxText: { 
-    paddingLeft: 10 
-  },
-  checkboxTextBold: { 
+  checkboxText: {
     paddingLeft: 10,
-    backgroundColor: "transparent", 
-    fontWeight: "bold" 
+  },
+  checkboxTextBold: {
+    paddingLeft: 10,
+    backgroundColor: "transparent",
+    fontWeight: "bold",
   },
 });
-
-export const mapStyle = [
-  {
-    featureType: "poi",
-    stylers: [{ visibility: "off" }],
-  },
-  {
-    featureType: "road",
-    elementType: "labels.icon",
-    stylers: [{ visibility: "off" }],
-  },
-  { featureType: "transit", stylers: [{ visibility: "off" }] },
-];
