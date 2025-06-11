@@ -21,98 +21,6 @@ interface GraphNode {
   }[];
 }
 
-// Constantes
-
-export const origin = {
-  latitude: 19.45379117084108,
-  longitude: -99.09783286973834,
-  latitudeDelta: 0.583156553786452,
-  longitudeDelta: 0.3156641498208046,
-};
-
-export const origin2 = {
-  latitude: 19.435721,
-  longitude: -99.08977903425694,
-  latitudeDelta: 0.1,
-  longitudeDelta: 0.2685099095106125,
-};
-
-export const lineas = [
-  "Línea 1",
-  "Línea 2",
-  "Línea 3",
-  "Línea 4",
-  "Línea 5",
-  "Línea 6",
-  "Línea 7",
-  "Línea 8",
-  "Línea 9",
-  "Línea A",
-  "Línea B",
-  "Línea 12",
-];
-
-export const lines = lineas
-  .map((l) => {
-    const completa = geojsonData.features.filter((lines) =>
-      lines.properties.routes.includes(l)
-    );
-
-    const terminal = terminales.find((t) => t.linea === l)?.nombre;
-    let coordenadaInicial: Station = {
-      latitude: 0,
-      longitude: 0,
-      nombre: "",
-    };
-
-    const coordenadas: Station[] = completa.map((linea) => {
-      const [longitude, latitude] = linea.geometry.coordinates;
-      return { latitude, longitude, nombre: linea.properties.name };
-    });
-
-    if (terminal) {
-      const terminalData = completa.find(
-        (linea) => linea.properties.name === terminal
-      );
-      if (terminalData) {
-        const [longitude, latitude] = terminalData.geometry.coordinates;
-        coordenadaInicial = { latitude, longitude, nombre: terminal };
-      }
-    }
-
-    const color = terminales.find((t) => t.linea === l)?.color;
-    return {
-      startStation: coordenadaInicial,
-      stations: coordenadas,
-      color,
-      linea: l,
-    };
-  })
-  .map((p) => ({
-    estaciones: orderStations(p.startStation, p.stations),
-    color: p.color,
-    linea: p.linea,
-  }));
-
-export const arregloEstaciones = [
-  ...new Set(lines.flatMap((l) => l.estaciones.map((e) => e.nombre))),
-];
-
-export const grafo = construirGrafo(lines);
-
-export const mapStyle = [
-  {
-    featureType: "poi",
-    stylers: [{ visibility: "off" }],
-  },
-  {
-    featureType: "road",
-    elementType: "labels.icon",
-    stylers: [{ visibility: "off" }],
-  },
-  { featureType: "transit", stylers: [{ visibility: "off" }] },
-];
-
 // Metodos
 
 export const euclidiana = (p1: Coordinate, p2: Coordinate): number =>
@@ -284,3 +192,95 @@ function construirGrafo(lineas: { estaciones: Station[] }[]) {
 
   return grafo;
 }
+
+// Constantes
+
+export const origin = {
+  latitude: 19.45379117084108,
+  longitude: -99.09783286973834,
+  latitudeDelta: 0.583156553786452,
+  longitudeDelta: 0.3156641498208046,
+};
+
+export const origin2 = {
+  latitude: 19.435721,
+  longitude: -99.08977903425694,
+  latitudeDelta: 0.1,
+  longitudeDelta: 0.2685099095106125,
+};
+
+export const lineas = [
+  "Línea 1",
+  "Línea 2",
+  "Línea 3",
+  "Línea 4",
+  "Línea 5",
+  "Línea 6",
+  "Línea 7",
+  "Línea 8",
+  "Línea 9",
+  "Línea A",
+  "Línea B",
+  "Línea 12",
+];
+
+export const lines = lineas
+  .map((l) => {
+    const completa = geojsonData.features.filter((lines) =>
+      lines.properties.routes.includes(l)
+    );
+
+    const terminal = terminales.find((t) => t.linea === l)?.nombre;
+    let coordenadaInicial: Station = {
+      latitude: 0,
+      longitude: 0,
+      nombre: "",
+    };
+
+    const coordenadas: Station[] = completa.map((linea) => {
+      const [longitude, latitude] = linea.geometry.coordinates;
+      return { latitude, longitude, nombre: linea.properties.name };
+    });
+
+    if (terminal) {
+      const terminalData = completa.find(
+        (linea) => linea.properties.name === terminal
+      );
+      if (terminalData) {
+        const [longitude, latitude] = terminalData.geometry.coordinates;
+        coordenadaInicial = { latitude, longitude, nombre: terminal };
+      }
+    }
+
+    const color = terminales.find((t) => t.linea === l)?.color;
+    return {
+      startStation: coordenadaInicial,
+      stations: coordenadas,
+      color,
+      linea: l,
+    };
+  })
+  .map((p) => ({
+    estaciones: orderStations(p.startStation, p.stations),
+    color: p.color,
+    linea: p.linea,
+  }));
+
+export const arregloEstaciones = [
+  ...new Set(lines.flatMap((l) => l.estaciones.map((e) => e.nombre))),
+];
+
+export const grafo = construirGrafo(lines);
+
+export const mapStyle = [
+  {
+    featureType: "poi",
+    stylers: [{ visibility: "off" }],
+  },
+  {
+    featureType: "road",
+    elementType: "labels.icon",
+    stylers: [{ visibility: "off" }],
+  },
+  { featureType: "transit", stylers: [{ visibility: "off" }] },
+];
