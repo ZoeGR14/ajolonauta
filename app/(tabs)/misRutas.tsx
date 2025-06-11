@@ -1,5 +1,11 @@
 import React, { useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  Keyboard,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import Autocomplete from "react-native-autocomplete-input";
 import MapView, { Marker, Polyline } from "react-native-maps";
 import {
@@ -50,13 +56,14 @@ export default function MisRutas() {
           flex: 1,
           backgroundColor: "white",
           justifyContent: "center",
-          gap: 10,
-          paddingHorizontal: 20,
-          paddingTop: 20,
         }}
       >
         <Autocomplete
           data={filteredEstacionesS}
+          onPress={() => {
+            setHideE(true);
+            setHideS(false);
+          }}
           placeholder="Estación de Origen"
           defaultValue={start}
           onChangeText={(text) => {
@@ -67,11 +74,17 @@ export default function MisRutas() {
           flatListProps={{
             keyExtractor: (_, idx) => idx.toString(),
             renderItem: ({ item }) => (
-              //@ts-ignore
               <TouchableOpacity onPress={() => handleSelectS(item)}>
                 <Text style={{ padding: 10 }}>{item}</Text>
               </TouchableOpacity>
             ),
+            keyboardShouldPersistTaps: "always",
+          }}
+          containerStyle={{
+            position: "absolute",
+            left: 20,
+            right: 20,
+            bottom: "55%",
           }}
           inputContainerStyle={styles.input}
           listContainerStyle={styles.list}
@@ -79,6 +92,10 @@ export default function MisRutas() {
         <Autocomplete
           data={filteredEstacionesE}
           placeholder="Estación de Destino"
+          onPress={() => {
+            setHideS(true);
+            setHideE(false);
+          }}
           defaultValue={end}
           onChangeText={(t) => {
             setEnd(t);
@@ -88,17 +105,30 @@ export default function MisRutas() {
           flatListProps={{
             keyExtractor: (_, idx) => idx.toString(),
             renderItem: ({ item }) => (
-              //@ts-ignore
-              <TouchableOpacity onPress={() => handleSelectE(item)}>
+              <TouchableOpacity
+                onPress={() => {
+                  handleSelectE(item);
+                  Keyboard.dismiss();
+                }}
+              >
                 <Text style={{ padding: 10 }}>{item}</Text>
               </TouchableOpacity>
             ),
+            keyboardShouldPersistTaps: "always",
           }}
+          //Estilo del contenedor (es como si estuviera dentro de un view)
+          containerStyle={{
+            position: "absolute",
+            left: 20,
+            right: 20,
+            top: "55%",
+          }}
+          //Estilo del InputText
           inputContainerStyle={styles.input}
+          //Estilo del contenedor de la lista
           listContainerStyle={styles.list}
         />
       </View>
-
       <View style={{ flex: 4 }}>
         <MapView
           style={{ width: "100%", height: "100%" }}
@@ -106,6 +136,9 @@ export default function MisRutas() {
           customMapStyle={mapStyle}
           showsCompass={false}
           toolbarEnabled={false}
+          provider="google"
+          loadingEnabled={true}
+          loadingIndicatorColor="#e68059"
         >
           {lines.map((p, index) => (
             <Polyline
@@ -115,9 +148,11 @@ export default function MisRutas() {
               strokeColor={p.color}
             />
           ))}
-          {result?.path.map((r, i) => (
-            <Marker coordinate={r.coordenadas} key={i} title={r.nombre} />
-          ))}
+          {result?.path.map((r, i) => {
+            return (
+              <Marker coordinate={r.coordenadas} key={i} title={r.nombre} />
+            );
+          })}
           {coordenadas && coordenadas.length > 0 && (
             <Polyline
               coordinates={coordenadas}
@@ -134,7 +169,20 @@ export default function MisRutas() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    justifyContent: "center",
   },
-  input: { borderColor: "black", borderWidth: 1 },
-  list: { zIndex: 1 },
+  input: {
+    borderColor: "#e68059",
+    borderWidth: 1,
+    padding: 5,
+    borderRadius: 5,
+  },
+  list: {
+    zIndex: 1,
+    position: "absolute",
+    top: "100%",
+    left: 0,
+    right: 0,
+    maxHeight: 300,
+  },
 });

@@ -70,6 +70,9 @@ export default function Mapa() {
         customMapStyle={mapStyle}
         showsCompass={false}
         toolbarEnabled={false}
+        provider="google"
+        loadingEnabled={true}
+        loadingIndicatorColor="#e68059"
       >
         {lineas.map(
           (line) =>

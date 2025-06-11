@@ -412,7 +412,7 @@
       "type": "Feature",
       "properties": {
         "routes": ["Línea 2"],
-        "name": "Zócalo/Tenochtitlán"
+        "name": "Zócalo / Tenochtitlán"
       },
       "geometry": {
         "coordinates": [-99.132278, 19.432034],
@@ -687,7 +687,7 @@
       "type": "Feature",
       "properties": {
         "routes": ["Línea 3"],
-        "name": "Viveros/Derechos Humanos"
+        "name": "Viveros / Derechos Humanos"
       },
       "geometry": {
         "coordinates": [-99.175258, 19.35419],
