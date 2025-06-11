@@ -1,21 +1,21 @@
-
-import { Link, useRouter } from 'expo-router';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { useState } from 'react';
-import { Alert, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { auth } from '../../FirebaseConfig';
+import { useRouter } from "expo-router";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { useState } from "react";
+import { Alert, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { auth } from "../../FirebaseConfig";
 
 export default function LoginScreen() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async () => {
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      router.push('/avisos'); // Redirige a "avisos" si el login es exitoso
+      router.push("/avisos"); // Redirige a "avisos" si el login es exitoso
     } catch (error) {
-      Alert.alert('Error', 'Credenciales incorrectas o problema de conexión');
+      Alert.alert("Error", "Credenciales incorrectas o problema de conexión");
     }
   };
 
@@ -40,13 +40,15 @@ export default function LoginScreen() {
         Iniciar Sesión
       </Text>
 
-      {/* Campos del formulario */}
+      {/* Campo Email */}
       <View style={{ marginBottom: 15 }}>
-        <Text style={{ marginBottom: 8, fontWeight: '500' }}>Usuario (Email)</Text>
+        <Text style={{ marginBottom: 8, fontWeight: "500" }}>Email</Text>
         <TextInput
           placeholder="Ingresa tu email"
           value={email}
           onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
           style={{
             height: 50,
             borderWidth: 1,
@@ -57,21 +59,32 @@ export default function LoginScreen() {
         />
       </View>
 
+      {/* Campo Contraseña con botón de mostrar/ocultar */}
       <View style={{ marginBottom: 20 }}>
         <Text style={{ marginBottom: 8, fontWeight: "500" }}>Contraseña</Text>
-        <TextInput
-          placeholder="Ingresa tu contraseña"
-          secureTextEntry
-          value={password}
-          onChangeText={setPassword}
+        <View
           style={{
-            height: 50,
+            flexDirection: "row",
+            alignItems: "center",
             borderWidth: 1,
             borderColor: "#ccc",
             borderRadius: 8,
-            paddingHorizontal: 12,
           }}
-        />
+        >
+          <TextInput
+            placeholder="Ingresa tu contraseña"
+            secureTextEntry={!showPassword}
+            value={password}
+            onChangeText={setPassword}
+            style={{ flex: 1, height: 50, paddingHorizontal: 12 }}
+          />
+          <TouchableOpacity
+            onPress={() => setShowPassword(!showPassword)}
+            style={{ padding: 10 }}
+          >
+            <Text>{showPassword ? "🙈" : "👁️"}</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Botón Login con Firebase */}
@@ -83,21 +96,29 @@ export default function LoginScreen() {
           alignItems: "center",
           marginBottom: 20,
         }}
-        onPress={handleLogin} // Llama a la función de autenticación
+        onPress={handleLogin}
       >
         <Text style={{ color: "white", fontWeight: "bold" }}>Login</Text>
       </TouchableOpacity>
 
-      {/* Enlace a Login si ya tiene cuenta */}
+      {/* Enlace a Recuperar Contraseña */}
+      <View style={{ alignItems: "center", marginBottom: 15 }}>
+        <TouchableOpacity onPress={() => router.push("/forgot-pass")}>
+          <Text style={{ color: "#007AFF", fontWeight: "bold" }}>
+            ¿Olvidaste tu contraseña?
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Enlace a SignUp */}
       <View style={{ flexDirection: "row", justifyContent: "center" }}>
-        <Link
-          href="./forgot-pass"
-          style={{ color: "#e68059", fontWeight: "bold" }}
-        >
-          Olvidé mi contraseña
-        </Link>
+        <Text style={{ marginRight: 5 }}>¿Aún no tienes cuenta?</Text>
+        <TouchableOpacity onPress={() => router.push("/signup")}>
+          <Text style={{ color: "#007AFF", fontWeight: "bold" }}>
+            Regístrate
+          </Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
 }
-
