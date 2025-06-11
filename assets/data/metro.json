@@ -1028,17 +1028,6 @@
       "type": "Feature",
       "properties": {
         "routes": ["Línea 12"],
-        "name": "Atlalilco"
-      },
-      "geometry": {
-        "coordinates": [-99.106078, 19.352651],
-        "type": "Point"
-      }
-    },
-    {
-      "type": "Feature",
-      "properties": {
-        "routes": ["Línea 12"],
         "name": "Mexicaltzingo"
       },
       "geometry": {
