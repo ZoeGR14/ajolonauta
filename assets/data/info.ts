@@ -13,11 +13,15 @@ interface Station extends Coordinate {
 }
 
 interface GraphNode {
+  nombre: string;
+  linea: string;
   coordenada: Coordinate;
+  activa: boolean;
   conexiones: {
     nombre: string;
     peso: number;
     coordenadas: Coordinate;
+    linea: string;
   }[];
 }
 
@@ -29,7 +33,7 @@ export const euclidiana = (p1: Coordinate, p2: Coordinate): number =>
       Math.pow(p1.longitude - p2.longitude, 2)
   );
 
-export const orderStations = (startStation: Station, stations: Station[]) => {
+const orderStations = (startStation: Station, stations: Station[]) => {
   let ordered = [startStation];
   let remaining = stations.filter(
     (s) =>
@@ -67,21 +71,16 @@ class PriorityQueue<T> {
 }
 
 export function dijkstra(
-  graph: Record<
-    string,
-    {
-      coordenada: { latitude: number; longitude: number };
-      conexiones: {
-        coordenadas: { latitude: number; longitude: number };
-        nombre: string;
-        peso: number;
-      }[];
-    }
-  >,
+  graph: Record<string, GraphNode>,
   startNode: string,
   endNode: string
 ) {
-  if (!graph[startNode] || !graph[endNode]) {
+  if (
+    !graph[startNode] ||
+    !graph[endNode] ||
+    !graph[startNode].activa ||
+    !graph[endNode].activa
+  ) {
     return { distance: Infinity, path: [] };
   }
 
@@ -107,7 +106,8 @@ export function dijkstra(
     if (currentNode === endNode) {
       const path: {
         nombre: string;
-        coordenadas: { latitude: number; longitude: number };
+        coordenadas: Coordinate;
+        linea: string;
       }[] = [];
       let tempNode: string | null = endNode;
       while (tempNode !== null) {
@@ -118,17 +118,19 @@ export function dijkstra(
           );
           if (connection) {
             path.unshift({
-              nombre: tempNode,
+              nombre: graph[tempNode].nombre,
               coordenadas: connection.coordenadas,
+              linea: graph[tempNode].linea,
             });
           }
         } else if (graph[tempNode]) {
           path.unshift({
-            nombre: tempNode,
+            nombre: graph[tempNode].nombre,
             coordenadas: graph[tempNode]?.coordenada || {
               latitude: 0,
               longitude: 0,
             },
+            linea: graph[tempNode].linea,
           });
         }
         tempNode = previousNodes[tempNode];
@@ -136,12 +138,15 @@ export function dijkstra(
       return { distance: distances[endNode], path };
     }
 
-    graph[currentNode]?.conexiones.forEach(({ nombre, peso, coordenadas }) => {
-      const distance = currentDistance + peso;
-      if (distance < distances[nombre]) {
-        distances[nombre] = distance;
+    graph[currentNode]?.conexiones.forEach(({ nombre, peso }) => {
+      if (!graph[nombre] || !graph[nombre].activa) return;
+
+      const totalDistance = currentDistance + peso;
+
+      if (totalDistance < distances[nombre]) {
+        distances[nombre] = totalDistance;
         previousNodes[nombre] = currentNode;
-        priorityQueue.enqueue([nombre, distance]);
+        priorityQueue.enqueue([nombre, totalDistance]);
       }
     });
   }
@@ -149,48 +154,104 @@ export function dijkstra(
   return { distance: Infinity, path: [] };
 }
 
-function construirGrafo(lineas: { estaciones: Station[] }[]) {
+function construirGrafo(lineas: { estaciones: Station[]; linea: string }[]) {
   const grafo: Record<string, GraphNode> = {};
+  const mapaEstaciones: Record<string, string[]> = {};
 
-  lineas.forEach(({ estaciones }) => {
+  lineas.forEach(({ estaciones, linea }) => {
     estaciones.forEach((estacion, index) => {
-      if (!grafo[estacion.nombre]) {
-        grafo[estacion.nombre] = {
+      const nodoId = `${estacion.nombre} - ${linea}`;
+
+      if (!grafo[nodoId]) {
+        grafo[nodoId] = {
+          nombre: estacion.nombre,
+          linea,
           conexiones: [],
           coordenada: {
             latitude: estacion.latitude,
             longitude: estacion.longitude,
           },
+          activa: true,
         };
       }
 
+      if (!mapaEstaciones[estacion.nombre]) {
+        mapaEstaciones[estacion.nombre] = [];
+      }
+      mapaEstaciones[estacion.nombre].push(nodoId);
+
       if (index > 0) {
         const anterior = estaciones[index - 1];
-        grafo[estacion.nombre].conexiones.push({
-          nombre: anterior.nombre,
+        const anteriorNodo = `${anterior.nombre} - ${linea}`;
+        grafo[nodoId].conexiones.push({
+          nombre: anteriorNodo,
           peso: euclidiana(estacion, anterior),
           coordenadas: {
             latitude: anterior.latitude,
             longitude: anterior.longitude,
           },
+          linea,
         });
       }
 
       if (index < estaciones.length - 1) {
         const siguiente = estaciones[index + 1];
-        grafo[estacion.nombre].conexiones.push({
-          nombre: siguiente.nombre,
+        const siguienteNodo = `${siguiente.nombre} - ${linea}`;
+        grafo[nodoId].conexiones.push({
+          nombre: siguienteNodo,
           peso: euclidiana(estacion, siguiente),
           coordenadas: {
             latitude: siguiente.latitude,
             longitude: siguiente.longitude,
           },
+          linea,
         });
       }
     });
   });
-
+  for (const nombre in mapaEstaciones) {
+    const nodos = mapaEstaciones[nombre];
+    if (nodos.length > 1) {
+      for (let i = 0; i < nodos.length; i++) {
+        for (let j = i + 1; j < nodos.length; j++) {
+          const nodoA = nodos[i];
+          const nodoB = nodos[j];
+          // Conexión desde A a B
+          grafo[nodoA].conexiones.push({
+            nombre: nodoB,
+            peso: 1, // Ajusta el peso según convenga al transbordo
+            coordenadas: grafo[nodoB].coordenada,
+            linea: "Transbordo",
+          });
+          // Conexión desde B a A
+          grafo[nodoB].conexiones.push({
+            nombre: nodoA,
+            peso: 1,
+            coordenadas: grafo[nodoA].coordenada,
+            linea: "Transbordo",
+          });
+        }
+      }
+    }
+  }
   return grafo;
+}
+
+function encontrarRepetidos(arr: string[]): string[] {
+  const conteo = new Map<string, number>();
+  const repetidos: string[] = [];
+
+  arr.forEach((cadena) => {
+    conteo.set(cadena, (conteo.get(cadena) || 0) + 1);
+  });
+
+  conteo.forEach((cantidad, cadena) => {
+    if (cantidad > 1) {
+      repetidos.push(cadena);
+    }
+  });
+
+  return repetidos;
 }
 
 // Constantes
@@ -266,9 +327,13 @@ export const lines = lineas
     linea: p.linea,
   }));
 
-export const arregloEstaciones = [
-  ...new Set(lines.flatMap((l) => l.estaciones.map((e) => e.nombre))),
-];
+export const arregloEstaciones = lines.flatMap((l) =>
+  l.estaciones.map((e) => `${e.nombre} - ${l.linea}`)
+);
+
+export const transbordos = encontrarRepetidos(
+  lines.flatMap((l) => l.estaciones.map((e) => e.nombre))
+);
 
 export const grafo = construirGrafo(lines);
 

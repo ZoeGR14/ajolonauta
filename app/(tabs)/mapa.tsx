@@ -62,6 +62,7 @@ export default function Mapa() {
     () => Object.values(checkedItems).every(Boolean),
     [checkedItems]
   );
+
   return (
     <View style={styles.container}>
       <MapView

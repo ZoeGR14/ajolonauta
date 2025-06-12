@@ -34,6 +34,10 @@ export default function MisRutas() {
     setHideE(true); // Oculta la lista de resultados
   };
 
+  grafo["Observatorio - Línea 1"].activa = false;
+  grafo["Tacubaya - Línea 1"].activa = false;
+  grafo["Juanacatlán - Línea 1"].activa = false;
+
   const result = dijkstra(grafo, start, end);
 
   const filteredEstacionesS = start
@@ -150,7 +154,12 @@ export default function MisRutas() {
           ))}
           {result?.path.map((r, i) => {
             return (
-              <Marker coordinate={r.coordenadas} key={i} title={r.nombre} />
+              <Marker
+                coordinate={r.coordenadas}
+                key={i}
+                title={r.nombre}
+                description={r.linea}
+              />
             );
           })}
           {coordenadas && coordenadas.length > 0 && (
