@@ -1,5 +1,7 @@
+import { db } from "@/FirebaseConfig";
 import { Feather } from "@expo/vector-icons";
-import React, { useState } from "react";
+import { collection, onSnapshot, query, where } from "firebase/firestore";
+import React, { useEffect, useState } from "react";
 import {
   Button,
   FlatList,
@@ -16,12 +18,42 @@ import {
   arregloEstaciones,
   dijkstra,
   grafo,
+  lineas,
   lines,
   mapStyle,
   origin2,
 } from "../../assets/data/info";
 
 export default function MisRutas() {
+  const [estacionesCerradas, setEstacionesCerradas] = useState<string[]>([]);
+
+  useEffect(() => {
+    const unsubscribes = lineas.map((linea) => {
+      const stationsRef = collection(db, "lineas", linea, "estaciones");
+      const q = query(stationsRef, where("activa", "==", false));
+
+      return onSnapshot(q, (querySnapshot) => {
+        setEstacionesCerradas((prev) => {
+          const nuevasEstaciones = querySnapshot.docs.map(
+            (doc) => `${doc.id} - ${linea}`
+          );
+
+          const estacionesActualizadas = [
+            ...prev.filter((e) => !e.includes(`- ${linea}`)),
+            ...nuevasEstaciones,
+          ];
+
+          Object.keys(grafo).forEach((estacion) => {
+            grafo[estacion].activa = !estacionesActualizadas.includes(estacion);
+          });
+          return estacionesActualizadas;
+        });
+      });
+    });
+
+    return () => unsubscribes.forEach((unsub) => unsub());
+  }, []);
+
   const [start, setStart] = useState("");
   const [end, setEnd] = useState("");
   const [modal, setModal] = useState(false);
@@ -38,10 +70,6 @@ export default function MisRutas() {
     setEnd(estacion);
     setHideE(true); // Oculta la lista de resultados
   };
-
-  grafo["Observatorio - Línea 1"].activa = false;
-  grafo["Tacubaya - Línea 1"].activa = false;
-  grafo["Juanacatlán - Línea 1"].activa = false;
 
   const result = dijkstra(grafo, start, end);
 
