@@ -1,6 +1,10 @@
+import { Feather } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
+  Button,
+  FlatList,
   Keyboard,
+  Modal,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -20,6 +24,7 @@ import {
 export default function MisRutas() {
   const [start, setStart] = useState("");
   const [end, setEnd] = useState("");
+  const [modal, setModal] = useState(false);
 
   const [hideS, setHideS] = useState(false);
   const [hideE, setHideE] = useState(false);
@@ -170,6 +175,100 @@ export default function MisRutas() {
             />
           )}
         </MapView>
+        {coordenadas && coordenadas.length > 0 && (
+          <View
+            style={{
+              position: "absolute",
+              bottom: 20,
+              right: 20,
+              gap: 20,
+            }}
+          >
+            <TouchableOpacity
+              style={{
+                backgroundColor: "#e68059",
+                padding: 15,
+                borderRadius: 12,
+              }}
+              activeOpacity={0.9}
+              //onPress={} -> Guardar en el perfil de la persona
+            >
+              <Text
+                style={{
+                  color: "white",
+                  fontWeight: "bold",
+                  textAlign: "center",
+                }}
+              >
+                Guardar
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={{
+                backgroundColor: "#e68059",
+                padding: 15,
+                borderRadius: 12,
+              }}
+              activeOpacity={0.9}
+              onPress={() => setModal(true)}
+            >
+              <Text
+                style={{
+                  color: "white",
+                  fontWeight: "bold",
+                  textAlign: "center",
+                }}
+              >
+                Información
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+        <Modal
+          animationType="slide"
+          visible={modal}
+          onRequestClose={() => setModal(false)}
+        >
+          <View
+            style={{ flex: 1, justifyContent: "center", padding: 15, gap: 10 }}
+          >
+            <FlatList
+              data={result?.path.flatMap((s) => ({
+                nombre: s.nombre,
+                linea: s.linea,
+              }))}
+              renderItem={({ item, index }) => {
+                return (
+                  <View
+                    style={{
+                      padding: 10,
+                      borderWidth: 1,
+                      borderRadius: 10,
+                    }}
+                    key={index}
+                  >
+                    <Text>
+                      {index + 1}. {item.nombre} - {item.linea}
+                    </Text>
+                  </View>
+                );
+              }}
+              ItemSeparatorComponent={() => (
+                <View
+                  style={{
+                    flex: 1,
+                    padding: 5,
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  <Feather name="arrow-down" size={28} color="black" />
+                </View>
+              )}
+            />
+            <Button title="Cerrar" onPress={() => setModal(false)} />
+          </View>
+        </Modal>
       </View>
     </View>
   );

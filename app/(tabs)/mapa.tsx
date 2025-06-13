@@ -176,7 +176,6 @@ const styles = StyleSheet.create({
   },
   infoButton: {
     backgroundColor: "#E68059",
-    marginTop: 25,
     width: 50,
     height: 50,
     justifyContent: "center",

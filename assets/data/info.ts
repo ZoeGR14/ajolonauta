@@ -27,7 +27,7 @@ interface GraphNode {
 
 // Metodos
 
-export const euclidiana = (p1: Coordinate, p2: Coordinate): number =>
+const euclidiana = (p1: Coordinate, p2: Coordinate): number =>
   Math.sqrt(
     Math.pow(p1.latitude - p2.latitude, 2) +
       Math.pow(p1.longitude - p2.longitude, 2)
@@ -237,23 +237,6 @@ function construirGrafo(lineas: { estaciones: Station[]; linea: string }[]) {
   return grafo;
 }
 
-function encontrarRepetidos(arr: string[]): string[] {
-  const conteo = new Map<string, number>();
-  const repetidos: string[] = [];
-
-  arr.forEach((cadena) => {
-    conteo.set(cadena, (conteo.get(cadena) || 0) + 1);
-  });
-
-  conteo.forEach((cantidad, cadena) => {
-    if (cantidad > 1) {
-      repetidos.push(cadena);
-    }
-  });
-
-  return repetidos;
-}
-
 // Constantes
 
 export const origin = {
@@ -329,10 +312,6 @@ export const lines = lineas
 
 export const arregloEstaciones = lines.flatMap((l) =>
   l.estaciones.map((e) => `${e.nombre} - ${l.linea}`)
-);
-
-export const transbordos = encontrarRepetidos(
-  lines.flatMap((l) => l.estaciones.map((e) => e.nombre))
 );
 
 export const grafo = construirGrafo(lines);
