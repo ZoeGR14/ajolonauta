@@ -129,7 +129,7 @@ export default function MisRutas() {
     const collectionRef = collection(db, "estaciones_cerradas");
     const q = query(collectionRef);
 
-    const unsubscribe = onSnapshot(q, async (querySnapshot) => {
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const data = querySnapshot.docs.map((doc) => doc.id);
       setEstacionesCerradas(data);
       Object.keys(grafo).forEach((estacion) => {
