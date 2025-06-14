@@ -49,13 +49,13 @@ export default function MisRutas() {
     if (estacionesCerradas.includes(start)) {
       ToastAndroid.show(`${start} está presentando fallas`, ToastAndroid.SHORT);
     }
-  }, [start]);
+  }, [start, estacionesCerradas]);
 
   useEffect(() => {
     if (estacionesCerradas.includes(end)) {
       ToastAndroid.show(`${end} está presentando fallas`, ToastAndroid.SHORT);
     }
-  }, [end]);
+  }, [end, estacionesCerradas]);
 
   const handleSelectS = (estacion: string) => {
     setStart(estacion);
@@ -129,10 +129,11 @@ export default function MisRutas() {
     const collectionRef = collection(db, "estaciones_cerradas");
     const q = query(collectionRef);
 
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      setEstacionesCerradas(querySnapshot.docs.map((doc) => doc.id));
+    const unsubscribe = onSnapshot(q, async (querySnapshot) => {
+      const data = querySnapshot.docs.map((doc) => doc.id);
+      setEstacionesCerradas(data);
       Object.keys(grafo).forEach((estacion) => {
-        grafo[estacion].activa = !estacionesCerradas.includes(estacion);
+        grafo[estacion].activa = !data.includes(estacion);
       });
       isLoading1(false);
     });
