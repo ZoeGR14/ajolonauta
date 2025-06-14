@@ -1,4 +1,5 @@
 import { Feather } from "@expo/vector-icons";
+import { router } from "expo-router";
 import React from "react";
 import {
   Image,
@@ -30,7 +31,11 @@ export default function MyAccountScreen() {
 
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
         <Option icon="phone" label="Teléfono" />
-        <Option icon="heart" label="Líneas guardadas" />
+        <Option
+          icon="heart"
+          label="Líneas guardadas"
+          onPress={() => router.push("./rutasGuardadas")}
+        />
         <Option icon="settings" label="Modificar datos" />
         <Option icon="help-circle" label="FAQs" />
 
@@ -42,8 +47,16 @@ export default function MyAccountScreen() {
   );
 }
 
-const Option = ({ icon, label }: { icon: string; label: string }) => (
-  <TouchableOpacity style={styles.option}>
+const Option = ({
+  icon,
+  label,
+  onPress,
+}: {
+  icon: string;
+  label: string;
+  onPress?: () => void;
+}) => (
+  <TouchableOpacity style={styles.option} onPress={onPress}>
     <View style={styles.optionLeft}>
       <Feather name={icon as any} size={24} color="#e68059" />
       <Text style={styles.optionText}>{label}</Text>
@@ -116,7 +129,7 @@ const styles = StyleSheet.create({
   editButton: {
     position: "absolute",
     bottom: 3, // 🔧 distancia desde la parte inferior del círculo
-    right: 15,  // 🔧 distancia desde el borde derecho del círculo
+    right: 15, // 🔧 distancia desde el borde derecho del círculo
     backgroundColor: "white",
     borderRadius: 20,
     padding: 6,
