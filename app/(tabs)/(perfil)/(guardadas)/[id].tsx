@@ -5,11 +5,13 @@ import { useLocalSearchParams } from "expo-router";
 import { collection, doc, getDoc, onSnapshot, query } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   Button,
   FlatList,
   Modal,
   StyleSheet,
   Text,
+  ToastAndroid,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -23,12 +25,11 @@ export default function MapaGuardado() {
   const [modal, setModal] = useState(false);
   const [result, setResult] = useState<any>();
   const [coordenadas, setCoordenadas] = useState<any>();
+  const [isLoading, setLoading] = useState(true);
 
   // Obtener el documento de Firestore
   useEffect(() => {
     const readDoc = async () => {
-      if (!id) return;
-
       try {
         const docRef = doc(db, "rutas_guardadas", id as string);
         const docSnap = await getDoc(docRef);
@@ -46,6 +47,27 @@ export default function MapaGuardado() {
     readDoc();
   }, [id]);
 
+  useEffect(() => {
+    if (!routes) return;
+    //Toasts en caso de que las estaciones esten fallando
+    if (estacionesCerradas.includes(routes.start)) {
+      ToastAndroid.show(
+        `${routes.start} está presentando fallas`,
+        ToastAndroid.SHORT
+      );
+    }
+  }, [routes, estacionesCerradas]);
+
+  useEffect(() => {
+    if (!routes) return;
+    if (estacionesCerradas.includes(routes.end)) {
+      ToastAndroid.show(
+        `${routes.end} está presentando fallas`,
+        ToastAndroid.SHORT
+      );
+    }
+  }, [routes, estacionesCerradas]);
+
   // Calcular la ruta una vez que `routes` tiene datos
   useEffect(() => {
     if (!routes) return;
@@ -61,21 +83,31 @@ export default function MapaGuardado() {
         }))
       );
     }
-  }, [routes]);
+  }, [routes, estacionesCerradas]);
 
   // Obtener estaciones cerradas y actualizar el grafo
   useEffect(() => {
     const collectionRef = collection(db, "estaciones_cerradas");
     const q = query(collectionRef);
 
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      setEstacionesCerradas(querySnapshot.docs.map((doc) => doc.id));
+    const unsubscribe = onSnapshot(q, async (querySnapshot) => {
+      const data = querySnapshot.docs.map((doc) => doc.id);
+      setEstacionesCerradas(data);
       Object.keys(grafo).forEach((estacion) => {
-        grafo[estacion].activa = !estacionesCerradas.includes(estacion);
+        grafo[estacion].activa = !data.includes(estacion);
       });
+      setLoading(false);
     });
     return unsubscribe;
   }, []);
+
+  if (isLoading) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color="#e68059" />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
