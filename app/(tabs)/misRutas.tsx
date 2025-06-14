@@ -1,6 +1,13 @@
-import { db } from "@/FirebaseConfig";
+import { auth, db } from "@/FirebaseConfig";
 import { Feather } from "@expo/vector-icons";
-import { collection, onSnapshot, query, where } from "firebase/firestore";
+import {
+  addDoc,
+  collection,
+  getDocs,
+  onSnapshot,
+  query,
+  where,
+} from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -20,7 +27,6 @@ import {
   arregloEstaciones,
   dijkstra,
   grafo,
-  lineas,
   lines,
   mapStyle,
   origin2,
@@ -28,36 +34,8 @@ import {
 
 export default function MisRutas() {
   const [estacionesCerradas, setEstacionesCerradas] = useState<string[]>([]);
-  const [loading, isLoading] = useState(true);
-
-  useEffect(() => {
-    const unsubscribes = lineas.map((linea) => {
-      const stationsRef = collection(db, "lineas", linea, "estaciones");
-      const q = query(stationsRef, where("activa", "==", false));
-
-      return onSnapshot(q, (querySnapshot) => {
-        setEstacionesCerradas((prev) => {
-          const nuevasEstaciones = querySnapshot.docs.map(
-            (doc) => `${doc.id} - ${linea}`
-          );
-
-          const estacionesActualizadas = [
-            ...prev.filter((e) => !e.includes(`- ${linea}`)),
-            ...nuevasEstaciones,
-          ];
-
-          Object.keys(grafo).forEach((estacion) => {
-            grafo[estacion].activa = !estacionesActualizadas.includes(estacion);
-          });
-
-          isLoading(false);
-          return estacionesActualizadas;
-        });
-      });
-    });
-
-    return () => unsubscribes.forEach((unsub) => unsub());
-  }, []);
+  const [loading1, isLoading1] = useState(true);
+  const [loading2, isLoading2] = useState(true);
 
   const [start, setStart] = useState("");
   const [end, setEnd] = useState("");
@@ -67,17 +45,15 @@ export default function MisRutas() {
   const [hideE, setHideE] = useState(false);
 
   useEffect(() => {
+    //Toasts en caso de que las estaciones esten fallando
     if (estacionesCerradas.includes(start)) {
-      ToastAndroid.show(`${start} presenta fallas`, ToastAndroid.SHORT);
+      ToastAndroid.show(`${start} está presentando fallas`, ToastAndroid.SHORT);
     }
   }, [start]);
 
   useEffect(() => {
     if (estacionesCerradas.includes(end)) {
-      ToastAndroid.show(
-        `La estación ${end} presenta fallas o está cerrada`,
-        ToastAndroid.SHORT
-      );
+      ToastAndroid.show(`${end} está presentando fallas`, ToastAndroid.SHORT);
     }
   }, [end]);
 
@@ -110,7 +86,64 @@ export default function MisRutas() {
     longitude: s.coordenadas.longitude,
   }));
 
-  if (loading) {
+  //Firestore
+
+  const [routes, setRoutes] = useState<any>([]);
+  const user = auth.currentUser;
+  const routesCollection = collection(db, "rutas_guardadas");
+
+  const fetchRoutes = async () => {
+    if (user) {
+      const q = query(routesCollection, where("userId", "==", user.uid));
+      const data = await getDocs(q);
+      setRoutes(data.docs.map((doc) => ({ ...doc.data() })));
+    } else {
+      console.log("Ningun usuario loggeado");
+    }
+    isLoading2(false);
+  };
+
+  const addRoutes = async (start: string, end: string) => {
+    if (user) {
+      if (
+        routes.length > 0 &&
+        routes.some(
+          (r: { start: string; end: string }) =>
+            r.start === start && r.end === end
+        )
+      ) {
+        ToastAndroid.show("Ruta anteriormente guardada", ToastAndroid.SHORT);
+      } else {
+        isLoading2(true);
+        ToastAndroid.show("Guardando ruta...", ToastAndroid.SHORT);
+        await addDoc(routesCollection, { start, end, userId: user.uid });
+        setRoutes([]);
+        fetchRoutes();
+      }
+    } else {
+      console.log("Ningun usuario loggeado");
+    }
+  };
+
+  useEffect(() => {
+    const collectionRef = collection(db, "estaciones_cerradas");
+    const q = query(collectionRef);
+
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      setEstacionesCerradas(querySnapshot.docs.map((doc) => doc.id));
+      Object.keys(grafo).forEach((estacion) => {
+        grafo[estacion].activa = !estacionesCerradas.includes(estacion);
+      });
+      isLoading1(false);
+    });
+    return unsubscribe;
+  }, []);
+
+  useEffect(() => {
+    fetchRoutes();
+  }, [user]);
+
+  if (loading1 || loading2) {
     return (
       <View style={styles.container}>
         <ActivityIndicator size="large" color="#e68059" />
@@ -129,6 +162,7 @@ export default function MisRutas() {
       >
         <Autocomplete
           data={filteredEstacionesS}
+          autoCorrect={false}
           onPress={() => {
             setHideE(true);
             setHideS(false);
@@ -161,6 +195,7 @@ export default function MisRutas() {
         <Autocomplete
           data={filteredEstacionesE}
           placeholder="Estación de Destino"
+          autoCorrect={false}
           onPress={() => {
             setHideS(true);
             setHideE(false);
@@ -251,7 +286,7 @@ export default function MisRutas() {
                 borderRadius: 12,
               }}
               activeOpacity={0.9}
-              //onPress={} -> Guardar en el perfil de la persona
+              onPress={() => addRoutes(start, end)}
             >
               <Text
                 style={{
