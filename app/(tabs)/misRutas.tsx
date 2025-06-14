@@ -3,12 +3,14 @@ import { Feather } from "@expo/vector-icons";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   Button,
   FlatList,
   Keyboard,
   Modal,
   StyleSheet,
   Text,
+  ToastAndroid,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -26,6 +28,7 @@ import {
 
 export default function MisRutas() {
   const [estacionesCerradas, setEstacionesCerradas] = useState<string[]>([]);
+  const [loading, isLoading] = useState(true);
 
   useEffect(() => {
     const unsubscribes = lineas.map((linea) => {
@@ -46,6 +49,8 @@ export default function MisRutas() {
           Object.keys(grafo).forEach((estacion) => {
             grafo[estacion].activa = !estacionesActualizadas.includes(estacion);
           });
+
+          isLoading(false);
           return estacionesActualizadas;
         });
       });
@@ -61,6 +66,21 @@ export default function MisRutas() {
   const [hideS, setHideS] = useState(false);
   const [hideE, setHideE] = useState(false);
 
+  useEffect(() => {
+    if (estacionesCerradas.includes(start)) {
+      ToastAndroid.show(`${start} presenta fallas`, ToastAndroid.SHORT);
+    }
+  }, [start]);
+
+  useEffect(() => {
+    if (estacionesCerradas.includes(end)) {
+      ToastAndroid.show(
+        `La estación ${end} presenta fallas o está cerrada`,
+        ToastAndroid.SHORT
+      );
+    }
+  }, [end]);
+
   const handleSelectS = (estacion: string) => {
     setStart(estacion);
     setHideS(true); // Oculta la lista de resultados
@@ -74,17 +94,29 @@ export default function MisRutas() {
   const result = dijkstra(grafo, start, end);
 
   const filteredEstacionesS = start
-    ? arregloEstaciones.filter((n) => n?.includes(start))
+    ? arregloEstaciones.filter((n) =>
+        n?.toLowerCase().includes(start.toLowerCase())
+      )
     : [];
 
   const filteredEstacionesE = end
-    ? arregloEstaciones.filter((n) => n?.includes(end))
+    ? arregloEstaciones.filter((n) =>
+        n?.toLowerCase().includes(end.toLowerCase())
+      )
     : [];
 
   const coordenadas = result?.path.map((s) => ({
     latitude: s.coordenadas.latitude,
     longitude: s.coordenadas.longitude,
   }));
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color="#e68059" />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>

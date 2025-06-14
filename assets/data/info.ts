@@ -219,14 +219,14 @@ function construirGrafo(lineas: { estaciones: Station[]; linea: string }[]) {
           // Conexión desde A a B
           grafo[nodoA].conexiones.push({
             nombre: nodoB,
-            peso: 1, // Ajusta el peso según convenga al transbordo
+            peso: 0.02, // Ajusta el peso según convenga al transbordo
             coordenadas: grafo[nodoB].coordenada,
             linea: "Transbordo",
           });
           // Conexión desde B a A
           grafo[nodoB].conexiones.push({
             nombre: nodoA,
-            peso: 1,
+            peso: 0.02,
             coordenadas: grafo[nodoA].coordenada,
             linea: "Transbordo",
           });
