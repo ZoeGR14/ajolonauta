@@ -1,38 +1,26 @@
+import { lineas, lines } from "@/assets/data/info"; // 🔥 Importando líneas y estaciones desde info.ts
 import { auth, db } from "@/FirebaseConfig";
-import { arrayUnion, collection, doc, getDocs, updateDoc } from "firebase/firestore";
-import { useEffect, useState } from "react";
+import { arrayUnion, doc, updateDoc } from "firebase/firestore";
+import { useState } from "react";
 import { Alert, FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 
 export default function AddComment() {
-  const [estaciones, setEstaciones] = useState<{ id: string; nombre: string }[]>([]);
+  const [selectedLinea, setSelectedLinea] = useState<string | null>(null);
   const [selectedStation, setSelectedStation] = useState<string | null>(null);
   const [comment, setComment] = useState("");
-  const [showDropdown, setShowDropdown] = useState(false);
+  const [showLineasDropdown, setShowLineasDropdown] = useState(false);
+  const [showEstacionesDropdown, setShowEstacionesDropdown] = useState(false);
 
-  // Obtener estaciones de la subcolección en Firebase
-  useEffect(() => {
-    const fetchStations = async () => {
-  try {
-    const querySnapshot = await getDocs(collection(db, "estaciones"));
-    
-    const stationList = querySnapshot.docs.map(doc => ({
-      id: doc.id,  // 🔥 Usa el ID del documento como nombre de estación
-      nombre: doc.id, // 🔥 Almacena el nombre de la estación desde el ID
-    }));
-
-    setEstaciones(stationList);
-  } catch (error) {
-    console.error("Error al obtener estaciones:", error);
-  }
-};
-
-    fetchStations();
-  }, []);
+  // Obtener estaciones de la línea seleccionada
+  const getStationsByLine = (lineaId: string) => {
+    const linea = lines.find(l => l.linea === lineaId);
+    return linea ? linea.estaciones.map(est => est.nombre) : [];
+  };
 
   // Guardar comentario en Firebase
   const handleSubmit = async () => {
-    if (!selectedStation) {
-      Alert.alert("Error", "Selecciona una estación antes de continuar.");
+    if (!selectedLinea || !selectedStation) {
+      Alert.alert("Error", "Selecciona una línea y una estación antes de continuar.");
       return;
     }
     if (!comment.trim()) {
@@ -44,8 +32,10 @@ export default function AddComment() {
       return;
     }
 
+    const estacionId = `${selectedStation} - ${selectedLinea.replace("Línea", "Linea")}`; // 🔥 Corrige el nombre
+
     try {
-      const stationRef = doc(db, "estaciones", selectedStation);
+      const stationRef = doc(db, "estaciones", estacionId);
       await updateDoc(stationRef, {
         comentarios: arrayUnion({
           usuario: auth.currentUser?.email || "Anónimo",
@@ -55,8 +45,9 @@ export default function AddComment() {
       });
 
       Alert.alert("Comentario agregado", "Tu comentario se ha guardado correctamente.");
-      setComment(""); // Limpia el campo de texto después de enviar
-      setSelectedStation(null); // Restablece la selección
+      setComment("");
+      setSelectedLinea(null);
+      setSelectedStation(null);
     } catch (error) {
       console.error("Error al guardar comentario:", error);
       Alert.alert("Error", "No se pudo guardar el comentario.");
@@ -67,26 +58,53 @@ export default function AddComment() {
     <View style={styles.container}>
       <Text style={styles.title}>Añadir Comentario</Text>
 
-      {/* Selector de estaciones */}
-      <TouchableOpacity style={styles.dropdownButton} onPress={() => setShowDropdown(!showDropdown)}>
+      {/* Selector de línea */}
+      <TouchableOpacity style={styles.dropdownButton} onPress={() => setShowLineasDropdown(!showLineasDropdown)}>
         <Text style={styles.dropdownText}>
-          {selectedStation ? estaciones.find(est => est.id === selectedStation)?.nombre : "Selecciona una estación"}
+          {selectedLinea || "Selecciona una línea"}
         </Text>
       </TouchableOpacity>
 
-      {showDropdown && (
+      {showLineasDropdown && (
         <FlatList
-          data={estaciones}
-          keyExtractor={(item) => item.id}
+          data={lineas}
+          keyExtractor={(item) => item}
           renderItem={({ item }) => (
-            <TouchableOpacity style={styles.stationItem} onPress={() => {
-              setSelectedStation(item.id);
-              setShowDropdown(false);
+            <TouchableOpacity style={styles.lineItem} onPress={() => {
+              setSelectedLinea(item);
+              setShowLineasDropdown(false);
+              setShowEstacionesDropdown(true);
             }}>
-              <Text style={styles.stationText}>{item.nombre}</Text>
+              <Text style={styles.lineText}>{item}</Text>
             </TouchableOpacity>
           )}
         />
+      )}
+
+      {/* Selector de estación (solo se muestra después de elegir una línea) */}
+      {selectedLinea && (
+        <>
+          <TouchableOpacity style={styles.dropdownButton} onPress={() => setShowEstacionesDropdown(!showEstacionesDropdown)}>
+            <Text style={styles.dropdownText}>
+              {selectedStation || "Selecciona una estación"}
+            </Text>
+          </TouchableOpacity>
+
+          {showEstacionesDropdown && (
+            <FlatList
+              data={getStationsByLine(selectedLinea)}
+              keyExtractor={(item) => item}
+              renderItem={({ item }) => (
+                <TouchableOpacity style={styles.stationItem} onPress={() => {
+                  setSelectedStation(item);
+                  setShowEstacionesDropdown(false);
+                }}>
+                  <Text style={styles.stationText}>{item}</Text>
+                </TouchableOpacity>
+              )}
+            />
+          )}
+        </>
       )}
 
       {/* Campo de comentario */}
@@ -117,6 +135,13 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   dropdownText: { fontSize: 16, fontWeight: "bold" },
+  lineItem: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderColor: "#ccc",
+    backgroundColor: "#fff",
+  },
+  lineText: { fontSize: 16, fontWeight: "bold" },
   stationItem: {
     padding: 10,
     borderBottomWidth: 1,

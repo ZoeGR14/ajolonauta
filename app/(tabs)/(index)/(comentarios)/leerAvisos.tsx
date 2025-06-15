@@ -1,15 +1,14 @@
-// app/(tabs)/(index)/(comentarios)/leerAvisos.tsx
 import { db } from "@/FirebaseConfig";
-import { useRouter } from "expo-router";
-import { collection, doc, getDoc, getDocs } from "firebase/firestore";
-import { useEffect, useState } from "react";
+import { lineas, lines } from "@/assets/data/info"; // 🔥 Importando líneas y estaciones desde info.ts
+import { doc, getDoc } from "firebase/firestore";
+import { useState } from "react";
 import {
   Alert,
   FlatList,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 import { WebView } from "react-native-webview";
 
@@ -17,36 +16,28 @@ const TABS = ["Comentarios", "Twitter"];
 
 export default function CombinedView() {
   const [activeTab, setActiveTab] = useState("Comentarios");
-  const [estaciones, setEstaciones] = useState<{ id: string; nombre: string }[]>([]);
+  const [selectedLinea, setSelectedLinea] = useState<string | null>(null);
   const [selectedStation, setSelectedStation] = useState<string | null>(null);
   const [comments, setComments] = useState<{ usuario: string; texto: string; hora: string }[]>([]);
-  const [showDropdown, setShowDropdown] = useState(false);
+  const [showLineasDropdown, setShowLineasDropdown] = useState(false);
+  const [showEstacionesDropdown, setShowEstacionesDropdown] = useState(false);
 
-  const router = useRouter();
+  // Obtener estaciones de la línea seleccionada
+  const getStationsByLine = (lineaId: string) => {
+    const linea = lines.find(l => l.linea === lineaId);
+    return linea ? linea.estaciones.map(est => est.nombre) : [];
+  };
 
-  useEffect(() => {
-    const fetchStations = async () => {
-      try {
-        const snapshot = await getDocs(collection(db, "estaciones"));
-        const stationList = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          nombre: doc.id,
-        }));
-        setEstaciones(stationList);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-    fetchStations();
-  }, []);
-
-  const fetchComments = async (stationId: string) => {
+  // Obtener comentarios de la estación seleccionada
+  const fetchComments = async (stationName: string, lineaName: string) => {
     try {
-      const docSnap = await getDoc(doc(db, "estaciones", stationId));
+      const estacionId = `${stationName} - ${lineaName.replace("Línea", "Linea")}`; // 🔥 Corrige el nombre de línea
+      const docSnap = await getDoc(doc(db, "estaciones", estacionId));
+      
       if (docSnap.exists()) {
         const data = docSnap.data();
         const loadedComments = data.comentarios || [];
-        setComments(loadedComments.slice(-10));
+        setComments(loadedComments.slice(-10)); // 🔥 Mostrar solo los últimos 10 comentarios
       } else {
         setComments([]);
         Alert.alert("Sin comentarios", "Esta estación no tiene comentarios.");
@@ -75,36 +66,57 @@ export default function CombinedView() {
       {/* Comentarios */}
       {activeTab === "Comentarios" && (
         <View style={{ flex: 1 }}>
-          <TouchableOpacity
-            style={styles.dropdownButton}
-            onPress={() => setShowDropdown(!showDropdown)}
-          >
+          {/* Selector de línea */}
+          <TouchableOpacity style={styles.dropdownButton} onPress={() => setShowLineasDropdown(!showLineasDropdown)}>
             <Text style={styles.dropdownText}>
-              {selectedStation
-                ? estaciones.find((e) => e.id === selectedStation)?.nombre
-                : "Selecciona una estación"}
+              {selectedLinea || "Selecciona una línea"}
             </Text>
           </TouchableOpacity>
 
-          {showDropdown && (
+          {showLineasDropdown && (
             <FlatList
-              data={estaciones}
-              keyExtractor={(item) => item.id}
+              data={lineas}
+              keyExtractor={(item) => item}
               renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.stationItem}
-                  onPress={() => {
-                    setSelectedStation(item.id);
-                    setShowDropdown(false);
-                    fetchComments(item.id);
-                  }}
-                >
-                  <Text style={styles.stationText}>{item.nombre}</Text>
+                <TouchableOpacity style={styles.lineItem} onPress={() => {
+                  setSelectedLinea(item);
+                  setShowLineasDropdown(false);
+                  setShowEstacionesDropdown(true);
+                }}>
+                  <Text style={styles.lineText}>{item}</Text>
                 </TouchableOpacity>
               )}
             />
           )}
 
+          {/* Selector de estación (solo se muestra después de elegir una línea) */}
+          {selectedLinea && (
+            <>
+              <TouchableOpacity style={styles.dropdownButton} onPress={() => setShowEstacionesDropdown(!showEstacionesDropdown)}>
+                <Text style={styles.dropdownText}>
+                  {selectedStation || "Selecciona una estación"}
+                </Text>
+              </TouchableOpacity>
+
+              {showEstacionesDropdown && (
+                <FlatList
+                  data={getStationsByLine(selectedLinea)}
+                  keyExtractor={(item) => item}
+                  renderItem={({ item }) => (
+                    <TouchableOpacity style={styles.stationItem} onPress={() => {
+                      setSelectedStation(item);
+                      setShowEstacionesDropdown(false);
+                      fetchComments(item, selectedLinea);
+                    }}>
+                      <Text style={styles.stationText}>{item}</Text>
+                    </TouchableOpacity>
+                  )}
+                />
+              )}
+            </>
+          )}
+
+          {/* Lista de comentarios */}
           {selectedStation && comments.length > 0 ? (
             <FlatList
               data={comments}
@@ -117,9 +129,7 @@ export default function CombinedView() {
                 </View>
               )}
             />
-          ) : (
-            selectedStation && <Text style={styles.noComments}>No hay comentarios.</Text>
-          )}
+          ) : selectedStation && <Text style={styles.noComments}>No hay comentarios disponibles.</Text>}
         </View>
       )}
 
@@ -133,11 +143,6 @@ export default function CombinedView() {
           startInLoadingState
         />
       )}
-
-      {/* FAB */}
-      <TouchableOpacity style={styles.fab} onPress={() => router.push("/crearAviso")}>
-        <Text style={styles.fabText}>＋</Text>
-      </TouchableOpacity>
     </View>
   );
 }
@@ -174,40 +179,13 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   dropdownText: { fontSize: 16, fontWeight: "bold" },
-  stationItem: {
-    padding: 10,
-    borderBottomWidth: 1,
-    borderColor: "#ccc",
-    backgroundColor: "#fff",
-    marginHorizontal: 20,
-  },
+  lineItem: { padding: 10, borderBottomWidth: 1, borderColor: "#ccc", backgroundColor: "#fff" },
+  lineText: { fontSize: 16, fontWeight: "bold" },
+  stationItem: { padding: 10, borderBottomWidth: 1, borderColor: "#ccc", backgroundColor: "#fff" },
   stationText: { fontSize: 16 },
-  comment: {
-    backgroundColor: "#f9f9f9",
-    padding: 10,
-    borderRadius: 8,
-    marginBottom: 10,
-    marginHorizontal: 20,
-  },
+  comment: { backgroundColor: "#f9f9f9", padding: 10, borderRadius: 8, marginBottom: 10 },
   commentText: { fontSize: 16 },
   commentUser: { fontSize: 14, fontWeight: "bold", marginTop: 5 },
   commentTime: { fontSize: 12, color: "gray", marginTop: 2 },
   noComments: { textAlign: "center", marginTop: 20, color: "#888" },
-  fab: {
-    position: "absolute",
-    bottom: 24,
-    right: 24,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: "#000",
-    alignItems: "center",
-    justifyContent: "center",
-    elevation: 5,
-  },
-  fabText: {
-    fontSize: 24,
-    color: "#fff",
-    fontWeight: "bold",
-  },
 });
