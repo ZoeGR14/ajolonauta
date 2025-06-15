@@ -2,7 +2,9 @@ import { Feather } from "@expo/vector-icons";
 import Checkbox from "expo-checkbox";
 import React, { useCallback, useMemo, useRef, useState } from "react";
 import {
+  Alert,
   Animated,
+  BackHandler,
   Button,
   Dimensions,
   StyleSheet,
@@ -13,10 +15,33 @@ import {
 import MapView, { Marker, Polyline } from "react-native-maps";
 
 import { lineas, lines, mapStyle, origin } from "@/assets/data/info";
+import { useFocusEffect } from "expo-router";
 import geojsonData from "../../assets/data/metro.json";
 import terminales from "../../assets/data/terminales.json";
 
 export default function Mapa() {
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => {
+        Alert.alert(
+          "¿Salir de la app?",
+          "¿Estás segura/o de que quieres salir?",
+          [
+            { text: "Cancelar", style: "cancel" },
+            { text: "Salir", onPress: () => BackHandler.exitApp() },
+          ]
+        );
+        return true; // Previene el comportamiento por defecto
+      };
+
+      const subscription = BackHandler.addEventListener(
+        "hardwareBackPress",
+        onBackPress
+      );
+
+      return () => subscription.remove();
+    }, [])
+  );
   const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>(
     Object.fromEntries(lineas.map((line) => [line, false]))
   );

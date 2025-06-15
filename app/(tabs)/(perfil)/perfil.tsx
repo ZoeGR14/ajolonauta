@@ -1,7 +1,9 @@
 import { Feather } from "@expo/vector-icons";
-import { router } from "expo-router";
-import React from "react";
+import { router, useFocusEffect } from "expo-router";
+import React, { useCallback } from "react";
 import {
+  Alert,
+  BackHandler,
   Image,
   ScrollView,
   StyleSheet,
@@ -11,6 +13,28 @@ import {
 } from "react-native";
 
 export default function MyAccountScreen() {
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => {
+        Alert.alert(
+          "¿Salir de la app?",
+          "¿Estás segura/o de que quieres salir?",
+          [
+            { text: "Cancelar", style: "cancel" },
+            { text: "Salir", onPress: () => BackHandler.exitApp() },
+          ]
+        );
+        return true; // Previene el comportamiento por defecto
+      };
+
+      const subscription = BackHandler.addEventListener(
+        "hardwareBackPress",
+        onBackPress
+      );
+
+      return () => subscription.remove();
+    }, [])
+  );
   return (
     <View style={styles.container}>
       <View style={styles.profileWrapper}>

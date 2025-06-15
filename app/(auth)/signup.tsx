@@ -19,9 +19,11 @@ export default function SignUpScreen() {
     }
 
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
-      Alert.alert("Registro Exitoso", "Cuenta creada correctamente");
-      router.push("/login");
+      const user = await createUserWithEmailAndPassword(auth, email, password);
+      if (user) {
+        router.replace("/(tabs)"); // Redirige a "avisos" si el
+        Alert.alert("Registro Exitoso", "Cuenta creada correctamente"); // login es exitoso
+      }
     } catch (error) {
       Alert.alert("Error", "No se pudo crear la cuenta, verifica los datos");
     }

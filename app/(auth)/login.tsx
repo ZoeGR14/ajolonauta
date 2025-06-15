@@ -12,8 +12,8 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      router.push("/avisos"); // Redirige a "avisos" si el login es exitoso
+      const user = await signInWithEmailAndPassword(auth, email, password);
+      if (user) router.replace("/(tabs)"); // Redirige a "avisos" si el login es exitoso
     } catch (error) {
       Alert.alert("Error", "Credenciales incorrectas o problema de conexión");
     }

@@ -1,5 +1,6 @@
 import { auth, db } from "@/FirebaseConfig";
 import { Feather } from "@expo/vector-icons";
+import { useFocusEffect } from "expo-router";
 import {
   addDoc,
   collection,
@@ -8,9 +9,11 @@ import {
   query,
   where,
 } from "firebase/firestore";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
+  BackHandler,
   Button,
   FlatList,
   Keyboard,
@@ -33,6 +36,28 @@ import {
 } from "../../assets/data/info";
 
 export default function MisRutas() {
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => {
+        Alert.alert(
+          "¿Salir de la app?",
+          "¿Estás segura/o de que quieres salir?",
+          [
+            { text: "Cancelar", style: "cancel" },
+            { text: "Salir", onPress: () => BackHandler.exitApp() },
+          ]
+        );
+        return true; // Previene el comportamiento por defecto
+      };
+
+      const subscription = BackHandler.addEventListener(
+        "hardwareBackPress",
+        onBackPress
+      );
+
+      return () => subscription.remove();
+    }, [])
+  );
   const [estacionesCerradas, setEstacionesCerradas] = useState<string[]>([]);
   const [loading1, isLoading1] = useState(true);
   const [loading2, isLoading2] = useState(true);

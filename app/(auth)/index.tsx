@@ -1,9 +1,7 @@
-import { useRouter } from "expo-router";
+import { router } from "expo-router";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export default function Index() {
-  const router = useRouter();
-
   return (
     <View style={styles.container}>
       {/* Logo - igual que en las otras pantallas */}

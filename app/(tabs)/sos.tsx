@@ -1,7 +1,9 @@
 import { Feather } from "@expo/vector-icons";
-import React from "react";
+import { useFocusEffect } from "expo-router";
+import React, { useCallback } from "react";
 import {
   Alert,
+  BackHandler,
   FlatList,
   Linking,
   Pressable,
@@ -11,13 +13,33 @@ import {
 } from "react-native";
 
 export default function SOS() {
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => {
+        Alert.alert(
+          "¿Salir de la app?",
+          "¿Estás segura/o de que quieres salir?",
+          [
+            { text: "Cancelar", style: "cancel" },
+            { text: "Salir", onPress: () => BackHandler.exitApp() },
+          ]
+        );
+        return true; // Previene el comportamiento por defecto
+      };
+
+      const subscription = BackHandler.addEventListener(
+        "hardwareBackPress",
+        onBackPress
+      );
+
+      return () => subscription.remove();
+    }, [])
+  );
   const contactos = [
     { nombre: "Papá", telefono: "5555555555" },
     { nombre: "Mamá", telefono: "4444444444" },
   ];
-  const emergencia = [
-    { nombre: "E M E R G E N C I A S", telefono: "911" },
-  ];
+  const emergencia = [{ nombre: "E M E R G E N C I A S", telefono: "911" }];
 
   const llamar = (telefono: string) => {
     Linking.openURL(`tel:${telefono}`).catch(() =>
@@ -101,7 +123,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
-  textoE:{
+  textoE: {
     color: "white",
     fontWeight: "bold",
     fontSize: 18,
