@@ -1,7 +1,9 @@
+import { auth } from "@/FirebaseConfig"; // Usa la instancia configurada correctamente
 import { Feather } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { router, useFocusEffect } from "expo-router";
-import React, { useCallback, useState } from "react";
+import { signOut } from "firebase/auth";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   Alert,
   BackHandler,
@@ -17,10 +19,19 @@ export default function MyAccountScreen() {
   const [image, setImage] = useState(
     "https://i.pinimg.com/736x/54/34/81/5434817e23dca00394b77ca6b38dc895.jpg"
   );
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+
+  useEffect(() => {
+    const user = auth.currentUser;
+    if (user) {
+      setUsername(user.displayName || "Error al cargar el nombre.");
+      setEmail(user.email || "Error al cargar el correo.");
+    }
+  }, []);
 
   const pickImage = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
     if (!permissionResult.granted) {
       Alert.alert("Permiso requerido", "Se necesita acceso a tu galería.");
       return;
@@ -38,25 +49,26 @@ export default function MyAccountScreen() {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      router.replace("/"); // Redirige a la pantalla inicial (login o welcome)
+    } catch (error) {
+      Alert.alert("Error", "No se pudo cerrar la sesión.");
+    }
+  };
+
   useFocusEffect(
     useCallback(() => {
       const onBackPress = () => {
-        Alert.alert(
-          "¿Salir de la app?",
-          "¿Estás segura/o de que quieres salir?",
-          [
-            { text: "Cancelar", style: "cancel" },
-            { text: "Salir", onPress: () => BackHandler.exitApp() },
-          ]
-        );
+        Alert.alert("¿Salir de la app?", "¿Estás segura/o de que quieres salir?", [
+          { text: "Cancelar", style: "cancel" },
+          { text: "Salir", onPress: () => BackHandler.exitApp() },
+        ]);
         return true;
       };
 
-      const subscription = BackHandler.addEventListener(
-        "hardwareBackPress",
-        onBackPress
-      );
-
+      const subscription = BackHandler.addEventListener("hardwareBackPress", onBackPress);
       return () => subscription.remove();
     }, [])
   );
@@ -70,8 +82,8 @@ export default function MyAccountScreen() {
             <Feather name="edit" size={20} color="#e68059" />
           </TouchableOpacity>
         </View>
-        <Text style={styles.name}>Kang Seul-Gi</Text>
-        <Text style={styles.number}>55-4545-4545</Text>
+        <Text style={styles.name}>{username}</Text>
+        <Text style={styles.email}>{email}</Text>
       </View>
 
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
@@ -81,10 +93,14 @@ export default function MyAccountScreen() {
           label="Líneas guardadas"
           onPress={() => router.push("./rutasGuardadas")}
         />
-        <Option icon="settings" label="Modificar datos" />
+        <Option
+          icon="settings"
+          label="Modificar datos"
+          onPress={() => router.push("./configuracion")}
+        />
         <Option icon="help-circle" label="FAQs" />
 
-        <TouchableOpacity style={styles.logoutButton}>
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Text style={styles.logoutText}>Cerrar Sesión</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -122,7 +138,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginTop: 10,
   },
-  number: {
+  email: {
     fontSize: 14,
     color: "gray",
   },

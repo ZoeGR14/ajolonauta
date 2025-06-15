@@ -124,7 +124,7 @@ export default function CombinedView() {
       )}
 
       {/* Twitter */}
-      {activeTab === "Twitter" && (
+      {activeTab === "X / Twitter" && (
         <WebView
           source={{ uri: "https://x.com/MetroCDMX" }}
           style={{ flex: 1 }}
