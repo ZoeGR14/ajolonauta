@@ -1,91 +1,214 @@
-import { useFocusEffect, useRouter } from "expo-router";
-import { useCallback } from "react";
-import { Alert, BackHandler, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+// app/(tabs)/(index)/(comentarios)/leerAvisos.tsx
+import { db } from "@/FirebaseConfig";
+import { useRouter } from "expo-router";
+import { collection, doc, getDoc, getDocs } from "firebase/firestore";
+import { useEffect, useState } from "react";
+import {
+  Alert,
+  FlatList,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
+} from "react-native";
+import { WebView } from "react-native-webview";
 
+const TABS = ["Comentarios", "X / Twitter"];
 
-export default function Avisos() {
-  useFocusEffect(
-    useCallback(() => {
-      const onBackPress = () => {
-        Alert.alert(
-          "¿Salir de la app?",
-          "¿Estás segura/o de que quieres salir?",
-          [
-            { text: "Cancelar", style: "cancel" },
-            { text: "Salir", onPress: () => BackHandler.exitApp() },
-          ]
-        );
-        return true; // Previene el comportamiento por defecto
-      };
-
-      const subscription = BackHandler.addEventListener(
-        "hardwareBackPress",
-        onBackPress
-      );
-
-      return () => subscription.remove();
-    }, [])
-  );
+export default function CombinedView() {
+  const [activeTab, setActiveTab] = useState("Comentarios");
+  const [estaciones, setEstaciones] = useState<{ id: string; nombre: string }[]>([]);
+  const [selectedStation, setSelectedStation] = useState<string | null>(null);
+  const [comments, setComments] = useState<{ usuario: string; texto: string; hora: string }[]>([]);
+  const [showDropdown, setShowDropdown] = useState(false);
 
   const router = useRouter();
+
+  useEffect(() => {
+    const fetchStations = async () => {
+      try {
+        const snapshot = await getDocs(collection(db, "estaciones"));
+        const stationList = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          nombre: doc.id,
+        }));
+        setEstaciones(stationList);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchStations();
+  }, []);
+
+  const fetchComments = async (stationId: string) => {
+    try {
+      const docSnap = await getDoc(doc(db, "estaciones", stationId));
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        const loadedComments = data.comentarios || [];
+        setComments(loadedComments.slice(-10));
+      } else {
+        setComments([]);
+        Alert.alert("Sin comentarios", "Esta estación no tiene comentarios.");
+      }
+    } catch (err) {
+      console.error(err);
+      Alert.alert("Error", "No se pudieron cargar los comentarios.");
+    }
+  };
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Menú de Avisos</Text>
+      {/* Tabs */}
+      <View style={styles.tabContainer}>
+        {TABS.map((tab) => (
+          <TouchableOpacity
+            key={tab}
+            style={[styles.tab, activeTab === tab && styles.activeTab]}
+            onPress={() => setActiveTab(tab)}
+          >
+            <Text style={styles.tabText}>{tab}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
 
-      <TouchableOpacity 
-        style={styles.button}
-        onPress={() => router.push("/avisoTwitter")}
-      >
-        <Text style={styles.buttonText}>Avisos de Twitter</Text>
-      </TouchableOpacity>
+      {/* Comentarios */}
+      {activeTab === "Comentarios" && (
+        <View style={{ flex: 1 }}>
+          <TouchableOpacity
+            style={styles.dropdownButton}
+            onPress={() => setShowDropdown(!showDropdown)}
+          >
+            <Text style={styles.dropdownText}>
+              {selectedStation
+                ? estaciones.find((e) => e.id === selectedStation)?.nombre
+                : "Selecciona una estación"}
+            </Text>
+          </TouchableOpacity>
 
-      <TouchableOpacity 
-        style={styles.button}
-        onPress={() => router.push("/leerAvisos")}
-      >
-        <Text style={styles.buttonText}>Leer Comentarios</Text>
-      </TouchableOpacity>
+          {showDropdown && (
+            <FlatList
+              data={estaciones}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.stationItem}
+                  onPress={() => {
+                    setSelectedStation(item.id);
+                    setShowDropdown(false);
+                    fetchComments(item.id);
+                  }}
+                >
+                  <Text style={styles.stationText}>{item.nombre}</Text>
+                </TouchableOpacity>
+              )}
+            />
+          )}
 
-      <TouchableOpacity 
-        style={styles.button}
-        onPress={() => router.push("/crearAviso")}
-      >
-        <Text style={styles.buttonText}>Crear Comentario</Text>
+          {selectedStation && comments.length > 0 ? (
+            <FlatList
+              data={comments}
+              keyExtractor={(_, index) => index.toString()}
+              renderItem={({ item }) => (
+                <View style={styles.comment}>
+                  <Text style={styles.commentText}>{item.texto}</Text>
+                  <Text style={styles.commentUser}>👤 {item.usuario}</Text>
+                  <Text style={styles.commentTime}>⏰ {item.hora}</Text>
+                </View>
+              )}
+            />
+          ) : (
+            selectedStation && <Text style={styles.noComments}>No hay comentarios.</Text>
+          )}
+        </View>
+      )}
+
+      {/* Twitter */}
+      {activeTab === "Twitter" && (
+        <WebView
+          source={{ uri: "https://x.com/MetroCDMX" }}
+          style={{ flex: 1 }}
+          javaScriptEnabled
+          domStorageEnabled
+          startInLoadingState
+        />
+      )}
+
+      {/* FAB */}
+      <TouchableOpacity style={styles.fab} onPress={() => router.push("/crearAviso")}>
+        <Text style={styles.fabText}>＋</Text>
       </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  container: { flex: 1, backgroundColor: "#fff" },
+  tabContainer: {
+    flexDirection: "row",
+    margin: 12,
+    borderRadius: 20,
+    backgroundColor: "#edac93",
+    overflow: "hidden",
+  },
+  tab: {
     flex: 1,
-    justifyContent: "center",
+    paddingVertical: 10,
     alignItems: "center",
-    padding: 20,
-    backgroundColor: "#f5f5f5",
   },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 40,
-    color: "#333",
-  },
-  button: {
+  activeTab: {
     backgroundColor: "#e68059",
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+  },
+  tabText: {
+    fontWeight: "bold",
+  },
+  dropdownButton: {
+    backgroundColor: "#f1f1f1",
     padding: 15,
     borderRadius: 8,
-    width: "100%",
     alignItems: "center",
-    marginBottom: 15,
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
+    marginHorizontal: 20,
+    marginBottom: 10,
   },
-  buttonText: {
-    color: "white",
-    fontSize: 18,
+  dropdownText: { fontSize: 16, fontWeight: "bold" },
+  stationItem: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderColor: "#ccc",
+    backgroundColor: "#fff",
+    marginHorizontal: 20,
+  },
+  stationText: { fontSize: 16 },
+  comment: {
+    backgroundColor: "#f9f9f9",
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 10,
+    marginHorizontal: 20,
+  },
+  commentText: { fontSize: 16 },
+  commentUser: { fontSize: 14, fontWeight: "bold", marginTop: 5 },
+  commentTime: { fontSize: 12, color: "gray", marginTop: 2 },
+  noComments: { textAlign: "center", marginTop: 20, color: "#888" },
+  fab: {
+    position: "absolute",
+    bottom: 24,
+    right: 24,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: "#e68059",
+    alignItems: "center",
+    justifyContent: "center",
+    elevation: 5,
+  },
+  fabText: {
+    marginBottom: 5,
+    fontSize: 24,
+    color: "#fff",
     fontWeight: "bold",
   },
 });

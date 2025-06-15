@@ -1,6 +1,7 @@
 import { Feather } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
 import { router, useFocusEffect } from "expo-router";
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import {
   Alert,
   BackHandler,
@@ -13,6 +14,30 @@ import {
 } from "react-native";
 
 export default function MyAccountScreen() {
+  const [image, setImage] = useState(
+    "https://i.pinimg.com/736x/54/34/81/5434817e23dca00394b77ca6b38dc895.jpg"
+  );
+
+  const pickImage = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (!permissionResult.granted) {
+      Alert.alert("Permiso requerido", "Se necesita acceso a tu galería.");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setImage(result.assets[0].uri);
+    }
+  };
+
   useFocusEffect(
     useCallback(() => {
       const onBackPress = () => {
@@ -24,7 +49,7 @@ export default function MyAccountScreen() {
             { text: "Salir", onPress: () => BackHandler.exitApp() },
           ]
         );
-        return true; // Previene el comportamiento por defecto
+        return true;
       };
 
       const subscription = BackHandler.addEventListener(
@@ -35,17 +60,13 @@ export default function MyAccountScreen() {
       return () => subscription.remove();
     }, [])
   );
+
   return (
     <View style={styles.container}>
       <View style={styles.profileWrapper}>
         <View style={styles.imageContainer}>
-          <Image
-            source={{
-              uri: "https://i.pinimg.com/736x/54/34/81/5434817e23dca00394b77ca6b38dc895.jpg",
-            }}
-            style={styles.profileImage}
-          />
-          <TouchableOpacity style={styles.editButton}>
+          <Image source={{ uri: image }} style={styles.profileImage} />
+          <TouchableOpacity style={styles.editButton} onPress={pickImage}>
             <Feather name="edit" size={20} color="#e68059" />
           </TouchableOpacity>
         </View>
@@ -152,13 +173,13 @@ const styles = StyleSheet.create({
   },
   editButton: {
     position: "absolute",
-    bottom: 3, // 🔧 distancia desde la parte inferior del círculo
-    right: 15, // 🔧 distancia desde el borde derecho del círculo
+    bottom: 3,
+    right: 15,
     backgroundColor: "white",
     borderRadius: 20,
     padding: 6,
-    elevation: 3, // sombra en Android
-    shadowColor: "#000", // sombra en iOS
+    elevation: 3,
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 3,
