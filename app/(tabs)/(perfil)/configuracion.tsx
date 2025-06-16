@@ -1,40 +1,49 @@
-// app/(tabs)/(perfil)/configuracion.tsx
-import { getAuth, updatePassword, updateProfile } from "firebase/auth";
+import { auth } from "@/FirebaseConfig";
+import { updatePassword, updateProfile } from "firebase/auth";
 import React, { useEffect, useState } from "react";
-import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import {
+  Alert,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 export default function ConfiguracionScreen() {
-  const auth = getAuth();
-  const user = auth.currentUser;
-
   const [username, setUsername] = useState("");
-  const [email, setEmail] = useState(user?.email || "");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("");
+  const [newPassword, setNewPassword] = useState("");
 
   useEffect(() => {
+    const user = auth.currentUser;
     if (user) {
       setUsername(user.displayName || "");
+      setEmail(user.email || "");
     }
-  }, [user]);
+  }, []);
 
   const handleUpdate = async () => {
+    const user = auth.currentUser;
+
+    if (!user) {
+      Alert.alert("Error", "No hay usuario autenticado.");
+      return;
+    }
+
     try {
-      if (user) {
-        // 🔁 Cambiar nombre de usuario
-        if (username && username !== user.displayName) {
-          await updateProfile(user, { displayName: username });
-        }
-
-        // 🔁 Cambiar contraseña si se ingresó
-        if (password.length >= 6) {
-          await updatePassword(user, password);
-        }
-
-        Alert.alert("Actualizado", "Los cambios se guardaron correctamente.");
+      if (username !== user.displayName) {
+        await updateProfile(user, { displayName: username });
       }
-    } catch (error) {
+
+      if (newPassword && newPassword.length >= 6) {
+        await updatePassword(user, newPassword);
+      }
+
+      Alert.alert("Éxito", "Los datos han sido actualizados.");
+    } catch (error: any) {
       console.error(error);
-      Alert.alert("Error", "Ocurrió un error al actualizar los datos.");
+      Alert.alert("Error", "No se pudieron actualizar los datos.");
     }
   };
 
@@ -45,9 +54,9 @@ export default function ConfiguracionScreen() {
       <Text style={styles.label}>Nombre de usuario</Text>
       <TextInput
         style={styles.input}
-        placeholder="Nombre"
         value={username}
         onChangeText={setUsername}
+        placeholder="Nombre de usuario"
       />
 
       <Text style={styles.label}>Correo electrónico</Text>
@@ -60,10 +69,10 @@ export default function ConfiguracionScreen() {
       <Text style={styles.label}>Nueva contraseña</Text>
       <TextInput
         style={styles.input}
-        placeholder="Mínimo 6 caracteres"
-        value={password}
+        placeholder="Deja vacío si no deseas cambiarla"
+        value={newPassword}
+        onChangeText={setNewPassword}
         secureTextEntry
-        onChangeText={setPassword}
       />
 
       <TouchableOpacity style={styles.button} onPress={handleUpdate}>
@@ -75,21 +84,21 @@ export default function ConfiguracionScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20, backgroundColor: "#fff" },
-  title: { fontSize: 24, fontWeight: "bold", marginBottom: 20, textAlign: "center" },
-  label: { fontSize: 16, fontWeight: "bold", marginTop: 15 },
+  title: { fontSize: 24, fontWeight: "bold", marginBottom: 30, textAlign: "center" },
+  label: { fontSize: 16, fontWeight: "bold", marginTop: 20 },
   input: {
     borderWidth: 1,
     borderColor: "#ccc",
     borderRadius: 8,
     padding: 12,
-    marginTop: 5,
+    marginTop: 8,
   },
   button: {
+    marginTop: 30,
     backgroundColor: "#000",
     padding: 15,
     borderRadius: 8,
     alignItems: "center",
-    marginTop: 30,
   },
   buttonText: { color: "#fff", fontWeight: "bold", fontSize: 16 },
 });

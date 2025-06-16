@@ -1,4 +1,4 @@
-import { auth } from "@/FirebaseConfig"; // Usa la instancia configurada correctamente
+import { auth } from "@/FirebaseConfig";
 import { Feather } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { router, useFocusEffect } from "expo-router";
@@ -19,14 +19,14 @@ export default function MyAccountScreen() {
   const [image, setImage] = useState(
     "https://i.pinimg.com/736x/54/34/81/5434817e23dca00394b77ca6b38dc895.jpg"
   );
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("Cargando...");
+  const [email, setEmail] = useState("Cargando...");
 
   useEffect(() => {
     const user = auth.currentUser;
     if (user) {
-      setUsername(user.displayName || "Error al cargar el nombre.");
-      setEmail(user.email || "Error al cargar el correo.");
+      setUsername(user.displayName || "Sin nombre");
+      setEmail(user.email || "Sin correo");
     }
   }, []);
 
@@ -52,7 +52,7 @@ export default function MyAccountScreen() {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      router.replace("/"); // Redirige a la pantalla inicial (login o welcome)
+      router.replace("/"); // Redirige al login o pantalla de inicio
     } catch (error) {
       Alert.alert("Error", "No se pudo cerrar la sesión.");
     }

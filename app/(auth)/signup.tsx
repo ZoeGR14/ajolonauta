@@ -1,25 +1,30 @@
+import { auth, db } from "@/FirebaseConfig";
 import { useRouter } from "expo-router";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { addDoc, collection, getDocs, query, where } from "firebase/firestore";
 import { useState } from "react";
-import { Alert, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { auth, db } from "../../FirebaseConfig"; // Asegúrate de importar Firestore
+import {
+  Alert,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 export default function SignUpScreen() {
   const router = useRouter();
   const [email, setEmail] = useState("");
-  const [username, setUsername] = useState(""); // Nuevo campo
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // Validar que el nombre de usuario no esté registrado
-  const checkUsernameExists = async (username: unknown) => {
+  const checkUsernameExists = async (username: string) => {
     const usersRef = collection(db, "users");
     const q = query(usersRef, where("username", "==", username));
     const querySnapshot = await getDocs(q);
-    return !querySnapshot.empty; // Devuelve true si ya existe
+    return !querySnapshot.empty;
   };
 
   const handleSignUp = async () => {
@@ -28,7 +33,6 @@ export default function SignUpScreen() {
       return;
     }
 
-    // Validar si el nombre de usuario ya está registrado
     const usernameExists = await checkUsernameExists(username);
     if (usernameExists) {
       Alert.alert("Error", "El nombre de usuario ya está en uso.");
@@ -36,20 +40,28 @@ export default function SignUpScreen() {
     }
 
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
       const user = userCredential.user;
-      
-      // Guardar datos en Firestore
+
+      // Guardar en Firebase Auth
+      await updateProfile(user, { displayName: username });
+
+      // Guardar también en Firestore (opcional si usas más datos)
       await addDoc(collection(db, "users"), {
         uid: user.uid,
-        username: username,
-        email: email,
+        username,
+        email,
       });
 
       Alert.alert("Registro Exitoso", "Cuenta creada correctamente");
-      router.replace("/(tabs)"); // Redirige a la pantalla principal
+      router.replace("/(tabs)");
     } catch (error) {
-      Alert.alert("Error", "No se pudo crear la cuenta, verifica los datos");
+      Alert.alert("Error", "No se pudo crear la cuenta. Verifica los datos.");
+      console.error(error);
     }
   };
 
@@ -59,9 +71,9 @@ export default function SignUpScreen() {
         Regístrate
       </Text>
 
-      {/* Campo Nombre de Usuario */}
+      {/* Nombre de usuario */}
       <View style={{ marginBottom: 15 }}>
-        <Text style={{ marginBottom: 5, fontWeight: "500" }}>Nombre de Usuario</Text>
+        <Text style={{ marginBottom: 5 }}>Nombre de Usuario</Text>
         <TextInput
           placeholder="Crea tu nombre de usuario"
           value={username}
@@ -71,9 +83,9 @@ export default function SignUpScreen() {
         />
       </View>
 
-      {/* Campo Email */}
+      {/* Email */}
       <View style={{ marginBottom: 15 }}>
-        <Text style={{ marginBottom: 5, fontWeight: "500" }}>Correo Electrónico</Text>
+        <Text style={{ marginBottom: 5 }}>Correo Electrónico</Text>
         <TextInput
           placeholder="Ingresa tu email"
           value={email}
@@ -84,9 +96,9 @@ export default function SignUpScreen() {
         />
       </View>
 
-      {/* Campo Contraseña con botón de mostrar/ocultar */}
+      {/* Contraseña */}
       <View style={{ marginBottom: 15 }}>
-        <Text style={{ marginBottom: 5, fontWeight: "500" }}>Contraseña</Text>
+        <Text style={{ marginBottom: 5 }}>Contraseña</Text>
         <View style={{ flexDirection: "row", alignItems: "center", borderWidth: 1, borderColor: "#ccc", borderRadius: 8 }}>
           <TextInput
             placeholder="Crea tu contraseña"
@@ -101,9 +113,9 @@ export default function SignUpScreen() {
         </View>
       </View>
 
-      {/* Campo Confirmar Contraseña */}
+      {/* Confirmar contraseña */}
       <View style={{ marginBottom: 15 }}>
-        <Text style={{ marginBottom: 5, fontWeight: "500" }}>Confirmar Contraseña</Text>
+        <Text style={{ marginBottom: 5 }}>Confirmar Contraseña</Text>
         <View style={{ flexDirection: "row", alignItems: "center", borderWidth: 1, borderColor: "#ccc", borderRadius: 8 }}>
           <TextInput
             placeholder="Repite tu contraseña"
@@ -118,16 +130,19 @@ export default function SignUpScreen() {
         </View>
       </View>
 
-      {/* Botón Sign Up */}
-      <TouchableOpacity style={{ backgroundColor: "#e68059", padding: 15, borderRadius: 8, alignItems: "center", marginBottom: 20 }} onPress={handleSignUp}>
+      {/* Botón */}
+      <TouchableOpacity
+        style={{ backgroundColor: "#e68059", padding: 15, borderRadius: 8, alignItems: "center", marginBottom: 20 }}
+        onPress={handleSignUp}
+      >
         <Text style={{ color: "white", fontWeight: "bold" }}>Sign Up</Text>
       </TouchableOpacity>
 
-      {/* Enlace a Login */}
+      {/* Ir a login */}
       <View style={{ flexDirection: "row", justifyContent: "center" }}>
         <Text style={{ marginRight: 5 }}>¿Ya tienes cuenta?</Text>
         <TouchableOpacity onPress={() => router.push("/login")}>
-          <Text style={{ color: "#007AFF", fontWeight: "bold" }}>Iniciar Sesión</Text>
+          <Text style={{ color: "#d14e1b", fontWeight: "bold" }}>Iniciar Sesión</Text>
         </TouchableOpacity>
       </View>
     </View>
