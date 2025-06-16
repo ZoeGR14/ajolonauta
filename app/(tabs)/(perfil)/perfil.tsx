@@ -31,7 +31,8 @@ export default function MyAccountScreen() {
   }, []);
 
   const pickImage = async () => {
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const permissionResult =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permissionResult.granted) {
       Alert.alert("Permiso requerido", "Se necesita acceso a tu galería.");
       return;
@@ -52,7 +53,7 @@ export default function MyAccountScreen() {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      router.replace("/"); // Redirige al login o pantalla de inicio
+      router.replace("/(auth)"); // Redirige al login o pantalla de inicio
     } catch (error) {
       Alert.alert("Error", "No se pudo cerrar la sesión.");
     }
@@ -61,14 +62,21 @@ export default function MyAccountScreen() {
   useFocusEffect(
     useCallback(() => {
       const onBackPress = () => {
-        Alert.alert("¿Salir de la app?", "¿Estás segura/o de que quieres salir?", [
-          { text: "Cancelar", style: "cancel" },
-          { text: "Salir", onPress: () => BackHandler.exitApp() },
-        ]);
+        Alert.alert(
+          "¿Salir de la app?",
+          "¿Estás segura/o de que quieres salir?",
+          [
+            { text: "Cancelar", style: "cancel" },
+            { text: "Salir", onPress: () => BackHandler.exitApp() },
+          ]
+        );
         return true;
       };
 
-      const subscription = BackHandler.addEventListener("hardwareBackPress", onBackPress);
+      const subscription = BackHandler.addEventListener(
+        "hardwareBackPress",
+        onBackPress
+      );
       return () => subscription.remove();
     }, [])
   );
