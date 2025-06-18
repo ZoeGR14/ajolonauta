@@ -1,8 +1,39 @@
-import { lineas, lines } from "@/assets/data/info"; // 🔥 Importando líneas y estaciones desde info.ts
+import { lineas, lines } from "@/assets/data/info";
 import { auth, db } from "@/FirebaseConfig";
 import { arrayUnion, doc, updateDoc } from "firebase/firestore";
 import { useState } from "react";
-import { Alert, FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  LayoutAnimation,
+  Platform,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  UIManager,
+  View,
+} from "react-native";
+
+if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
+
+const lineaColors: { [key: string]: string } = {
+  "Línea 1": "#FFBCD4",
+  "Línea 2": "#AFE3FF",
+  "Línea 3": "#E2DCB4",
+  "Línea 4": "#AACBC5",
+  "Línea 5": "#FFE15B",
+  "Línea 6": "#FFACAC",
+  "Línea 7": "#FFDECA",
+  "Línea 8": "#A4D6C2",
+  "Línea 9": "#A78474",
+  "Línea A": "#C790C6",
+  "Línea B": "#D9D9D9",
+  "Línea 12": "#E0C98C",
+};
 
 export default function AddComment() {
   const [selectedLinea, setSelectedLinea] = useState<string | null>(null);
@@ -10,14 +41,13 @@ export default function AddComment() {
   const [comment, setComment] = useState("");
   const [showLineasDropdown, setShowLineasDropdown] = useState(false);
   const [showEstacionesDropdown, setShowEstacionesDropdown] = useState(false);
+  const [loading, setLoading] = useState(false); // <- nuevo estado
 
-  // Obtener estaciones de la línea seleccionada
   const getStationsByLine = (lineaId: string) => {
-    const linea = lines.find(l => l.linea === lineaId);
-    return linea ? linea.estaciones.map(est => est.nombre) : [];
+    const linea = lines.find((l) => l.linea === lineaId);
+    return linea ? linea.estaciones.map((est) => est.nombre) : [];
   };
 
-  // Guardar comentario en Firebase
   const handleSubmit = async () => {
     if (!selectedLinea || !selectedStation) {
       Alert.alert("Error", "Selecciona una línea y una estación antes de continuar.");
@@ -32,8 +62,9 @@ export default function AddComment() {
       return;
     }
 
-    const estacionId = `${selectedStation} - ${selectedLinea.replace("Línea", "Linea")}`; // 🔥 Corrige el nombre
+    const estacionId = `${selectedStation} - ${selectedLinea.replace("Línea", "Linea")}`;
 
+    setLoading(true);
     try {
       const stationRef = doc(db, "estaciones", estacionId);
       await updateDoc(stationRef, {
@@ -51,17 +82,28 @@ export default function AddComment() {
     } catch (error) {
       console.error("Error al guardar comentario:", error);
       Alert.alert("Error", "No se pudo guardar el comentario.");
+    } finally {
+      setLoading(false);
     }
   };
 
+  const isFormComplete =
+    !!selectedLinea && !!selectedStation && comment.trim().length > 0;
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Añadir Comentario</Text>
+      <Text style={styles.title}>📝 Añadir Comentario</Text>
 
-      {/* Selector de línea */}
-      <TouchableOpacity style={styles.dropdownButton} onPress={() => setShowLineasDropdown(!showLineasDropdown)}>
+      {/* Línea */}
+      <TouchableOpacity
+        style={styles.dropdownButton}
+        onPress={() => {
+          LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+          setShowLineasDropdown(!showLineasDropdown);
+        }}
+      >
         <Text style={styles.dropdownText}>
-          {selectedLinea || "Selecciona una línea"}
+          {selectedLinea ? `🚇 ${selectedLinea}` : "Selecciona una línea ▼"}
         </Text>
       </TouchableOpacity>
 
@@ -69,24 +111,37 @@ export default function AddComment() {
         <FlatList
           data={lineas}
           keyExtractor={(item) => item}
-          renderItem={({ item }) => (
-            <TouchableOpacity style={styles.lineItem} onPress={() => {
-              setSelectedLinea(item);
-              setShowLineasDropdown(false);
-              setShowEstacionesDropdown(true);
-            }}>
-              <Text style={styles.lineText}>{item}</Text>
-            </TouchableOpacity>
-          )}
+          renderItem={({ item }) => {
+            const bgColor = lineaColors[item] || "#CCCCCC";
+            return (
+              <TouchableOpacity
+                style={[styles.lineItem, { backgroundColor: bgColor }]}
+                onPress={() => {
+                  LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                  setSelectedLinea(item);
+                  setShowLineasDropdown(false);
+                  setShowEstacionesDropdown(true);
+                }}
+              >
+                <Text style={[styles.lineText, { color: "#fff" }]}>🚇 {item}</Text>
+              </TouchableOpacity>
+            );
+          }}
         />
       )}
 
-      {/* Selector de estación (solo se muestra después de elegir una línea) */}
+      {/* Estación */}
       {selectedLinea && (
         <>
-          <TouchableOpacity style={styles.dropdownButton} onPress={() => setShowEstacionesDropdown(!showEstacionesDropdown)}>
+          <TouchableOpacity
+            style={styles.dropdownButton}
+            onPress={() => {
+              LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+              setShowEstacionesDropdown(!showEstacionesDropdown);
+            }}
+          >
             <Text style={styles.dropdownText}>
-              {selectedStation || "Selecciona una estación"}
+              {selectedStation ? `📍 ${selectedStation}` : "Selecciona una estación ▼"}
             </Text>
           </TouchableOpacity>
 
@@ -95,11 +150,15 @@ export default function AddComment() {
               data={getStationsByLine(selectedLinea)}
               keyExtractor={(item) => item}
               renderItem={({ item }) => (
-                <TouchableOpacity style={styles.stationItem} onPress={() => {
-                  setSelectedStation(item);
-                  setShowEstacionesDropdown(false);
-                }}>
-                  <Text style={styles.stationText}>{item}</Text>
+                <TouchableOpacity
+                  style={styles.stationItem}
+                  onPress={() => {
+                    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                    setSelectedStation(item);
+                    setShowEstacionesDropdown(false);
+                  }}
+                >
+                  <Text style={styles.stationText}>📍 {item}</Text>
                 </TouchableOpacity>
               )}
             />
@@ -107,56 +166,104 @@ export default function AddComment() {
         </>
       )}
 
-      {/* Campo de comentario */}
+      {/* Comentario */}
       <TextInput
         style={styles.input}
         placeholder="Escribe tu comentario (máx. 200 caracteres)"
         value={comment}
         onChangeText={setComment}
         maxLength={200}
+        multiline
       />
 
-      {/* Botón de envío */}
-      <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-        <Text style={styles.buttonText}>Enviar Comentario</Text>
-      </TouchableOpacity>
+      {/* Botón o loader */}
+      {loading ? (
+        <ActivityIndicator size="large" color="#e68059" style={{ marginTop: 20 }} />
+      ) : (
+        <TouchableOpacity
+          style={[styles.button, !isFormComplete && styles.buttonDisabled]}
+          onPress={handleSubmit}
+          disabled={!isFormComplete}
+        >
+          <Text style={styles.buttonText}>Enviar Comentario</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: "center", padding: 20, backgroundColor: "#fff" },
-  title: { fontSize: 22, fontWeight: "bold", marginBottom: 20, textAlign: "center" },
+  container: { flex: 1, padding: 20, backgroundColor: "#fff" },
+  title: {
+    fontSize: 22,
+    fontWeight: "bold",
+    marginBottom: 20,
+    textAlign: "center",
+    color: "#333",
+  },
   dropdownButton: {
     backgroundColor: "#f1f1f1",
     padding: 15,
-    borderRadius: 8,
+    borderRadius: 12,
     alignItems: "center",
     marginBottom: 10,
   },
-  dropdownText: { fontSize: 16, fontWeight: "bold" },
+  dropdownText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#333",
+  },
   lineItem: {
-    padding: 10,
-    borderBottomWidth: 1,
-    borderColor: "#ccc",
-    backgroundColor: "#fff",
+    marginHorizontal: 10,
+    marginVertical: 6,
+    padding: 15,
+    borderRadius: 12,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
-  lineText: { fontSize: 16, fontWeight: "bold" },
+  lineText: {
+    fontSize: 16,
+    fontWeight: "bold",
+  },
   stationItem: {
-    padding: 10,
-    borderBottomWidth: 1,
-    borderColor: "#ccc",
-    backgroundColor: "#fff",
+    backgroundColor: "#fefefe",
+    marginHorizontal: 10,
+    marginVertical: 6,
+    padding: 15,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#ddd",
   },
-  stationText: { fontSize: 16 },
+  stationText: {
+    fontSize: 15,
+    fontWeight: "500",
+    color: "#444",
+  },
   input: {
     borderWidth: 1,
     borderColor: "#ccc",
-    borderRadius: 8,
-    padding: 10,
+    borderRadius: 12,
+    padding: 15,
+    marginTop: 20,
     marginBottom: 20,
     textAlignVertical: "top",
+    fontSize: 15,
+    backgroundColor: "#fafafa",
   },
-  button: { backgroundColor: "#007AFF", padding: 15, borderRadius: 8, alignItems: "center" },
-  buttonText: { color: "white", fontWeight: "bold", fontSize: 16 },
+  button: {
+    backgroundColor: "#e68059",
+    padding: 15,
+    borderRadius: 12,
+    alignItems: "center",
+  },
+  buttonDisabled: {
+    backgroundColor: "#ccc",
+  },
+  buttonText: {
+    color: "white",
+    fontWeight: "bold",
+    fontSize: 16,
+  },
 });

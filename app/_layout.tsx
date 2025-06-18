@@ -25,7 +25,7 @@ export default function RootLayout() {
 
   if (fontsLoaded && !(Text as any).defaultProps) {
     (Text as any).defaultProps = {
-      style: { fontFamily: "Poppins_600Regular" },
+      style: { fontFamily: "Poppins_400Regular" },
     };
   }
 

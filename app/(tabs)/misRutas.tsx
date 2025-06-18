@@ -14,7 +14,6 @@ import {
   ActivityIndicator,
   Alert,
   BackHandler,
-  Button,
   FlatList,
   Keyboard,
   Modal,
@@ -35,29 +34,37 @@ import {
   origin2,
 } from "../../assets/data/info";
 
+const lineaColors: { [key: string]: string } = {
+  "Línea 1": "#FFBCD4",
+  "Línea 2": "#AFE3FF",
+  "Línea 3": "#E2DCB4",
+  "Línea 4": "#AACBC5",
+  "Línea 5": "#FFE15B",
+  "Línea 6": "#FFACAC",
+  "Línea 7": "#FFDECA",
+  "Línea 8": "#A4D6C2",
+  "Línea 9": "#A78474",
+  "Línea A": "#C790C6",
+  "Línea B": "#D9D9D9",
+  "Línea 12": "#E0C98C",
+};
+
 export default function MisRutas() {
   useFocusEffect(
     useCallback(() => {
       const onBackPress = () => {
-        Alert.alert(
-          "¿Salir de la app?",
-          "¿Estás segura/o de que quieres salir?",
-          [
-            { text: "Cancelar", style: "cancel" },
-            { text: "Salir", onPress: () => BackHandler.exitApp() },
-          ]
-        );
-        return true; // Previene el comportamiento por defecto
+        Alert.alert("¿Salir de la app?", "¿Estás segura/o de que quieres salir?", [
+          { text: "Cancelar", style: "cancel" },
+          { text: "Salir", onPress: () => BackHandler.exitApp() },
+        ]);
+        return true;
       };
 
-      const subscription = BackHandler.addEventListener(
-        "hardwareBackPress",
-        onBackPress
-      );
-
+      const subscription = BackHandler.addEventListener("hardwareBackPress", onBackPress);
       return () => subscription.remove();
     }, [])
   );
+
   const [estacionesCerradas, setEstacionesCerradas] = useState<string[]>([]);
   const [loading1, isLoading1] = useState(true);
   const [loading2, isLoading2] = useState(true);
@@ -70,7 +77,6 @@ export default function MisRutas() {
   const [hideE, setHideE] = useState(false);
 
   useEffect(() => {
-    //Toasts en caso de que las estaciones esten fallando
     if (estacionesCerradas.includes(start)) {
       ToastAndroid.show(`${start} está presentando fallas`, ToastAndroid.SHORT);
     }
@@ -84,34 +90,28 @@ export default function MisRutas() {
 
   const handleSelectS = (estacion: string) => {
     setStart(estacion);
-    setHideS(true); // Oculta la lista de resultados
+    setHideS(true);
   };
 
   const handleSelectE = (estacion: string) => {
     setEnd(estacion);
-    setHideE(true); // Oculta la lista de resultados
+    setHideE(true);
   };
 
   const result = dijkstra(grafo, start, end);
 
   const filteredEstacionesS = start
-    ? arregloEstaciones.filter((n) =>
-        n?.toLowerCase().includes(start.toLowerCase())
-      )
+    ? arregloEstaciones.filter((n) => n?.toLowerCase().includes(start.toLowerCase()))
     : [];
 
   const filteredEstacionesE = end
-    ? arregloEstaciones.filter((n) =>
-        n?.toLowerCase().includes(end.toLowerCase())
-      )
+    ? arregloEstaciones.filter((n) => n?.toLowerCase().includes(end.toLowerCase()))
     : [];
 
   const coordenadas = result?.path.map((s) => ({
     latitude: s.coordenadas.latitude,
     longitude: s.coordenadas.longitude,
   }));
-
-  //Firestore
 
   const [routes, setRoutes] = useState<any>([]);
   const user = auth.currentUser;
@@ -132,10 +132,7 @@ export default function MisRutas() {
     if (user) {
       if (
         routes.length > 0 &&
-        routes.some(
-          (r: { start: string; end: string }) =>
-            r.start === start && r.end === end
-        )
+        routes.some((r: { start: string; end: string }) => r.start === start && r.end === end)
       ) {
         ToastAndroid.show("Ruta anteriormente guardada", ToastAndroid.SHORT);
       } else {
@@ -153,7 +150,6 @@ export default function MisRutas() {
   useEffect(() => {
     const collectionRef = collection(db, "estaciones_cerradas");
     const q = query(collectionRef);
-
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const data = querySnapshot.docs.map((doc) => doc.id);
       setEstacionesCerradas(data);
@@ -179,13 +175,7 @@ export default function MisRutas() {
 
   return (
     <View style={styles.container}>
-      <View
-        style={{
-          flex: 1,
-          backgroundColor: "white",
-          justifyContent: "center",
-        }}
-      >
+      <View style={{ flex: 1, backgroundColor: "white", justifyContent: "center" }}>
         <Autocomplete
           data={filteredEstacionesS}
           autoCorrect={false}
@@ -209,12 +199,7 @@ export default function MisRutas() {
             ),
             keyboardShouldPersistTaps: "always",
           }}
-          containerStyle={{
-            position: "absolute",
-            left: 20,
-            right: 20,
-            bottom: "55%",
-          }}
+          containerStyle={{ position: "absolute", left: 20, right: 20, bottom: "55%" }}
           inputContainerStyle={styles.input}
           listContainerStyle={styles.list}
         />
@@ -235,30 +220,18 @@ export default function MisRutas() {
           flatListProps={{
             keyExtractor: (_, idx) => idx.toString(),
             renderItem: ({ item }) => (
-              <TouchableOpacity
-                onPress={() => {
-                  handleSelectE(item);
-                  Keyboard.dismiss();
-                }}
-              >
+              <TouchableOpacity onPress={() => { handleSelectE(item); Keyboard.dismiss(); }}>
                 <Text style={{ padding: 10 }}>{item}</Text>
               </TouchableOpacity>
             ),
             keyboardShouldPersistTaps: "always",
           }}
-          //Estilo del contenedor (es como si estuviera dentro de un view)
-          containerStyle={{
-            position: "absolute",
-            left: 20,
-            right: 20,
-            top: "55%",
-          }}
-          //Estilo del InputText
+          containerStyle={{ position: "absolute", left: 20, right: 20, top: "55%" }}
           inputContainerStyle={styles.input}
-          //Estilo del contenedor de la lista
           listContainerStyle={styles.list}
         />
       </View>
+
       <View style={{ flex: 4 }}>
         <MapView
           style={{ width: "100%", height: "100%" }}
@@ -271,123 +244,64 @@ export default function MisRutas() {
           loadingIndicatorColor="#e68059"
         >
           {lines.map((p, index) => (
-            <Polyline
-              coordinates={p.estaciones}
-              key={index}
-              strokeWidth={5}
-              strokeColor={p.color}
-            />
+            <Polyline coordinates={p.estaciones} key={index} strokeWidth={5} strokeColor={p.color} />
           ))}
-          {result?.path.map((r, i) => {
-            return (
-              <Marker
-                coordinate={r.coordenadas}
-                key={i}
-                title={r.nombre}
-                description={r.linea}
-              />
-            );
-          })}
+          {result?.path.map((r, i) => (
+            <Marker coordinate={r.coordenadas} key={i} title={r.nombre} description={r.linea} />
+          ))}
           {coordenadas && coordenadas.length > 0 && (
-            <Polyline
-              coordinates={coordenadas}
-              strokeWidth={5}
-              strokeColor="blue"
-            />
+            <Polyline coordinates={coordenadas} strokeWidth={5} strokeColor="blue" />
           )}
         </MapView>
+
         {coordenadas && coordenadas.length > 0 && (
-          <View
-            style={{
-              position: "absolute",
-              bottom: 20,
-              right: 20,
-              gap: 20,
-            }}
-          >
+          <View style={{ position: "absolute", bottom: 20, right: 20, gap: 20 }}>
             <TouchableOpacity
-              style={{
-                backgroundColor: "#e68059",
-                padding: 15,
-                borderRadius: 12,
-              }}
+              style={{ backgroundColor: "#e68059", padding: 15, borderRadius: 12 }}
               activeOpacity={0.9}
               onPress={() => addRoutes(start, end)}
             >
-              <Text
-                style={{
-                  color: "white",
-                  fontWeight: "bold",
-                  textAlign: "center",
-                }}
-              >
-                Guardar
-              </Text>
+              <Text style={{ color: "white", fontWeight: "bold", textAlign: "center" }}>Guardar</Text>
             </TouchableOpacity>
+
             <TouchableOpacity
-              style={{
-                backgroundColor: "#e68059",
-                padding: 15,
-                borderRadius: 12,
-              }}
+              style={{ backgroundColor: "#e68059", padding: 15, borderRadius: 12 }}
               activeOpacity={0.9}
               onPress={() => setModal(true)}
             >
-              <Text
-                style={{
-                  color: "white",
-                  fontWeight: "bold",
-                  textAlign: "center",
-                }}
-              >
-                Información
-              </Text>
+              <Text style={{ color: "white", fontWeight: "bold", textAlign: "center" }}>Información</Text>
             </TouchableOpacity>
           </View>
         )}
-        <Modal
-          animationType="slide"
-          visible={modal}
-          onRequestClose={() => setModal(false)}
-        >
-          <View
-            style={{ flex: 1, justifyContent: "center", padding: 15, gap: 10 }}
-          >
+
+        <Modal animationType="slide" visible={modal} onRequestClose={() => setModal(false)}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Instrucciones de la Ruta</Text>
             <FlatList
-              data={result?.path.flatMap((s) => ({
-                nombre: s.nombre,
-                linea: s.linea,
-              }))}
-              renderItem={({ item, index }) => {
-                return (
-                  <View
-                    style={{
-                      padding: 10,
-                      borderWidth: 1,
-                      borderRadius: 10,
-                    }}
-                    key={index}
-                  >
-                    <Text>
-                      {index + 1}. {item.nombre} - {item.linea}
-                    </Text>
-                  </View>
-                );
-              }}
-              ItemSeparatorComponent={() => (
+              data={result?.path.flatMap((s) => ({ nombre: s.nombre, linea: s.linea }))}
+              keyExtractor={(_, index) => index.toString()}
+              renderItem={({ item, index }) => (
                 <View
-                  style={{
-                    flex: 1,
-                    padding: 5,
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
+                  style={[
+                    styles.stepCard,
+                    { backgroundColor: lineaColors[item.linea] || "#f5f5f5" },
+                  ]}
                 >
-                  <Feather name="arrow-down" size={28} color="black" />
+                  <Text style={styles.stepText}>
+                    {index + 1}. {item.nombre} - {item.linea}
+                  </Text>
                 </View>
               )}
+              ItemSeparatorComponent={() => (
+                <View style={styles.separator}>
+                  <Feather name="arrow-down" size={24} color="#e68059" />
+                </View>
+              )}
+              contentContainerStyle={{ paddingBottom: 20 }}
             />
-            <Button title="Cerrar" onPress={() => setModal(false)} />
+            <TouchableOpacity style={styles.closeButton} onPress={() => setModal(false)}>
+              <Text style={styles.closeButtonText}>Cerrar</Text>
+            </TouchableOpacity>
           </View>
         </Modal>
       </View>
@@ -413,5 +327,46 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     maxHeight: 300,
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: "#fff",
+    padding: 20,
+    paddingTop: 50,
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#e68059",
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  stepCard: {
+    padding: 15,
+    borderRadius: 10,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 3,
+  },
+  stepText: {
+    fontSize: 16,
+    color: "#333",
+  },
+  separator: {
+    alignItems: "center",
+    marginVertical: 10,
+  },
+  closeButton: {
+    backgroundColor: "#e68059",
+    padding: 15,
+    borderRadius: 10,
+    marginTop: 20,
+  },
+  closeButtonText: {
+    color: "#fff",
+    fontWeight: "bold",
+    textAlign: "center",
+    fontSize: 16,
   },
 });

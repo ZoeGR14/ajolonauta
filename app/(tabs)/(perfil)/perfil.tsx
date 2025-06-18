@@ -17,7 +17,7 @@ import {
 
 export default function MyAccountScreen() {
   const [image, setImage] = useState(
-    "https://i.pinimg.com/736x/54/34/81/5434817e23dca00394b77ca6b38dc895.jpg"
+"https://i.pinimg.com/236x/d9/d8/8e/d9d88e3d1f74e2b8ced3df051cecb81d.jpg",
   );
   const [username, setUsername] = useState("Cargando...");
   const [email, setEmail] = useState("Cargando...");
@@ -95,10 +95,9 @@ export default function MyAccountScreen() {
       </View>
 
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
-        <Option icon="phone" label="Teléfono" />
         <Option
           icon="heart"
-          label="Líneas guardadas"
+          label="Rutas guardadas"
           onPress={() => router.push("./rutasGuardadas")}
         />
         <Option
@@ -106,8 +105,6 @@ export default function MyAccountScreen() {
           label="Modificar datos"
           onPress={() => router.push("./configuracion")}
         />
-        <Option icon="help-circle" label="FAQs" />
-
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Text style={styles.logoutText}>Cerrar Sesión</Text>
         </TouchableOpacity>
