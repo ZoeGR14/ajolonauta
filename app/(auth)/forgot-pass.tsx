@@ -96,7 +96,7 @@ export default function ForgotPasswordScreen() {
       {/* Enlace para volver al Login */}
       <View style={{ flexDirection: "row", justifyContent: "center" }}>
         <TouchableOpacity onPress={() => router.push("/login")}>
-          <Text style={{ color: "#007AFF", fontWeight: "bold" }}>
+          <Text style={{ color: "#e68059", fontWeight: "bold" }}>
             Volver al Inicio de Sesión
           </Text>
         </TouchableOpacity>

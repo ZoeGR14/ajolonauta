@@ -2,11 +2,16 @@ import { dijkstra, grafo, lines, mapStyle, origin2 } from "@/assets/data/info";
 import { db } from "@/FirebaseConfig";
 import { Feather } from "@expo/vector-icons";
 import { useLocalSearchParams } from "expo-router";
-import { collection, doc, getDoc, onSnapshot, query } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  getDoc,
+  onSnapshot,
+  query,
+} from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  Button,
   FlatList,
   Modal,
   StyleSheet,
@@ -17,9 +22,23 @@ import {
 } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
 
+const lineaColors: { [key: string]: string } = {
+  "Línea 1": "#f0658f",
+  "Línea 2": "#0571b9",
+  "Línea 3": "#bcb600",
+  "Línea 4": "#81c5b8",
+  "Línea 5": "#fae202",
+  "Línea 6": "#e61f24",
+  "Línea 7": "#eb8519",
+  "Línea 8": "#0b9557",
+  "Línea 9": "#461e04",
+  "Línea A": "#970081",
+  "Línea B": "#c5c5c5",
+  "Línea 12": "#b4a442",
+};
+
 export default function MapaGuardado() {
   const { id } = useLocalSearchParams();
-
   const [estacionesCerradas, setEstacionesCerradas] = useState<string[]>([]);
   const [routes, setRoutes] = useState<any>();
   const [modal, setModal] = useState(false);
@@ -27,7 +46,6 @@ export default function MapaGuardado() {
   const [coordenadas, setCoordenadas] = useState<any>();
   const [isLoading, setLoading] = useState(true);
 
-  // Obtener el documento de Firestore
   useEffect(() => {
     const readDoc = async () => {
       try {
@@ -49,7 +67,7 @@ export default function MapaGuardado() {
 
   useEffect(() => {
     if (!routes) return;
-    //Toasts en caso de que las estaciones esten fallando
+
     if (estacionesCerradas.includes(routes.start)) {
       ToastAndroid.show(
         `${routes.start} está presentando fallas`,
@@ -60,6 +78,7 @@ export default function MapaGuardado() {
 
   useEffect(() => {
     if (!routes) return;
+
     if (estacionesCerradas.includes(routes.end)) {
       ToastAndroid.show(
         `${routes.end} está presentando fallas`,
@@ -68,7 +87,6 @@ export default function MapaGuardado() {
     }
   }, [routes, estacionesCerradas]);
 
-  // Calcular la ruta una vez que `routes` tiene datos
   useEffect(() => {
     if (!routes) return;
 
@@ -85,7 +103,6 @@ export default function MapaGuardado() {
     }
   }, [routes, estacionesCerradas]);
 
-  // Obtener estaciones cerradas y actualizar el grafo
   useEffect(() => {
     const collectionRef = collection(db, "estaciones_cerradas");
     const q = query(collectionRef);
@@ -149,66 +166,51 @@ export default function MapaGuardado() {
       </MapView>
 
       {coordenadas && coordenadas.length > 0 && (
-        <View style={{ position: "absolute", bottom: 20, right: 20, gap: 20 }}>
-          <TouchableOpacity
-            style={{
-              backgroundColor: "#e68059",
-              padding: 15,
-              borderRadius: 12,
-            }}
-            activeOpacity={0.9}
-            onPress={() => setModal(true)}
-          >
-            <Text
-              style={{
-                color: "white",
-                fontWeight: "bold",
-                textAlign: "center",
-              }}
-            >
-              Información
-            </Text>
+        <View style={styles.floatingButtons}>
+          <TouchableOpacity style={styles.fab} onPress={() => setModal(true)}>
+            <Feather name="info" size={24} color="#fff" />
           </TouchableOpacity>
         </View>
       )}
 
-      <Modal
-        animationType="slide"
-        visible={modal}
-        onRequestClose={() => setModal(false)}
-      >
-        <View
-          style={{ flex: 1, justifyContent: "center", padding: 15, gap: 10 }}
-        >
+      <Modal animationType="slide" visible={modal} onRequestClose={() => setModal(false)}>
+        <View style={styles.modalContainer}>
+          <Text style={styles.modalTitle}>Instrucciones de la Ruta</Text>
           <FlatList
-            data={result?.path.flatMap((s: any) => ({
+            data={result?.path.map((s: any) => ({
               nombre: s.nombre,
               linea: s.linea,
             }))}
+            keyExtractor={(_, index) => index.toString()}
             renderItem={({ item, index }) => (
-              <View
-                style={{ padding: 10, borderWidth: 1, borderRadius: 10 }}
-                key={index}
-              >
-                <Text>
-                  {index + 1}. {item.nombre} - {item.linea}
-                </Text>
-              </View>
-            )}
+  <View style={styles.stepCard}>
+    <View style={styles.stepRow}>
+      <Text style={styles.stepText}>
+        {index + 1}. {item.nombre} - {item.linea}
+      </Text>
+      <View
+        style={[
+          styles.lineDot,
+          { backgroundColor: lineaColors[item.linea] || "#ccc" },
+        ]}
+      />
+    </View>
+  </View>
+)}
+
             ItemSeparatorComponent={() => (
-              <View
-                style={{
-                  flex: 1,
-                  padding: 5,
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-              >
-                <Feather name="arrow-down" size={28} color="black" />
+              <View style={styles.separator}>
+                <Feather name="arrow-down" size={24} color="#e68059" />
               </View>
             )}
+            contentContainerStyle={{ paddingBottom: 20 }}
           />
-          <Button title="Cerrar" onPress={() => setModal(false)} />
+          <TouchableOpacity
+            style={[styles.fab, { alignSelf: "center", marginTop: 20 }]}
+            onPress={() => setModal(false)}
+          >
+            <Feather name="x" size={24} color="white" />
+          </TouchableOpacity>
         </View>
       </Modal>
     </View>
@@ -218,7 +220,70 @@ export default function MapaGuardado() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: "#fff",
+    padding: 20,
+    paddingTop: 50,
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#e68059",
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  stepCard: {
+  padding: 14,
+  borderRadius: 12,
+  backgroundColor: "#fff",
+  borderWidth: 1,
+  borderColor: "#eee",
+  marginHorizontal: 4,
+},
+stepText: {
+  fontSize: 16,
+  color: "#444",
+  fontWeight: "500",
+},
+
+  separator: {
+  alignItems: "center",
+  marginVertical: 6,
+  opacity: 0.6,
+},
+  fab: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: "#e68059",
     justifyContent: "center",
     alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 6,
   },
+  floatingButtons: {
+    position: "absolute",
+    bottom: 30,
+    right: 20,
+    flexDirection: "column",
+    gap: 15,
+    zIndex: 999,
+  },
+  stepRow: {
+  flexDirection: "row",
+  justifyContent: "space-between",
+  alignItems: "center",
+},
+lineDot: {
+  width: 12,
+  height: 12,
+  borderRadius: 6,
+  marginLeft: 8,
+},
+
 });

@@ -35,18 +35,18 @@ import {
 } from "../../assets/data/info";
 
 const lineaColors: { [key: string]: string } = {
-  "Línea 1": "#FFBCD4",
-  "Línea 2": "#AFE3FF",
-  "Línea 3": "#E2DCB4",
-  "Línea 4": "#AACBC5",
-  "Línea 5": "#FFE15B",
-  "Línea 6": "#FFACAC",
-  "Línea 7": "#FFDECA",
-  "Línea 8": "#A4D6C2",
-  "Línea 9": "#A78474",
-  "Línea A": "#C790C6",
-  "Línea B": "#D9D9D9",
-  "Línea 12": "#E0C98C",
+  "Línea 1": "#f0658f",
+  "Línea 2": "#0571b9",
+  "Línea 3": "#bcb600",
+  "Línea 4": "#81c5b8",
+  "Línea 5": "#fae202",
+  "Línea 6": "#e61f24",
+  "Línea 7": "#eb8519",
+  "Línea 8": "#0b9557",
+  "Línea 9": "#461e04",
+  "Línea A": "#970081",
+  "Línea B": "#c5c5c5",
+  "Línea 12": "#b4a442",
 };
 
 export default function MisRutas() {
@@ -175,7 +175,8 @@ export default function MisRutas() {
 
   return (
     <View style={styles.container}>
-      <View style={{ flex: 1, backgroundColor: "white", justifyContent: "center" }}>
+      <View style={styles.searchCard}>
+          <Text style={styles.switchText}>Selecciona tus estaciones</Text>
         <Autocomplete
           data={filteredEstacionesS}
           autoCorrect={false}
@@ -183,7 +184,7 @@ export default function MisRutas() {
             setHideE(true);
             setHideS(false);
           }}
-          placeholder="Estación de Origen"
+          placeholder="Punto de partida"
           defaultValue={start}
           onChangeText={(text) => {
             setStart(text);
@@ -199,21 +200,21 @@ export default function MisRutas() {
             ),
             keyboardShouldPersistTaps: "always",
           }}
-          containerStyle={{ position: "absolute", left: 20, right: 20, bottom: "55%" }}
-          inputContainerStyle={styles.input}
+          inputContainerStyle={styles.inputUber}
           listContainerStyle={styles.list}
+          containerStyle={{ marginBottom: 10 }}
         />
         <Autocomplete
           data={filteredEstacionesE}
-          placeholder="Estación de Destino"
+          placeholder="Destino"
           autoCorrect={false}
           onPress={() => {
             setHideS(true);
             setHideE(false);
           }}
           defaultValue={end}
-          onChangeText={(t) => {
-            setEnd(t);
+          onChangeText={(text) => {
+            setEnd(text);
             setHideE(false);
           }}
           hideResults={hideE}
@@ -226,11 +227,11 @@ export default function MisRutas() {
             ),
             keyboardShouldPersistTaps: "always",
           }}
-          containerStyle={{ position: "absolute", left: 20, right: 20, top: "55%" }}
-          inputContainerStyle={styles.input}
+          inputContainerStyle={styles.inputUber}
           listContainerStyle={styles.list}
         />
       </View>
+
 
       <View style={{ flex: 4 }}>
         <MapView
@@ -255,24 +256,17 @@ export default function MisRutas() {
         </MapView>
 
         {coordenadas && coordenadas.length > 0 && (
-          <View style={{ position: "absolute", bottom: 20, right: 20, gap: 20 }}>
-            <TouchableOpacity
-              style={{ backgroundColor: "#e68059", padding: 15, borderRadius: 12 }}
-              activeOpacity={0.9}
-              onPress={() => addRoutes(start, end)}
-            >
-              <Text style={{ color: "white", fontWeight: "bold", textAlign: "center" }}>Guardar</Text>
+          <View style={styles.floatingButtons}>
+            <TouchableOpacity style={styles.fab} onPress={() => addRoutes(start, end)}>
+              <Feather name="save" size={24} color="#fff" />
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={{ backgroundColor: "#e68059", padding: 15, borderRadius: 12 }}
-              activeOpacity={0.9}
-              onPress={() => setModal(true)}
-            >
-              <Text style={{ color: "white", fontWeight: "bold", textAlign: "center" }}>Información</Text>
+            <TouchableOpacity style={styles.fab} onPress={() => setModal(true)}>
+              <Feather name="info" size={24} color="#fff" />
             </TouchableOpacity>
           </View>
         )}
+
 
         <Modal animationType="slide" visible={modal} onRequestClose={() => setModal(false)}>
           <View style={styles.modalContainer}>
@@ -281,17 +275,20 @@ export default function MisRutas() {
               data={result?.path.flatMap((s) => ({ nombre: s.nombre, linea: s.linea }))}
               keyExtractor={(_, index) => index.toString()}
               renderItem={({ item, index }) => (
-                <View
-                  style={[
-                    styles.stepCard,
-                    { backgroundColor: lineaColors[item.linea] || "#f5f5f5" },
-                  ]}
-                >
-                  <Text style={styles.stepText}>
-                    {index + 1}. {item.nombre} - {item.linea}
-                  </Text>
-                </View>
-              )}
+  <View style={styles.stepCard}>
+    <View style={styles.stepRow}>
+      <Text style={styles.stepText}>
+        {index + 1}. {item.nombre} - {item.linea}
+      </Text>
+      <View
+        style={[
+          styles.lineDot,
+          { backgroundColor: lineaColors[item.linea] || "#ccc" },
+        ]}
+      />
+    </View>
+  </View>
+)}
               ItemSeparatorComponent={() => (
                 <View style={styles.separator}>
                   <Feather name="arrow-down" size={24} color="#e68059" />
@@ -342,21 +339,24 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   stepCard: {
-    padding: 15,
-    borderRadius: 10,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 3,
-  },
-  stepText: {
-    fontSize: 16,
-    color: "#333",
-  },
+  padding: 14,
+  borderRadius: 12,
+  backgroundColor: "#fff",
+  borderWidth: 1,
+  borderColor: "#eee",
+  marginHorizontal: 4,
+},
+stepText: {
+  fontSize: 16,
+  color: "#444",
+  fontWeight: "500",
+},
+
   separator: {
-    alignItems: "center",
-    marginVertical: 10,
-  },
+  alignItems: "center",
+  marginVertical: 6,
+  opacity: 0.6,
+},
   closeButton: {
     backgroundColor: "#e68059",
     padding: 15,
@@ -369,4 +369,65 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 16,
   },
+  searchCard: {
+  position: "absolute",
+  top: 20,
+  left: 20,
+  right: 20,
+  backgroundColor: "white",
+  borderRadius: 12,
+  padding: 15,
+  shadowColor: "#000",
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.1,
+  shadowRadius: 4,
+  elevation: 5,
+  zIndex: 999,
+},
+inputUber: {
+  borderWidth: 0,
+  borderBottomWidth: 1,
+  borderColor: "#ccc",
+  paddingVertical: 8,
+  paddingHorizontal: 10,
+},
+switchText: {
+  color: "#666",
+  fontSize: 14,
+  marginBottom: 10,
+  textAlign: "center",
+},
+floatingButtons: {
+  position: "absolute",
+  bottom: 30,
+  right: 20,
+  flexDirection: "column",
+  gap: 15,
+  zIndex: 999,
+},
+fab: {
+  width: 56,
+  height: 56,
+  borderRadius: 28,
+  backgroundColor: "#e68059",
+  justifyContent: "center",
+  alignItems: "center",
+  shadowColor: "#000",
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.3,
+  shadowRadius: 4,
+  elevation: 6,
+},
+stepRow: {
+  flexDirection: "row",
+  justifyContent: "space-between",
+  alignItems: "center",
+},
+lineDot: {
+  width: 12,
+  height: 12,
+  borderRadius: 6,
+  marginLeft: 8,
+},
+
 });

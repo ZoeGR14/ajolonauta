@@ -3,7 +3,9 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
+  Modal,
   ScrollView,
   StyleSheet,
   Text,
@@ -15,9 +17,10 @@ import { auth, db } from "../../FirebaseConfig";
 
 export default function LoginScreen() {
   const router = useRouter();
-  const [loginInput, setLoginInput] = useState(""); // email o username
+  const [loginInput, setLoginInput] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const getEmailFromUsername = async (username: string) => {
     const usersRef = collection(db, "users");
@@ -32,6 +35,7 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     try {
+      setLoading(true);
       let email = loginInput;
       if (!email.includes("@")) {
         email = await getEmailFromUsername(loginInput);
@@ -45,65 +49,83 @@ export default function LoginScreen() {
       if (user) router.replace("/(tabs)");
     } catch (error) {
       Alert.alert("Error", "Credenciales incorrectas o problema de conexión.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.card}>
-        <Text style={styles.title}>Iniciar Sesión</Text>
+    <>
+      <ScrollView contentContainerStyle={styles.container}>
+        <View style={styles.card}>
+          <Text style={styles.title}>Iniciar Sesión</Text>
 
-        {/* Email o Usuario */}
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Correo o Nombre de Usuario</Text>
-          <TextInput
-            placeholder="Ingresa tu correo o usuario"
-            value={loginInput}
-            onChangeText={setLoginInput}
-            autoCapitalize="none"
-            style={styles.input}
-          />
-        </View>
-
-        {/* Contraseña */}
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Contraseña</Text>
-          <View style={styles.passwordContainer}>
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Correo o Nombre de Usuario</Text>
             <TextInput
-              placeholder="Ingresa tu contraseña"
-              secureTextEntry={!showPassword}
-              value={password}
-              onChangeText={setPassword}
-              style={styles.inputPassword}
+              placeholder="Ingresa tu correo o usuario"
+              value={loginInput}
+              onChangeText={setLoginInput}
+              autoCapitalize="none"
+              style={styles.input}
+              editable={!loading}
             />
-            <TouchableOpacity
-              onPress={() => setShowPassword(!showPassword)}
-              style={styles.eye}
-            >
-              <Text>{showPassword ? "🙈" : "👁️"}</Text>
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Contraseña</Text>
+            <View style={styles.passwordContainer}>
+              <TextInput
+                placeholder="Ingresa tu contraseña"
+                secureTextEntry={!showPassword}
+                value={password}
+                onChangeText={setPassword}
+                style={styles.inputPassword}
+                editable={!loading}
+              />
+              <TouchableOpacity
+                onPress={() => setShowPassword(!showPassword)}
+                style={styles.eye}
+                disabled={loading}
+              >
+                <Text>{showPassword ? "🙈" : "👁️"}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <TouchableOpacity
+            style={styles.button}
+            onPress={handleLogin}
+            disabled={loading}
+          >
+            <Text style={styles.buttonText}>Ingresar</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => router.push("/forgot-pass")}
+            style={styles.linkContainer}
+            disabled={loading}
+          >
+            <Text style={styles.linkText}>¿Olvidaste tu contraseña?</Text>
+          </TouchableOpacity>
+
+          <View style={styles.footer}>
+            <Text style={{ color: "#555" }}>¿Aún no tienes cuenta?</Text>
+            <TouchableOpacity onPress={() => router.push("/signup")} disabled={loading}>
+              <Text style={styles.link}> Regístrate</Text>
             </TouchableOpacity>
           </View>
         </View>
+      </ScrollView>
 
-        {/* Botón de login */}
-        <TouchableOpacity style={styles.button} onPress={handleLogin}>
-          <Text style={styles.buttonText}>Ingresar</Text>
-        </TouchableOpacity>
-
-        {/* Enlace a recuperación */}
-        <TouchableOpacity onPress={() => router.push("/forgot-pass")} style={styles.linkContainer}>
-          <Text style={styles.linkText}>¿Olvidaste tu contraseña?</Text>
-        </TouchableOpacity>
-
-        {/* Enlace a registro */}
-        <View style={styles.footer}>
-          <Text style={{ color: "#555" }}>¿Aún no tienes cuenta?</Text>
-          <TouchableOpacity onPress={() => router.push("/signup")}>
-            <Text style={styles.link}> Regístrate</Text>
-          </TouchableOpacity>
+      {/* Loader con fondo oscuro tipo modal */}
+      <Modal transparent animationType="fade" visible={loading}>
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color="#fff" />
+          <Text style={styles.loaderText}>Iniciando sesión...</Text>
         </View>
-      </View>
-    </ScrollView>
+      </Modal>
+    </>
   );
 }
 
@@ -179,7 +201,7 @@ const styles = StyleSheet.create({
     marginVertical: 15,
   },
   linkText: {
-    color: "#007AFF",
+    color: "#e68059",
     fontWeight: "bold",
   },
   footer: {
@@ -188,7 +210,18 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
   link: {
-    color: "#007AFF",
+    color: "#e68059",
+    fontWeight: "bold",
+  },
+  loaderContainer: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loaderText: {
+    marginTop: 10,
+    color: "#fff",
     fontWeight: "bold",
   },
 });

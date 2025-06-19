@@ -1,5 +1,6 @@
 import { router } from "expo-router";
 import {
+  Image,
   ImageBackground,
   StyleSheet,
   Text,
@@ -20,7 +21,7 @@ export default function Index() {
         {/* Logo */}
         <View style={styles.logoContainer}>
           <View style={styles.logoCircle}>
-            <Text style={styles.logoText}>M</Text>
+              <Image source={require('../../assets/iconApp1.png')} style={styles.logoCircle}/>
           </View>
           <Text style={styles.appName}>AjoloNauta</Text>
           <Text style={styles.subtitle}>Tu guía inteligente en la ciudad</Text>
@@ -66,7 +67,7 @@ const styles = StyleSheet.create({
     borderRadius: 40,
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 15,
+    marginBottom: 0,
   },
   logoText: {
     fontSize: 36,
@@ -75,6 +76,7 @@ const styles = StyleSheet.create({
   },
   appName: {
     fontSize: 30,
+    fontFamily: "Poppins_400Regular",
     color: "#fff",
     fontWeight: "bold",
     textAlign: "center",
