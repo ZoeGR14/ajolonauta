@@ -35,12 +35,12 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="mapa"
+        name="sos"
         options={{
-          title: "Rutas",
+          title: "SOS",
           tabBarIcon: ({ focused }) => (
             <Feather
-              name="map"
+              name="phone"
               size={20}
               color={focused ? "white" : "#e68059"}
               style={{
@@ -53,12 +53,12 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="sos"
+        name="mapa"
         options={{
-          title: "SOS",
+          title: "Mapa",
           tabBarIcon: ({ focused }) => (
             <Feather
-              name="phone"
+              name="map"
               size={20}
               color={focused ? "white" : "#e68059"}
               style={{
