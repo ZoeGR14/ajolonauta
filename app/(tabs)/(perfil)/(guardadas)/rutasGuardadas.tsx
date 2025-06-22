@@ -1,7 +1,14 @@
 import { auth, db } from "@/FirebaseConfig";
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  query,
+  where,
+} from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -43,9 +50,11 @@ export default function RutasGuardadas() {
         {
           text: "Borrar",
           style: "destructive",
-          onPress: () => {
-            // Aquí va la lógica para eliminar el documento de Firestore
-            console.log("Eliminando ruta con ID:", id);
+          onPress: async () => {
+            setLoading(true);
+            const routeDoc = doc(db, "rutas_guardadas", id);
+            await deleteDoc(routeDoc);
+            fetchRoutes();
           },
         },
       ]
@@ -64,26 +73,33 @@ export default function RutasGuardadas() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Tus Rutas Guardadas</Text>
-      <FlatList
-        data={routes}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item, index }) => (
-          <TouchableOpacity
-            style={styles.routeCard}
-            onPress={() => router.push(`./${item.id}`)}
-            activeOpacity={0.8}
-          >
-            <View style={styles.routeRow}>
-              <Feather name="map-pin" size={20} color="#e68059" />
-              <Text style={styles.routeText}>
-                {index + 1}. {item.start} ➔ {item.end}
-              </Text>
-            </View>
-          </TouchableOpacity>
-        )}
-        ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
-        contentContainerStyle={{ paddingBottom: 30 }}
-      />
+      {routes.length == 0 ? (
+        <View style={styles.container}>
+          <Text>Vacío</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={routes}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item, index }) => (
+            <TouchableOpacity
+              style={styles.routeCard}
+              onPress={() => router.push(`./${item.id}`)}
+              activeOpacity={0.8}
+              onLongPress={() => handleLongPress(item.id)}
+            >
+              <View style={styles.routeRow}>
+                <Feather name="map-pin" size={20} color="#e68059" />
+                <Text style={styles.routeText}>
+                  {index + 1}. {item.start} ➔ {item.end}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          )}
+          ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+          contentContainerStyle={{ paddingBottom: 30 }}
+        />
+      )}
     </View>
   );
 }
