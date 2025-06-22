@@ -6,6 +6,7 @@ import { useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  KeyboardAvoidingView,
   Modal,
   ScrollView,
   StyleSheet,
@@ -47,7 +48,11 @@ export default function SignUpScreen() {
     try {
       setLoading(true); // 🔄 activa el loader
 
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
       const user = userCredential.user;
 
       await updateProfile(user, { displayName: username });
@@ -73,103 +78,120 @@ export default function SignUpScreen() {
 
   return (
     <>
-      <ScrollView contentContainerStyle={styles.container}>
-        <View style={styles.card}>
-          <Text style={styles.title}>Crear Cuenta</Text>
+      <KeyboardAvoidingView style={styles.container} behavior="padding">
+        <ScrollView
+          contentContainerStyle={styles.container2}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.card}>
+            <Text style={styles.title}>Crear Cuenta</Text>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Nombre de Usuario</Text>
-            <TextInput
-              placeholder="Crea tu nombre de usuario"
-              value={username}
-              onChangeText={setUsername}
-              autoCapitalize="none"
-              style={styles.input}
-              editable={!loading}
-            />
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Correo Electrónico</Text>
-            <TextInput
-              placeholder="Ingresa tu correo"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              style={styles.input}
-              editable={!loading}
-            />
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Contraseña</Text>
-            <View style={styles.passwordContainer}>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Nombre de Usuario</Text>
               <TextInput
-                placeholder="Crea una contraseña"
-                secureTextEntry={!showPassword}
-                value={password}
-                onChangeText={setPassword}
-                style={styles.inputPassword}
+                placeholder="Crea tu nombre de usuario"
+                value={username}
+                onChangeText={setUsername}
+                autoCapitalize="none"
+                style={styles.input}
                 editable={!loading}
               />
-              <TouchableOpacity
-                onPress={() => setShowPassword(!showPassword)}
-                style={styles.eye}
-                disabled={loading}
-              >
-                <Text>{showPassword ? "🙈" : "👁️"}</Text>
-              </TouchableOpacity>
             </View>
-          </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Confirmar Contraseña</Text>
-            <View style={styles.passwordContainer}>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Correo Electrónico</Text>
               <TextInput
-                placeholder="Repite la contraseña"
-                secureTextEntry={!showConfirmPassword}
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                style={styles.inputPassword}
+                placeholder="Ingresa tu correo"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                style={styles.input}
                 editable={!loading}
               />
-              <TouchableOpacity
-                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                style={styles.eye}
-                disabled={loading}
-              >
-                <Text>{showConfirmPassword ? "🙈" : "👁️"}</Text>
-              </TouchableOpacity>
             </View>
-          </View>
 
-          <TouchableOpacity style={styles.button} onPress={handleSignUp} disabled={loading}>
-            <Text style={styles.buttonText}>Registrarme</Text>
-          </TouchableOpacity>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Contraseña</Text>
+              <View style={styles.passwordContainer}>
+                <TextInput
+                  placeholder="Crea una contraseña"
+                  secureTextEntry={!showPassword}
+                  value={password}
+                  onChangeText={setPassword}
+                  style={styles.inputPassword}
+                  editable={!loading}
+                />
+                <TouchableOpacity
+                  onPress={() => setShowPassword(!showPassword)}
+                  style={styles.eye}
+                  disabled={loading}
+                >
+                  <Text>{showPassword ? "🙈" : "👁️"}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
 
-          <View style={styles.footer}>
-            <Text style={{ color: "#555" }}>¿Ya tienes cuenta?</Text>
-            <TouchableOpacity onPress={() => router.push("/login")} disabled={loading}>
-              <Text style={styles.link}> Iniciar Sesión</Text>
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Confirmar Contraseña</Text>
+              <View style={styles.passwordContainer}>
+                <TextInput
+                  placeholder="Repite la contraseña"
+                  secureTextEntry={!showConfirmPassword}
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                  style={styles.inputPassword}
+                  editable={!loading}
+                />
+                <TouchableOpacity
+                  onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                  style={styles.eye}
+                  disabled={loading}
+                >
+                  <Text>{showConfirmPassword ? "🙈" : "👁️"}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            <TouchableOpacity
+              style={styles.button}
+              onPress={handleSignUp}
+              disabled={loading}
+            >
+              <Text style={styles.buttonText}>Registrarme</Text>
             </TouchableOpacity>
-          </View>
-        </View>
-      </ScrollView>
 
-      {/* Loader modal */}
-      <Modal transparent animationType="fade" visible={loading}>
-        <View style={styles.loaderContainer}>
-          <ActivityIndicator size="large" color="#fff" />
-          <Text style={styles.loaderText}>Registrando cuenta...</Text>
-        </View>
-      </Modal>
+            <View style={styles.footer}>
+              <Text style={{ color: "#555" }}>¿Ya tienes cuenta?</Text>
+              <TouchableOpacity
+                onPress={() => router.push("/login")}
+                disabled={loading}
+              >
+                <Text style={styles.link}> Iniciar Sesión</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ScrollView>
+
+        {/* Loader modal */}
+        <Modal transparent animationType="fade" visible={loading}>
+          <View style={styles.loaderContainer}>
+            <ActivityIndicator size="large" color="#fff" />
+            <Text style={styles.loaderText}>Registrando cuenta...</Text>
+          </View>
+        </Modal>
+      </KeyboardAvoidingView>
     </>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    flexGrow: 1,
+    justifyContent: "center",
+    backgroundColor: "#fefefe",
+  },
+  container2: {
     flexGrow: 1,
     justifyContent: "center",
     padding: 20,
@@ -219,6 +241,7 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 50,
     paddingHorizontal: 15,
+    color: "black",
   },
   eye: {
     padding: 10,

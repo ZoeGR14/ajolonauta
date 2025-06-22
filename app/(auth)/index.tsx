@@ -5,7 +5,7 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 
 export default function Index() {
@@ -21,7 +21,10 @@ export default function Index() {
         {/* Logo */}
         <View style={styles.logoContainer}>
           <View style={styles.logoCircle}>
-              <Image source={require('../../assets/iconApp1.png')} style={styles.logoCircle}/>
+            <Image
+              source={require("../../assets/images/icon.png")}
+              style={styles.logoCircle}
+            />
           </View>
           <Text style={styles.appName}>AjoloNauta</Text>
           <Text style={styles.subtitle}>Tu guía inteligente en la ciudad</Text>
@@ -29,7 +32,10 @@ export default function Index() {
 
         {/* Botones */}
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.primaryButton} onPress={() => router.push("/login")}>
+          <TouchableOpacity
+            style={styles.primaryButton}
+            onPress={() => router.push("/login")}
+          >
             <Text style={styles.primaryButtonText}>Iniciar Sesión</Text>
           </TouchableOpacity>
 
