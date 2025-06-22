@@ -5,7 +5,7 @@ import {
   collection,
   deleteDoc,
   doc,
-  getDocs,
+  onSnapshot,
   query,
   where,
 } from "firebase/firestore";
@@ -29,12 +29,15 @@ export default function RutasGuardadas() {
   const fetchRoutes = async () => {
     if (user) {
       const q = query(routesCollection, where("userId", "==", user.uid));
-      const data = await getDocs(q);
-      setRoutes(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+      const unsubscribe = onSnapshot(q, (querySnapshot) => {
+        const data = querySnapshot.docs;
+        setRoutes(data.map((doc) => ({ ...doc.data(), id: doc.id })));
+        setLoading(false);
+      });
+      return unsubscribe;
     } else {
-      console.log("Ningún usuario loggeado");
+      console.log("Ningun usuario loggeado");
     }
-    setLoading(false);
   };
 
   useEffect(() => {
@@ -54,7 +57,6 @@ export default function RutasGuardadas() {
             setLoading(true);
             const routeDoc = doc(db, "rutas_guardadas", id);
             await deleteDoc(routeDoc);
-            fetchRoutes();
           },
         },
       ]
