@@ -56,7 +56,10 @@ export default function LoginScreen() {
 
   return (
     <>
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        keyboardShouldPersistTaps="handled"
+      >
         <View style={styles.card}>
           <Text style={styles.title}>Iniciar Sesión</Text>
 
@@ -84,7 +87,9 @@ export default function LoginScreen() {
                 editable={!loading}
               />
               <TouchableOpacity
-                onPress={() => setShowPassword(!showPassword)}
+                onPress={() => {
+                  setShowPassword(!showPassword);
+                }}
                 style={styles.eye}
                 disabled={loading}
               >
@@ -111,7 +116,10 @@ export default function LoginScreen() {
 
           <View style={styles.footer}>
             <Text style={{ color: "#555" }}>¿Aún no tienes cuenta?</Text>
-            <TouchableOpacity onPress={() => router.push("/signup")} disabled={loading}>
+            <TouchableOpacity
+              onPress={() => router.push("/signup")}
+              disabled={loading}
+            >
               <Text style={styles.link}> Regístrate</Text>
             </TouchableOpacity>
           </View>
@@ -180,6 +188,7 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 50,
     paddingHorizontal: 15,
+    color: "black",
   },
   eye: {
     padding: 10,
