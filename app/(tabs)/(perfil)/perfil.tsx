@@ -17,7 +17,7 @@ import {
 
 export default function MyAccountScreen() {
   const [image, setImage] = useState(
-"https://i.pinimg.com/236x/d9/d8/8e/d9d88e3d1f74e2b8ced3df051cecb81d.jpg",
+    "https://i.pinimg.com/236x/d9/d8/8e/d9d88e3d1f74e2b8ced3df051cecb81d.jpg"
   );
   const [username, setUsername] = useState("Cargando...");
   const [email, setEmail] = useState("Cargando...");

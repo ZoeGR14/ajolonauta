@@ -5,6 +5,7 @@ import { useRouter } from "expo-router";
 import { doc, getDoc } from "firebase/firestore";
 import { useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   FlatList,
   LayoutAnimation,
@@ -49,6 +50,7 @@ export default function CombinedView() {
   const [activeTab, setActiveTab] = useState("Comentarios");
   const [selectedLinea, setSelectedLinea] = useState<string | null>(null);
   const [selectedStation, setSelectedStation] = useState<string | null>(null);
+  const [isLoading, setLoading] = useState(true);
   const [comments, setComments] = useState<
     { usuario: string; texto: string; hora: string }[]
   >([]);
@@ -61,11 +63,9 @@ export default function CombinedView() {
   };
 
   const fetchComments = async (stationName: string, lineaName: string) => {
+    setLoading(true);
     try {
-      const estacionId = `${stationName} - ${lineaName.replace(
-        "Línea",
-        "Linea"
-      )}`;
+      const estacionId = `${stationName.replace("/", "|")} - ${lineaName}`;
       const docSnap = await getDoc(doc(db, "estaciones", estacionId));
 
       if (docSnap.exists()) {
@@ -74,12 +74,12 @@ export default function CombinedView() {
         setComments(loadedComments.slice(-10));
       } else {
         setComments([]);
-        Alert.alert("Sin comentarios", "Esta estación no tiene comentarios.");
       }
     } catch (err) {
       console.error(err);
       Alert.alert("Error", "No se pudieron cargar los comentarios.");
     }
+    setLoading(false);
   };
 
   return (
@@ -186,25 +186,33 @@ export default function CombinedView() {
           )}
 
           {/* Comentarios */}
-          {selectedStation && comments.length > 0 ? (
-            <FlatList
-              data={comments}
-              keyExtractor={(_, index) => index.toString()}
-              contentContainerStyle={{ padding: 20 }}
-              renderItem={({ item }) => (
-                <View style={styles.comment}>
-                  <Text style={styles.commentText}>{item.texto}</Text>
-                  <Text style={styles.commentUser}>👤 {item.usuario}</Text>
-                  <Text style={styles.commentTime}>⏰ {item.hora}</Text>
-                </View>
-              )}
-            />
-          ) : (
-            selectedStation && (
+          {selectedStation ? (
+            isLoading ? (
+              <View style={styles.container}>
+                <ActivityIndicator size="large" color="#e68059" />
+              </View>
+            ) : comments.length > 0 ? (
+              <FlatList
+                data={comments}
+                keyExtractor={(_, index) => index.toString()}
+                contentContainerStyle={{ padding: 20 }}
+                renderItem={({ item }) => (
+                  <View style={styles.comment}>
+                    <Text style={styles.commentText}>{item.texto}</Text>
+                    <Text style={styles.commentUser}>👤 {item.usuario}</Text>
+                    <Text style={styles.commentTime}>⏰ {item.hora}</Text>
+                  </View>
+                )}
+              />
+            ) : (
               <Text style={styles.noComments}>
                 No hay comentarios disponibles.
               </Text>
             )
+          ) : (
+            <Text style={styles.noComments}>
+              Selecciona una línea y una estación
+            </Text>
           )}
         </View>
       )}

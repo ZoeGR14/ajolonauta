@@ -1,7 +1,7 @@
 import { lineas, lines } from "@/assets/data/info";
 import { auth, db } from "@/FirebaseConfig";
 import { router } from "expo-router";
-import { arrayUnion, doc, updateDoc } from "firebase/firestore";
+import { arrayUnion, doc, setDoc, updateDoc } from "firebase/firestore";
 import { useState } from "react";
 import {
   ActivityIndicator,
@@ -72,20 +72,21 @@ export default function AddComment() {
       return;
     }
 
-    const estacionId = `${selectedStation} - ${selectedLinea.replace(
-      "Línea",
-      "Linea"
-    )}`;
+    const estacionId = `${selectedStation.replace(
+      "/",
+      "|"
+    )} - ${selectedLinea}`;
 
     setLoading(true);
+    const stationRef = doc(db, "estaciones", estacionId);
+    const comentario = {
+      usuario: auth.currentUser?.displayName || "Anónimo",
+      texto: comment,
+      hora: new Date().toLocaleString(),
+    };
     try {
-      const stationRef = doc(db, "estaciones", estacionId);
       await updateDoc(stationRef, {
-        comentarios: arrayUnion({
-          usuario: auth.currentUser?.email || "Anónimo",
-          texto: comment,
-          hora: new Date().toLocaleString(),
-        }),
+        comentarios: arrayUnion(comentario),
       });
 
       Alert.alert(
@@ -95,10 +96,26 @@ export default function AddComment() {
       setComment("");
       setSelectedLinea(null);
       setSelectedStation(null);
-      router.back();
-    } catch (error) {
-      console.error("Error al guardar comentario:", error);
-      Alert.alert("Error", "No se pudo guardar el comentario.");
+      router.replace("/(index)");
+    } catch (error: any) {
+      if (error.code === "not-found") {
+        // Documento no existe, así que lo creamos
+        await setDoc(stationRef, {
+          comentarios: [comentario],
+        });
+        Alert.alert(
+          "Comentario agregado",
+          "Tu comentario se ha guardado correctamente."
+        );
+        setComment("");
+        setSelectedLinea(null);
+        setSelectedStation(null);
+        router.replace("/(index)");
+      } else {
+        console.error("Error al guardar comentario:", error);
+        Alert.alert("Error", "No se pudo guardar el comentario.");
+        return;
+      }
     } finally {
       setLoading(false);
     }
