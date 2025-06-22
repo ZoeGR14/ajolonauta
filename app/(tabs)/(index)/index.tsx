@@ -1,5 +1,6 @@
 import { lineas, lines } from "@/assets/data/info";
 import { db } from "@/FirebaseConfig";
+import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { doc, getDoc } from "firebase/firestore";
 import { useState } from "react";
@@ -8,6 +9,7 @@ import {
   FlatList,
   LayoutAnimation,
   Platform,
+  Pressable,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -17,7 +19,10 @@ import {
 import { WebView } from "react-native-webview";
 
 // Habilitar animaciones en Android
-if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
+if (
+  Platform.OS === "android" &&
+  UIManager.setLayoutAnimationEnabledExperimental
+) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
@@ -37,7 +42,6 @@ const lineaColors: { [key: string]: string } = {
   "Línea A": "#C790C6",
   "Línea B": "#D9D9D9",
   "Línea 12": "#E0C98C",
-
 };
 
 export default function CombinedView() {
@@ -58,7 +62,10 @@ export default function CombinedView() {
 
   const fetchComments = async (stationName: string, lineaName: string) => {
     try {
-      const estacionId = `${stationName} - ${lineaName.replace("Línea", "Linea")}`;
+      const estacionId = `${stationName} - ${lineaName.replace(
+        "Línea",
+        "Linea"
+      )}`;
       const docSnap = await getDoc(doc(db, "estaciones", estacionId));
 
       if (docSnap.exists()) {
@@ -97,7 +104,9 @@ export default function CombinedView() {
           <TouchableOpacity
             style={styles.dropdownButton}
             onPress={() => {
-              LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+              LayoutAnimation.configureNext(
+                LayoutAnimation.Presets.easeInEaseOut
+              );
               setShowLineasDropdown(!showLineasDropdown);
             }}
           >
@@ -119,10 +128,14 @@ export default function CombinedView() {
                       setSelectedLinea(item);
                       setShowLineasDropdown(false);
                       setShowEstacionesDropdown(true);
-                      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                      LayoutAnimation.configureNext(
+                        LayoutAnimation.Presets.easeInEaseOut
+                      );
                     }}
                   >
-                    <Text style={[styles.lineText, { color: "#fff" }]}>🚇 {item}</Text>
+                    <Text style={[styles.lineText, { color: "#fff" }]}>
+                      🚇 {item}
+                    </Text>
                   </TouchableOpacity>
                 );
               }}
@@ -135,7 +148,9 @@ export default function CombinedView() {
               <TouchableOpacity
                 style={styles.dropdownButton}
                 onPress={() => {
-                  LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                  LayoutAnimation.configureNext(
+                    LayoutAnimation.Presets.easeInEaseOut
+                  );
                   setShowEstacionesDropdown(!showEstacionesDropdown);
                 }}
               >
@@ -157,7 +172,9 @@ export default function CombinedView() {
                         setSelectedStation(item);
                         setShowEstacionesDropdown(false);
                         fetchComments(item, selectedLinea);
-                        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                        LayoutAnimation.configureNext(
+                          LayoutAnimation.Presets.easeInEaseOut
+                        );
                       }}
                     >
                       <Text style={styles.stationText}>📍 {item}</Text>
@@ -182,8 +199,12 @@ export default function CombinedView() {
                 </View>
               )}
             />
-          ) : selectedStation && (
-            <Text style={styles.noComments}>No hay comentarios disponibles.</Text>
+          ) : (
+            selectedStation && (
+              <Text style={styles.noComments}>
+                No hay comentarios disponibles.
+              </Text>
+            )
           )}
         </View>
       )}
@@ -200,9 +221,9 @@ export default function CombinedView() {
       )}
 
       {/* Botón flotante */}
-      <TouchableOpacity style={styles.fab} onPress={() => router.push("/crearAviso")}>
-        <Text style={styles.fabText}>＋</Text>
-      </TouchableOpacity>
+      <Pressable style={styles.fab} onPress={() => router.push("/crearAviso")}>
+        <Feather name="plus" size={24} color="white" />
+      </Pressable>
     </View>
   );
 }
@@ -304,16 +325,19 @@ const styles = StyleSheet.create({
   },
   fab: {
     position: "absolute",
-    bottom: 24,
-    right: 24,
+    bottom: 30,
+    right: 30,
+    backgroundColor: "#e68059",
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: "#e68059",
-    alignItems: "center",
     justifyContent: "center",
-    elevation: 5,
-    paddingBottom: 6,
+    alignItems: "center",
+    elevation: 6,
+    shadowColor: "#000",
+    shadowOpacity: 0.3,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
   },
   fabText: {
     fontSize: 24,

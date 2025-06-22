@@ -1,5 +1,6 @@
 import { lineas, lines } from "@/assets/data/info";
 import { auth, db } from "@/FirebaseConfig";
+import { router } from "expo-router";
 import { arrayUnion, doc, updateDoc } from "firebase/firestore";
 import { useState } from "react";
 import {
@@ -16,7 +17,10 @@ import {
   View,
 } from "react-native";
 
-if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
+if (
+  Platform.OS === "android" &&
+  UIManager.setLayoutAnimationEnabledExperimental
+) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
@@ -50,7 +54,10 @@ export default function AddComment() {
 
   const handleSubmit = async () => {
     if (!selectedLinea || !selectedStation) {
-      Alert.alert("Error", "Selecciona una línea y una estación antes de continuar.");
+      Alert.alert(
+        "Error",
+        "Selecciona una línea y una estación antes de continuar."
+      );
       return;
     }
     if (!comment.trim()) {
@@ -58,11 +65,17 @@ export default function AddComment() {
       return;
     }
     if (comment.length > 200) {
-      Alert.alert("Error", "El comentario no puede superar los 200 caracteres.");
+      Alert.alert(
+        "Error",
+        "El comentario no puede superar los 200 caracteres."
+      );
       return;
     }
 
-    const estacionId = `${selectedStation} - ${selectedLinea.replace("Línea", "Linea")}`;
+    const estacionId = `${selectedStation} - ${selectedLinea.replace(
+      "Línea",
+      "Linea"
+    )}`;
 
     setLoading(true);
     try {
@@ -75,10 +88,14 @@ export default function AddComment() {
         }),
       });
 
-      Alert.alert("Comentario agregado", "Tu comentario se ha guardado correctamente.");
+      Alert.alert(
+        "Comentario agregado",
+        "Tu comentario se ha guardado correctamente."
+      );
       setComment("");
       setSelectedLinea(null);
       setSelectedStation(null);
+      router.back();
     } catch (error) {
       console.error("Error al guardar comentario:", error);
       Alert.alert("Error", "No se pudo guardar el comentario.");
@@ -117,13 +134,17 @@ export default function AddComment() {
               <TouchableOpacity
                 style={[styles.lineItem, { backgroundColor: bgColor }]}
                 onPress={() => {
-                  LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                  LayoutAnimation.configureNext(
+                    LayoutAnimation.Presets.easeInEaseOut
+                  );
                   setSelectedLinea(item);
                   setShowLineasDropdown(false);
                   setShowEstacionesDropdown(true);
                 }}
               >
-                <Text style={[styles.lineText, { color: "#fff" }]}>🚇 {item}</Text>
+                <Text style={[styles.lineText, { color: "#fff" }]}>
+                  🚇 {item}
+                </Text>
               </TouchableOpacity>
             );
           }}
@@ -136,12 +157,16 @@ export default function AddComment() {
           <TouchableOpacity
             style={styles.dropdownButton}
             onPress={() => {
-              LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+              LayoutAnimation.configureNext(
+                LayoutAnimation.Presets.easeInEaseOut
+              );
               setShowEstacionesDropdown(!showEstacionesDropdown);
             }}
           >
             <Text style={styles.dropdownText}>
-              {selectedStation ? `📍 ${selectedStation}` : "Selecciona una estación ▼"}
+              {selectedStation
+                ? `📍 ${selectedStation}`
+                : "Selecciona una estación ▼"}
             </Text>
           </TouchableOpacity>
 
@@ -153,7 +178,9 @@ export default function AddComment() {
                 <TouchableOpacity
                   style={styles.stationItem}
                   onPress={() => {
-                    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                    LayoutAnimation.configureNext(
+                      LayoutAnimation.Presets.easeInEaseOut
+                    );
                     setSelectedStation(item);
                     setShowEstacionesDropdown(false);
                   }}
@@ -178,7 +205,11 @@ export default function AddComment() {
 
       {/* Botón o loader */}
       {loading ? (
-        <ActivityIndicator size="large" color="#e68059" style={{ marginTop: 20 }} />
+        <ActivityIndicator
+          size="large"
+          color="#e68059"
+          style={{ marginTop: 20 }}
+        />
       ) : (
         <TouchableOpacity
           style={[styles.button, !isFormComplete && styles.buttonDisabled]}

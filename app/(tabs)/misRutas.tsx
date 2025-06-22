@@ -53,14 +53,21 @@ export default function MisRutas() {
   useFocusEffect(
     useCallback(() => {
       const onBackPress = () => {
-        Alert.alert("¿Salir de la app?", "¿Estás segura/o de que quieres salir?", [
-          { text: "Cancelar", style: "cancel" },
-          { text: "Salir", onPress: () => BackHandler.exitApp() },
-        ]);
+        Alert.alert(
+          "¿Salir de la app?",
+          "¿Estás segura/o de que quieres salir?",
+          [
+            { text: "Cancelar", style: "cancel" },
+            { text: "Salir", onPress: () => BackHandler.exitApp() },
+          ]
+        );
         return true;
       };
 
-      const subscription = BackHandler.addEventListener("hardwareBackPress", onBackPress);
+      const subscription = BackHandler.addEventListener(
+        "hardwareBackPress",
+        onBackPress
+      );
       return () => subscription.remove();
     }, [])
   );
@@ -101,11 +108,15 @@ export default function MisRutas() {
   const result = dijkstra(grafo, start, end);
 
   const filteredEstacionesS = start
-    ? arregloEstaciones.filter((n) => n?.toLowerCase().includes(start.toLowerCase()))
+    ? arregloEstaciones.filter((n) =>
+        n?.toLowerCase().includes(start.toLowerCase())
+      )
     : [];
 
   const filteredEstacionesE = end
-    ? arregloEstaciones.filter((n) => n?.toLowerCase().includes(end.toLowerCase()))
+    ? arregloEstaciones.filter((n) =>
+        n?.toLowerCase().includes(end.toLowerCase())
+      )
     : [];
 
   const coordenadas = result?.path.map((s) => ({
@@ -132,7 +143,10 @@ export default function MisRutas() {
     if (user) {
       if (
         routes.length > 0 &&
-        routes.some((r: { start: string; end: string }) => r.start === start && r.end === end)
+        routes.some(
+          (r: { start: string; end: string }) =>
+            r.start === start && r.end === end
+        )
       ) {
         ToastAndroid.show("Ruta anteriormente guardada", ToastAndroid.SHORT);
       } else {
@@ -176,7 +190,7 @@ export default function MisRutas() {
   return (
     <View style={styles.container}>
       <View style={styles.searchCard}>
-          <Text style={styles.switchText}>Selecciona tus estaciones</Text>
+        <Text style={styles.switchText}>Selecciona tus estaciones</Text>
         <Autocomplete
           data={filteredEstacionesS}
           autoCorrect={false}
@@ -185,6 +199,7 @@ export default function MisRutas() {
             setHideS(false);
           }}
           placeholder="Punto de partida"
+          placeholderTextColor="#A9A9A9"
           defaultValue={start}
           onChangeText={(text) => {
             setStart(text);
@@ -207,6 +222,7 @@ export default function MisRutas() {
         <Autocomplete
           data={filteredEstacionesE}
           placeholder="Destino"
+          placeholderTextColor="#A9A9A9"
           autoCorrect={false}
           onPress={() => {
             setHideS(true);
@@ -221,7 +237,12 @@ export default function MisRutas() {
           flatListProps={{
             keyExtractor: (_, idx) => idx.toString(),
             renderItem: ({ item }) => (
-              <TouchableOpacity onPress={() => { handleSelectE(item); Keyboard.dismiss(); }}>
+              <TouchableOpacity
+                onPress={() => {
+                  handleSelectE(item);
+                  Keyboard.dismiss();
+                }}
+              >
                 <Text style={{ padding: 10 }}>{item}</Text>
               </TouchableOpacity>
             ),
@@ -231,7 +252,6 @@ export default function MisRutas() {
           listContainerStyle={styles.list}
         />
       </View>
-
 
       <View style={{ flex: 4 }}>
         <MapView
@@ -245,19 +265,36 @@ export default function MisRutas() {
           loadingIndicatorColor="#e68059"
         >
           {lines.map((p, index) => (
-            <Polyline coordinates={p.estaciones} key={index} strokeWidth={5} strokeColor={p.color} />
+            <Polyline
+              coordinates={p.estaciones}
+              key={index}
+              strokeWidth={5}
+              strokeColor={p.color}
+            />
           ))}
           {result?.path.map((r, i) => (
-            <Marker coordinate={r.coordenadas} key={i} title={r.nombre} description={r.linea} />
+            <Marker
+              coordinate={r.coordenadas}
+              key={i}
+              title={r.nombre}
+              description={r.linea}
+            />
           ))}
           {coordenadas && coordenadas.length > 0 && (
-            <Polyline coordinates={coordenadas} strokeWidth={5} strokeColor="blue" />
+            <Polyline
+              coordinates={coordenadas}
+              strokeWidth={5}
+              strokeColor="blue"
+            />
           )}
         </MapView>
 
         {coordenadas && coordenadas.length > 0 && (
           <View style={styles.floatingButtons}>
-            <TouchableOpacity style={styles.fab} onPress={() => addRoutes(start, end)}>
+            <TouchableOpacity
+              style={styles.fab}
+              onPress={() => addRoutes(start, end)}
+            >
               <Feather name="save" size={24} color="#fff" />
             </TouchableOpacity>
 
@@ -267,28 +304,34 @@ export default function MisRutas() {
           </View>
         )}
 
-
-        <Modal animationType="slide" visible={modal} onRequestClose={() => setModal(false)}>
+        <Modal
+          animationType="slide"
+          visible={modal}
+          onRequestClose={() => setModal(false)}
+        >
           <View style={styles.modalContainer}>
             <Text style={styles.modalTitle}>Instrucciones de la Ruta</Text>
             <FlatList
-              data={result?.path.flatMap((s) => ({ nombre: s.nombre, linea: s.linea }))}
+              data={result?.path.flatMap((s) => ({
+                nombre: s.nombre,
+                linea: s.linea,
+              }))}
               keyExtractor={(_, index) => index.toString()}
               renderItem={({ item, index }) => (
-  <View style={styles.stepCard}>
-    <View style={styles.stepRow}>
-      <Text style={styles.stepText}>
-        {index + 1}. {item.nombre} - {item.linea}
-      </Text>
-      <View
-        style={[
-          styles.lineDot,
-          { backgroundColor: lineaColors[item.linea] || "#ccc" },
-        ]}
-      />
-    </View>
-  </View>
-)}
+                <View style={styles.stepCard}>
+                  <View style={styles.stepRow}>
+                    <Text style={styles.stepText}>
+                      {index + 1}. {item.nombre} - {item.linea}
+                    </Text>
+                    <View
+                      style={[
+                        styles.lineDot,
+                        { backgroundColor: lineaColors[item.linea] || "#ccc" },
+                      ]}
+                    />
+                  </View>
+                </View>
+              )}
               ItemSeparatorComponent={() => (
                 <View style={styles.separator}>
                   <Feather name="arrow-down" size={24} color="#e68059" />
@@ -296,7 +339,10 @@ export default function MisRutas() {
               )}
               contentContainerStyle={{ paddingBottom: 20 }}
             />
-            <TouchableOpacity style={styles.closeButton} onPress={() => setModal(false)}>
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => setModal(false)}
+            >
               <Text style={styles.closeButtonText}>Cerrar</Text>
             </TouchableOpacity>
           </View>
@@ -339,24 +385,24 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   stepCard: {
-  padding: 14,
-  borderRadius: 12,
-  backgroundColor: "#fff",
-  borderWidth: 1,
-  borderColor: "#eee",
-  marginHorizontal: 4,
-},
-stepText: {
-  fontSize: 16,
-  color: "#444",
-  fontWeight: "500",
-},
+    padding: 14,
+    borderRadius: 12,
+    backgroundColor: "#fff",
+    borderWidth: 1,
+    borderColor: "#eee",
+    marginHorizontal: 4,
+  },
+  stepText: {
+    fontSize: 16,
+    color: "#444",
+    fontWeight: "500",
+  },
 
   separator: {
-  alignItems: "center",
-  marginVertical: 6,
-  opacity: 0.6,
-},
+    alignItems: "center",
+    marginVertical: 6,
+    opacity: 0.6,
+  },
   closeButton: {
     backgroundColor: "#e68059",
     padding: 15,
@@ -370,64 +416,63 @@ stepText: {
     fontSize: 16,
   },
   searchCard: {
-  position: "absolute",
-  top: 20,
-  left: 20,
-  right: 20,
-  backgroundColor: "white",
-  borderRadius: 12,
-  padding: 15,
-  shadowColor: "#000",
-  shadowOffset: { width: 0, height: 2 },
-  shadowOpacity: 0.1,
-  shadowRadius: 4,
-  elevation: 5,
-  zIndex: 999,
-},
-inputUber: {
-  borderWidth: 0,
-  borderBottomWidth: 1,
-  borderColor: "#ccc",
-  paddingVertical: 8,
-  paddingHorizontal: 10,
-},
-switchText: {
-  color: "#666",
-  fontSize: 14,
-  marginBottom: 10,
-  textAlign: "center",
-},
-floatingButtons: {
-  position: "absolute",
-  bottom: 30,
-  right: 20,
-  flexDirection: "column",
-  gap: 15,
-  zIndex: 999,
-},
-fab: {
-  width: 56,
-  height: 56,
-  borderRadius: 28,
-  backgroundColor: "#e68059",
-  justifyContent: "center",
-  alignItems: "center",
-  shadowColor: "#000",
-  shadowOffset: { width: 0, height: 2 },
-  shadowOpacity: 0.3,
-  shadowRadius: 4,
-  elevation: 6,
-},
-stepRow: {
-  flexDirection: "row",
-  justifyContent: "space-between",
-  alignItems: "center",
-},
-lineDot: {
-  width: 12,
-  height: 12,
-  borderRadius: 6,
-  marginLeft: 8,
-},
-
+    position: "absolute",
+    top: 20,
+    left: 20,
+    right: 20,
+    backgroundColor: "white",
+    borderRadius: 12,
+    padding: 15,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 5,
+    zIndex: 999,
+  },
+  inputUber: {
+    borderWidth: 0,
+    borderBottomWidth: 1,
+    borderColor: "#ccc",
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+  },
+  switchText: {
+    color: "#666",
+    fontSize: 14,
+    marginBottom: 10,
+    textAlign: "center",
+  },
+  floatingButtons: {
+    position: "absolute",
+    bottom: 30,
+    right: 20,
+    flexDirection: "column",
+    gap: 15,
+    zIndex: 999,
+  },
+  fab: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: "#e68059",
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 6,
+  },
+  stepRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  lineDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginLeft: 8,
+  },
 });
