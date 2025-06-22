@@ -4,7 +4,6 @@ import { useFocusEffect } from "expo-router";
 import {
   addDoc,
   collection,
-  getDocs,
   onSnapshot,
   query,
   where,
@@ -131,12 +130,15 @@ export default function MisRutas() {
   const fetchRoutes = async () => {
     if (user) {
       const q = query(routesCollection, where("userId", "==", user.uid));
-      const data = await getDocs(q);
-      setRoutes(data.docs.map((doc) => ({ ...doc.data() })));
+      const unsubscribe = onSnapshot(q, (querySnapshot) => {
+        const data = querySnapshot.docs.map((doc) => doc.data());
+        setRoutes(data.map((doc) => ({ ...doc })));
+        isLoading2(false);
+      });
+      return unsubscribe;
     } else {
       console.log("Ningun usuario loggeado");
     }
-    isLoading2(false);
   };
 
   const addRoutes = async (start: string, end: string) => {
