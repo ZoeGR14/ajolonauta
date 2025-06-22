@@ -47,7 +47,10 @@ export default function SOS() {
 
   useEffect(() => {
     if (!user) return;
-    const q = query(collection(db, "contactos_sos"), where("userId", "==", user.uid));
+    const q = query(
+      collection(db, "contactos_sos"),
+      where("userId", "==", user.uid)
+    );
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const data: Contacto[] = [];
       querySnapshot.forEach((doc) =>
@@ -113,11 +116,18 @@ export default function SOS() {
             onPress={() => llamarContacto(item.telefono)}
           >
             <View style={styles.emergencyInfo}>
-              <Feather name="alert-triangle" size={18} color="#e68059" style={{ marginRight: 8 }} />
+              <Feather
+                name="alert-triangle"
+                size={18}
+                color="#e68059"
+                style={{ marginRight: 8 }}
+              />
               <Text style={styles.emergencyName}>{item.nombre}</Text>
             </View>
             <Text style={styles.emergencyPhone}>{item.telefono}</Text>
-            {index < NUMEROS_EMERGENCIA.length - 1 && <View style={styles.emergencyDivider} />}
+            {index < NUMEROS_EMERGENCIA.length - 1 && (
+              <View style={styles.emergencyDivider} />
+            )}
           </Pressable>
         ))}
       </View>
@@ -180,7 +190,9 @@ export default function SOS() {
                 style={styles.cancelButton}
                 onPress={() => setModalVisible(false)}
               >
-                <Text style={{ color: "#666", fontWeight: "bold" }}>Cancelar</Text>
+                <Text style={{ color: "#666", fontWeight: "bold" }}>
+                  Cancelar
+                </Text>
               </Pressable>
               <Pressable
                 style={styles.saveButton}
@@ -189,7 +201,9 @@ export default function SOS() {
                   setModalVisible(false);
                 }}
               >
-                <Text style={{ color: "white", fontWeight: "bold" }}>Guardar</Text>
+                <Text style={{ color: "white", fontWeight: "bold" }}>
+                  Guardar
+                </Text>
               </Pressable>
             </View>
           </View>

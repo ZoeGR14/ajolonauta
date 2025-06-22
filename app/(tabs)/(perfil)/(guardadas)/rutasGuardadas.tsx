@@ -5,6 +5,7 @@ import { collection, getDocs, query, where } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   StyleSheet,
   Text,
@@ -32,6 +33,24 @@ export default function RutasGuardadas() {
   useEffect(() => {
     fetchRoutes();
   }, [user]);
+
+  const handleLongPress = (id: string) => {
+    Alert.alert(
+      "¿Quieres borrar esta ruta?",
+      "Esta acción no se puede deshacer.",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Borrar",
+          style: "destructive",
+          onPress: () => {
+            // Aquí va la lógica para eliminar el documento de Firestore
+            console.log("Eliminando ruta con ID:", id);
+          },
+        },
+      ]
+    );
+  };
 
   if (isLoading) {
     return (
@@ -102,6 +121,7 @@ const styles = StyleSheet.create({
   routeText: {
     fontSize: 16,
     color: "#333",
+    flexShrink: 1,
   },
   loadingContainer: {
     flex: 1,
