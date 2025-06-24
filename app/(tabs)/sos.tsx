@@ -1,5 +1,6 @@
 import { auth, db } from "@/FirebaseConfig";
 import { Feather } from "@expo/vector-icons";
+import { useFocusEffect } from "expo-router";
 import {
   addDoc,
   collection,
@@ -9,10 +10,11 @@ import {
   query,
   where,
 } from "firebase/firestore";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  BackHandler,
   FlatList,
   Linking,
   Modal,
@@ -44,6 +46,28 @@ export default function SOS() {
   const [isLoading, setIsLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const user = auth.currentUser;
+
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => {
+        Alert.alert(
+          "¿Salir de la app?",
+          "¿Estás segura/o de que quieres salir?",
+          [
+            { text: "Cancelar", style: "cancel" },
+            { text: "Salir", onPress: () => BackHandler.exitApp() },
+          ]
+        );
+        return true;
+      };
+
+      const subscription = BackHandler.addEventListener(
+        "hardwareBackPress",
+        onBackPress
+      );
+      return () => subscription.remove();
+    }, [])
+  );
 
   useEffect(() => {
     if (!user) return;
@@ -164,7 +188,7 @@ export default function SOS() {
       )}
 
       <Modal
-        animationType="slide"
+        animationType="fade"
         transparent={true}
         visible={modalVisible}
         onRequestClose={() => setModalVisible(false)}
@@ -174,12 +198,14 @@ export default function SOS() {
             <Text style={styles.modalTitle}>Agregar contacto</Text>
             <TextInput
               placeholder="Nombre del contacto"
+              placeholderTextColor="#A9A9A9"
               value={nombre}
               onChangeText={setNombre}
               style={styles.input}
             />
             <TextInput
               placeholder="Número telefónico"
+              placeholderTextColor="#A9A9A9"
               keyboardType="phone-pad"
               value={telefono}
               onChangeText={setTelefono}

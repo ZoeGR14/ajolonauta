@@ -28,7 +28,7 @@ export default function MyAccountScreen() {
       setUsername(user.displayName || "Sin nombre");
       setEmail(user.email || "Sin correo");
     }
-  }, []);
+  }, [auth.currentUser?.displayName]);
 
   const pickImage = async () => {
     const permissionResult =

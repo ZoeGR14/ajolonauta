@@ -1,22 +1,16 @@
 import { dijkstra, grafo, lines, mapStyle, origin2 } from "@/assets/data/info";
 import { db } from "@/FirebaseConfig";
 import { Feather } from "@expo/vector-icons";
-import { useLocalSearchParams } from "expo-router";
-import {
-  collection,
-  doc,
-  getDoc,
-  onSnapshot,
-  query,
-} from "firebase/firestore";
+import { router, useLocalSearchParams } from "expo-router";
+import { collection, doc, getDoc, onSnapshot, query } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   Modal,
   StyleSheet,
   Text,
-  ToastAndroid,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -45,6 +39,8 @@ export default function MapaGuardado() {
   const [result, setResult] = useState<any>();
   const [coordenadas, setCoordenadas] = useState<any>();
   const [isLoading, setLoading] = useState(true);
+  const [isLoading2, setLoading2] = useState(true);
+  const [isLoading3, setLoading3] = useState(true);
 
   useEffect(() => {
     const readDoc = async () => {
@@ -54,6 +50,7 @@ export default function MapaGuardado() {
 
         if (docSnap.exists()) {
           setRoutes(docSnap.data());
+          setLoading2(false);
         } else {
           console.log("No se encontró la ruta con el ID:", id);
         }
@@ -69,9 +66,15 @@ export default function MapaGuardado() {
     if (!routes) return;
 
     if (estacionesCerradas.includes(routes.start)) {
-      ToastAndroid.show(
-        `${routes.start} está presentando fallas`,
-        ToastAndroid.SHORT
+      Alert.alert(
+        `${routes.start} `,
+        `Estación cerrada o con fallas, sin rutas por desplegar`,
+        [
+          {
+            text: "OK",
+            onPress: () => router.back(),
+          },
+        ]
       );
     }
   }, [routes, estacionesCerradas]);
@@ -80,9 +83,15 @@ export default function MapaGuardado() {
     if (!routes) return;
 
     if (estacionesCerradas.includes(routes.end)) {
-      ToastAndroid.show(
-        `${routes.end} está presentando fallas`,
-        ToastAndroid.SHORT
+      Alert.alert(
+        `${routes.end} `,
+        `Estación cerrada o con fallas, sin rutas por desplegar`,
+        [
+          {
+            text: "OK",
+            onPress: () => router.back(),
+          },
+        ]
       );
     }
   }, [routes, estacionesCerradas]);
@@ -101,6 +110,7 @@ export default function MapaGuardado() {
         }))
       );
     }
+    setLoading(false);
   }, [routes, estacionesCerradas]);
 
   useEffect(() => {
@@ -113,12 +123,12 @@ export default function MapaGuardado() {
       Object.keys(grafo).forEach((estacion) => {
         grafo[estacion].activa = !data.includes(estacion);
       });
-      setLoading(false);
+      setLoading3(false);
     });
     return unsubscribe;
   }, []);
 
-  if (isLoading) {
+  if (isLoading || isLoading2 || isLoading3) {
     return (
       <View style={styles.container}>
         <ActivityIndicator size="large" color="#e68059" />
@@ -173,7 +183,11 @@ export default function MapaGuardado() {
         </View>
       )}
 
-      <Modal animationType="slide" visible={modal} onRequestClose={() => setModal(false)}>
+      <Modal
+        animationType="slide"
+        visible={modal}
+        onRequestClose={() => setModal(false)}
+      >
         <View style={styles.modalContainer}>
           <Text style={styles.modalTitle}>Instrucciones de la Ruta</Text>
           <FlatList
@@ -183,21 +197,20 @@ export default function MapaGuardado() {
             }))}
             keyExtractor={(_, index) => index.toString()}
             renderItem={({ item, index }) => (
-  <View style={styles.stepCard}>
-    <View style={styles.stepRow}>
-      <Text style={styles.stepText}>
-        {index + 1}. {item.nombre} - {item.linea}
-      </Text>
-      <View
-        style={[
-          styles.lineDot,
-          { backgroundColor: lineaColors[item.linea] || "#ccc" },
-        ]}
-      />
-    </View>
-  </View>
-)}
-
+              <View style={styles.stepCard}>
+                <View style={styles.stepRow}>
+                  <Text style={styles.stepText}>
+                    {index + 1}. {item.nombre} - {item.linea}
+                  </Text>
+                  <View
+                    style={[
+                      styles.lineDot,
+                      { backgroundColor: lineaColors[item.linea] || "#ccc" },
+                    ]}
+                  />
+                </View>
+              </View>
+            )}
             ItemSeparatorComponent={() => (
               <View style={styles.separator}>
                 <Feather name="arrow-down" size={24} color="#e68059" />
@@ -220,6 +233,7 @@ export default function MapaGuardado() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    justifyContent: "center",
   },
   modalContainer: {
     flex: 1,
@@ -235,24 +249,24 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   stepCard: {
-  padding: 14,
-  borderRadius: 12,
-  backgroundColor: "#fff",
-  borderWidth: 1,
-  borderColor: "#eee",
-  marginHorizontal: 4,
-},
-stepText: {
-  fontSize: 16,
-  color: "#444",
-  fontWeight: "500",
-},
+    padding: 14,
+    borderRadius: 12,
+    backgroundColor: "#fff",
+    borderWidth: 1,
+    borderColor: "#eee",
+    marginHorizontal: 4,
+  },
+  stepText: {
+    fontSize: 16,
+    color: "#444",
+    fontWeight: "500",
+  },
 
   separator: {
-  alignItems: "center",
-  marginVertical: 6,
-  opacity: 0.6,
-},
+    alignItems: "center",
+    marginVertical: 6,
+    opacity: 0.6,
+  },
   fab: {
     width: 56,
     height: 56,
@@ -275,15 +289,14 @@ stepText: {
     zIndex: 999,
   },
   stepRow: {
-  flexDirection: "row",
-  justifyContent: "space-between",
-  alignItems: "center",
-},
-lineDot: {
-  width: 12,
-  height: 12,
-  borderRadius: 6,
-  marginLeft: 8,
-},
-
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  lineDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginLeft: 8,
+  },
 });
