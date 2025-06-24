@@ -68,7 +68,7 @@ export default function SignUpScreen() {
     } catch (error) {
       Alert.alert(
         "Error",
-        "No se pudo crear la cuenta. Verifica:\n- Contraseña de mínimo 6 caracteres\n- Al menos 1 mayúscula y 1 número"
+        "No se pudo crear la cuenta. Verifique los campos."
       );
       console.log(error);
     } finally {
@@ -153,6 +153,7 @@ export default function SignUpScreen() {
               </View>
             </View>
 
+            <Text style={styles.contra}>La contraseña debe contener al menos 6 caracteres y al menos 1 mayúscula y 1 número</Text>
             <TouchableOpacity
               style={styles.button}
               onPress={handleSignUp}
@@ -228,6 +229,12 @@ const styles = StyleSheet.create({
     height: 50,
     paddingHorizontal: 15,
     backgroundColor: "#f9f9f9",
+  },
+  contra:{
+    color: "#bab7b6",
+    fontWeight: "bold",
+    fontSize: 12,
+    marginBottom: 10,
   },
   passwordContainer: {
     flexDirection: "row",

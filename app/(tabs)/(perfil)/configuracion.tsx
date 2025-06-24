@@ -84,7 +84,12 @@ export default function ConfiguracionScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20, backgroundColor: "#fff" },
-  title: { fontSize: 24, fontWeight: "bold", marginBottom: 30, textAlign: "center" },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginBottom: 30,
+    textAlign: "center",
+  },
   label: { fontSize: 16, fontWeight: "bold", marginTop: 20 },
   input: {
     borderWidth: 1,
@@ -95,7 +100,7 @@ const styles = StyleSheet.create({
   },
   button: {
     marginTop: 30,
-    backgroundColor: "#000",
+    backgroundColor: "#e68059",
     padding: 15,
     borderRadius: 8,
     alignItems: "center",

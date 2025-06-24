@@ -11,9 +11,7 @@ import {
 export default function Index() {
   return (
     <ImageBackground
-      source={{
-        uri: "https://images.pexels.com/photos/18399463/pexels-photo-18399463.jpeg",
-      }}
+      source={ require ("../../assets/images/cdmx.jpeg")}
       style={styles.background}
       resizeMode="cover"
     >

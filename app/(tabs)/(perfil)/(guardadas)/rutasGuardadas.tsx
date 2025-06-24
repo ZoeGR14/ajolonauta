@@ -75,9 +75,10 @@ export default function RutasGuardadas() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Tus Rutas Guardadas</Text>
-      {routes.length == 0 ? (
-        <View style={styles.container}>
-          <Text>Vacío</Text>
+      {routes.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <Feather name="trash-2" size={48} color="#ccc" />
+          <Text style={styles.emptyText}>No tienes rutas guardadas</Text>
         </View>
       ) : (
         <FlatList
@@ -87,19 +88,23 @@ export default function RutasGuardadas() {
             <TouchableOpacity
               style={styles.routeCard}
               onPress={() => router.push(`./${item.id}`)}
-              activeOpacity={0.8}
+              activeOpacity={0.85}
               onLongPress={() => handleLongPress(item.id)}
             >
-              <View style={styles.routeRow}>
-                <Feather name="map-pin" size={20} color="#e68059" />
+              <View style={styles.routeHeader}>
+                <Feather name="map" size={20} color="#E68059" />
+                <Text style={styles.routeTitle}>Ruta #{index + 1}</Text>
+              </View>
+              <View style={styles.routeDetails}>
+                <Feather name="arrow-right" size={16} color="#888" />
                 <Text style={styles.routeText}>
-                  {index + 1}. {item.start} ➔ {item.end}
+                  {item.start} ➔ {item.end}
                 </Text>
               </View>
             </TouchableOpacity>
           )}
-          ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
-          contentContainerStyle={{ paddingBottom: 30 }}
+          ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
+          contentContainerStyle={{ paddingBottom: 40, paddingTop: 8 }}
         />
       )}
     </View>
@@ -120,35 +125,71 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: "center",
   },
-  routeCard: {
-    backgroundColor: "#fff",
-    padding: 15,
-    margin: 10,
-    borderRadius: 12,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 1 },
-    shadowRadius: 5,
-    elevation: 4,
-  },
   routeRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-  },
-  routeText: {
-    fontSize: 16,
-    color: "#333",
-    flexShrink: 1,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
   },
+  routeCard: {
+    backgroundColor: "#fff",
+    padding: 16,
+    margin: 10,
+    marginVertical: 8,
+    borderRadius: 14,
+    shadowColor: "#000",
+    shadowOpacity: 0.06,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 6,
+    elevation: 3,
+  },
+
+  routeHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+    gap: 10,
+  },
+
+  routeTitle: {
+    fontSize: 15,
+    fontWeight: "bold",
+    color: "#444",
+  },
+
+  routeDetails: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+
+  routeText: {
+    fontSize: 16,
+    color: "#666",
+    flexShrink: 1,
+  },
+
   loadingText: {
     marginTop: 10,
     color: "#666",
     fontSize: 16,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 20,
+  },
+
+  emptyText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: "#999",
+    textAlign: "center",
+    fontStyle: "italic",
   },
 });

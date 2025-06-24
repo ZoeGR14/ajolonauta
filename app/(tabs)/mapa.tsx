@@ -22,14 +22,21 @@ export default function Mapa() {
   useFocusEffect(
     useCallback(() => {
       const onBackPress = () => {
-        Alert.alert("¿Salir de la app?", "¿Estás segura/o de que quieres salir?", [
-          { text: "Cancelar", style: "cancel" },
-          { text: "Salir", onPress: () => BackHandler.exitApp() },
-        ]);
+        Alert.alert(
+          "¿Salir de la app?",
+          "¿Estás segura/o de que quieres salir?",
+          [
+            { text: "Cancelar", style: "cancel" },
+            { text: "Salir", onPress: () => BackHandler.exitApp() },
+          ]
+        );
         return true;
       };
 
-      const subscription = BackHandler.addEventListener("hardwareBackPress", onBackPress);
+      const subscription = BackHandler.addEventListener(
+        "hardwareBackPress",
+        onBackPress
+      );
       return () => subscription.remove();
     }, [])
   );
@@ -38,7 +45,9 @@ export default function Mapa() {
     Object.fromEntries(lineas.map((line) => [line, false]))
   );
   const [modal, setModal] = useState<boolean>(false);
-  const slideAnim = useRef(new Animated.Value(Dimensions.get("window").width)).current;
+  const slideAnim = useRef(
+    new Animated.Value(Dimensions.get("window").width)
+  ).current;
 
   const toggleCheckbox = useCallback((line: string) => {
     setCheckedItems((prev) => ({ ...prev, [line]: !prev[line] }));
@@ -67,10 +76,21 @@ export default function Mapa() {
 
   const handleSelectAll = useCallback(() => {
     const allSelected = Object.values(checkedItems).every(Boolean);
-    setCheckedItems(Object.fromEntries(lineas.map((line) => [line, !allSelected])));
+    setCheckedItems(
+      Object.fromEntries(lineas.map((line) => [line, !allSelected]))
+    );
   }, [checkedItems]);
 
-  const isAllSelected = useMemo(() => Object.values(checkedItems).every(Boolean), [checkedItems]);
+  const isAllSelected = useMemo(
+    () => Object.values(checkedItems).every(Boolean),
+    [checkedItems]
+  );
+  const InfoEstacion = () => {
+    Alert.alert(
+      "Información",
+      "Aquí puedes poner información útil sobre el mapa o la app."
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -119,13 +139,28 @@ export default function Mapa() {
       </MapView>
 
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.infoButton} activeOpacity={0.9} onPress={openPanel}>
+        <TouchableOpacity
+          style={styles.infoButton}
+          activeOpacity={0.9}
+          onPress={openPanel}
+        >
           <Feather name="menu" size={28} color="white" />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.infoButton, { marginTop: 12 }]}
+          activeOpacity={0.9}
+          onPress={InfoEstacion}
+        >
+          <Feather name="info" size={28} color="white" />
         </TouchableOpacity>
       </View>
 
       {modal && (
         <Animated.View style={[styles.slidePanel, { left: slideAnim }]}>
+          <Text style={styles.panelTitle}>Líneas del Metro</Text>
+          <View style={styles.divider} />
+
           <ScrollView showsVerticalScrollIndicator={false}>
             {lineas.map((line) => (
               <TouchableOpacity
@@ -133,15 +168,10 @@ export default function Mapa() {
                 style={[
                   styles.row,
                   {
-                    backgroundColor: checkedItems[line] ? getColorForLine(line) : "#f9f9f9",
-                    borderRadius: 10,
-                    padding: 10,
-                    marginBottom: 8,
-                    shadowColor: "#000",
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: 0.1,
-                    shadowRadius: 4,
-                    elevation: 3,
+                    backgroundColor: checkedItems[line]
+                      ? getColorForLine(line)
+                      : "#f4f4f4",
+                    ...styles.lineItem,
                   },
                 ]}
                 activeOpacity={0.9}
@@ -157,10 +187,14 @@ export default function Mapa() {
             ))}
 
             <TouchableOpacity
-              style={[styles.row, { backgroundColor: "#e6f9e6", borderRadius: 10, padding: 10 }]}
+              style={styles.selectAllButton}
               onPress={handleSelectAll}
             >
-              <Checkbox value={isAllSelected} onValueChange={handleSelectAll} color="green" />
+              <Checkbox
+                value={isAllSelected}
+                onValueChange={handleSelectAll}
+                color="green"
+              />
               <Text style={styles.checkboxTextBold}>Seleccionar Todos</Text>
             </TouchableOpacity>
           </ScrollView>
@@ -239,5 +273,43 @@ const styles = StyleSheet.create({
     color: "white",
     fontWeight: "bold",
     fontSize: 16,
+  },
+  panelTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#222",
+    textAlign: "center",
+    marginBottom: 10,
+  },
+
+  divider: {
+    height: 1,
+    backgroundColor: "#ddd",
+    marginBottom: 16,
+  },
+
+  lineItem: {
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+
+  selectAllButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#d2f5dc",
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
   },
 });

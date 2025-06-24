@@ -193,66 +193,93 @@ export default function MisRutas() {
     <View style={styles.container}>
       <View style={styles.searchCard}>
         <Text style={styles.switchText}>Selecciona tus estaciones</Text>
-        <Autocomplete
-          data={filteredEstacionesS}
-          autoCorrect={false}
-          onPress={() => {
-            setHideE(true);
-            setHideS(false);
-          }}
-          placeholder="Punto de partida"
-          placeholderTextColor="#A9A9A9"
-          defaultValue={start}
-          onChangeText={(text) => {
-            setStart(text);
-            setHideS(false);
-          }}
-          hideResults={hideS}
-          flatListProps={{
-            keyExtractor: (_, idx) => idx.toString(),
-            renderItem: ({ item }) => (
-              <TouchableOpacity onPress={() => handleSelectS(item)}>
-                <Text style={{ padding: 10 }}>{item}</Text>
-              </TouchableOpacity>
-            ),
-            keyboardShouldPersistTaps: "always",
-          }}
-          inputContainerStyle={styles.inputUber}
-          listContainerStyle={styles.list}
-          containerStyle={{ marginBottom: 10 }}
-        />
-        <Autocomplete
-          data={filteredEstacionesE}
-          placeholder="Destino"
-          placeholderTextColor="#A9A9A9"
-          autoCorrect={false}
-          onPress={() => {
-            setHideS(true);
-            setHideE(false);
-          }}
-          defaultValue={end}
-          onChangeText={(text) => {
-            setEnd(text);
-            setHideE(false);
-          }}
-          hideResults={hideE}
-          flatListProps={{
-            keyExtractor: (_, idx) => idx.toString(),
-            renderItem: ({ item }) => (
-              <TouchableOpacity
-                onPress={() => {
-                  handleSelectE(item);
-                  Keyboard.dismiss();
-                }}
-              >
-                <Text style={{ padding: 10 }}>{item}</Text>
-              </TouchableOpacity>
-            ),
-            keyboardShouldPersistTaps: "always",
-          }}
-          inputContainerStyle={styles.inputUber}
-          listContainerStyle={styles.list}
-        />
+        <View style={{ position: "relative" }}>
+          <Autocomplete
+            data={filteredEstacionesS}
+            autoCorrect={false}
+            onPress={() => {
+              setHideE(true);
+              setHideS(false);
+            }}
+            placeholder="Punto de partida"
+            placeholderTextColor="#A9A9A9"
+            defaultValue={start}
+            onChangeText={(text) => {
+              setStart(text);
+              setHideS(false);
+            }}
+            hideResults={hideS}
+            flatListProps={{
+              keyExtractor: (_, idx) => idx.toString(),
+              renderItem: ({ item }) => (
+                <TouchableOpacity onPress={() => handleSelectS(item)}>
+                  <Text style={{ padding: 10 }}>{item}</Text>
+                </TouchableOpacity>
+              ),
+              keyboardShouldPersistTaps: "always",
+            }}
+            inputContainerStyle={styles.inputUber}
+            listContainerStyle={styles.list}
+            containerStyle={{ marginBottom: 10 }}
+          />
+          {start.length > 0 && (
+            <TouchableOpacity
+              style={styles.clearIconWrapper}
+              onPress={() => {
+                setStart("");
+                setHideS(true);
+              }}
+            >
+              <Feather name="x" size={20} color="#999" />
+            </TouchableOpacity>
+          )}
+        </View>
+
+        <View style={{ position: "relative" }}>
+          <Autocomplete
+            data={filteredEstacionesE}
+            placeholder="Destino"
+            placeholderTextColor="#A9A9A9"
+            autoCorrect={false}
+            onPress={() => {
+              setHideS(true);
+              setHideE(false);
+            }}
+            defaultValue={end}
+            onChangeText={(text) => {
+              setEnd(text);
+              setHideE(false);
+            }}
+            hideResults={hideE}
+            flatListProps={{
+              keyExtractor: (_, idx) => idx.toString(),
+              renderItem: ({ item }) => (
+                <TouchableOpacity
+                  onPress={() => {
+                    handleSelectE(item);
+                    Keyboard.dismiss();
+                  }}
+                >
+                  <Text style={{ padding: 10 }}>{item}</Text>
+                </TouchableOpacity>
+              ),
+              keyboardShouldPersistTaps: "always",
+            }}
+            inputContainerStyle={styles.inputUber}
+            listContainerStyle={styles.list}
+          />
+          {end.length > 0 && (
+            <TouchableOpacity
+              style={styles.clearIconWrapper}
+              onPress={() => {
+                setEnd("");
+                setHideE(true);
+              }}
+            >
+              <Feather name="x" size={20} color="#999" />
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
 
       <View style={{ flex: 4 }}>
@@ -476,5 +503,12 @@ const styles = StyleSheet.create({
     height: 12,
     borderRadius: 6,
     marginLeft: 8,
+  },
+  clearIconWrapper: {
+    position: "absolute",
+    right: 10,
+    top: "50%",
+    transform: [{ translateY: -12 }],
+    zIndex: 2,
   },
 });
