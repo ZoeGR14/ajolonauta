@@ -16,7 +16,7 @@
       "package": "com.zoegr.app_movil",
       "config": {
         "googleMaps": {
-          "apiKey": "process.env.EXPO_PUBLIC_API_KEY"
+          "apiKey": "AIzaSyBBM9AyEcdajb9jkIJa7yj1R8DumtLhmo8"
         }
       }
     },
