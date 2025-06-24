@@ -84,13 +84,31 @@ export default function MisRutas() {
 
   useEffect(() => {
     if (estacionesCerradas.includes(start)) {
-      ToastAndroid.show(`${start} está presentando fallas`, ToastAndroid.SHORT);
+      Alert.alert(
+        `${start} `,
+        `Estación cerrada o con fallas, sin rutas por desplegar`,
+        [
+          {
+            text: "OK",
+            onPress: () => setStart(""),
+          },
+        ]
+      );
     }
   }, [start, estacionesCerradas]);
 
   useEffect(() => {
     if (estacionesCerradas.includes(end)) {
-      ToastAndroid.show(`${end} está presentando fallas`, ToastAndroid.SHORT);
+      Alert.alert(
+        `${end} `,
+        `Estación cerrada o con fallas, sin rutas por desplegar`,
+        [
+          {
+            text: "OK",
+            onPress: () => setEnd(""),
+          },
+        ]
+      );
     }
   }, [end, estacionesCerradas]);
 
@@ -153,7 +171,7 @@ export default function MisRutas() {
         ToastAndroid.show("Ruta anteriormente guardada", ToastAndroid.SHORT);
       } else {
         isLoading2(true);
-        ToastAndroid.show("Guardando ruta...", ToastAndroid.SHORT);
+        ToastAndroid.show("Ruta guardada", ToastAndroid.SHORT);
         await addDoc(routesCollection, { start, end, userId: user.uid });
         setRoutes([]);
         fetchRoutes();

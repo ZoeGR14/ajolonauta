@@ -1,12 +1,13 @@
 import { lineas, lines } from "@/assets/data/info";
 import { db } from "@/FirebaseConfig";
 import { Feather } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import { doc, getDoc } from "firebase/firestore";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  BackHandler,
   FlatList,
   LayoutAnimation,
   Platform,
@@ -46,6 +47,28 @@ const lineaColors: { [key: string]: string } = {
 };
 
 export default function CombinedView() {
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => {
+        Alert.alert(
+          "¿Salir de la app?",
+          "¿Estás segura/o de que quieres salir?",
+          [
+            { text: "Cancelar", style: "cancel" },
+            { text: "Salir", onPress: () => BackHandler.exitApp() },
+          ]
+        );
+        return true;
+      };
+
+      const subscription = BackHandler.addEventListener(
+        "hardwareBackPress",
+        onBackPress
+      );
+      return () => subscription.remove();
+    }, [])
+  );
+
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("Comentarios");
   const [selectedLinea, setSelectedLinea] = useState<string | null>(null);

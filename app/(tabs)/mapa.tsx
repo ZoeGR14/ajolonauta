@@ -1,8 +1,16 @@
-import { lineas, lines, mapStyle, origin } from "@/assets/data/info";
+import { grafo, lineas, lines, mapStyle, origin } from "@/assets/data/info";
+import { db } from "@/FirebaseConfig";
 import { Feather } from "@expo/vector-icons";
 import Checkbox from "expo-checkbox";
 import { useFocusEffect } from "expo-router";
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import { collection, onSnapshot, query } from "firebase/firestore";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   Alert,
   Animated,
@@ -44,6 +52,8 @@ export default function Mapa() {
   const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>(
     Object.fromEntries(lineas.map((line) => [line, false]))
   );
+  const [estacionesCerradas, setEstacionesCerradas] = useState<string[]>([]);
+  const [isLoading, setLoading] = useState(true);
   const [modal, setModal] = useState<boolean>(false);
   const slideAnim = useRef(
     new Animated.Value(Dimensions.get("window").width)
@@ -85,11 +95,28 @@ export default function Mapa() {
     () => Object.values(checkedItems).every(Boolean),
     [checkedItems]
   );
+
+  useEffect(() => {
+    const collectionRef = collection(db, "estaciones_cerradas");
+    const q = query(collectionRef);
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const data = querySnapshot.docs.map((doc) => doc.id);
+      setEstacionesCerradas(data);
+      Object.keys(grafo).forEach((estacion) => {
+        grafo[estacion].activa = !data.includes(estacion);
+      });
+      setLoading(false);
+    });
+    return unsubscribe;
+  }, []);
+
   const InfoEstacion = () => {
-    Alert.alert(
-      "Información",
-      "Aquí puedes poner información útil sobre el mapa o la app."
-    );
+    const mensaje =
+      estacionesCerradas.length > 0
+        ? `\n${estacionesCerradas.map((e) => `🔸 ${e}`).join("\n\n")}`
+        : "✅ ¡Todas las estaciones están disponibles!";
+
+    Alert.alert("🚧 Estaciones cerradas", mensaje);
   };
 
   return (
