@@ -7,17 +7,17 @@
 ## 📋 Tabla de Contenidos
 
 -  [Características](#-características)
--  [Tecnologías Utilizadas](#-tecnologías-utilizadas)
+-  [Tecnologías utilizadas](#%EF%B8%8F-tecnologías-utilizadas)
 -  [Requisitos Previos](#-requisitos-previos)
 -  [Instalación](#-instalación)
--  [Configuración](#-configuración)
+-  [Configuración](#%EF%B8%8F-configuración)
 -  [Ejecución del Proyecto](#-ejecución-del-proyecto)
 -  [Estructura del Proyecto](#-estructura-del-proyecto)
 -  [Funcionalidades Principales](#-funcionalidades-principales)
 -  [Scripts Disponibles](#-scripts-disponibles)
 -  [Compilación](#-compilación)
--  [Contribuir](#-contribuir)
 -  [Licencia](#-licencia)
+-  [Agradecimientos](#-agradecimientos)
 
 ---
 
@@ -34,7 +34,7 @@
 
 ---
 
-## 🛠️ Tecnologías Utilizadas
+## 🛠️ Tecnologías utilizadas
 
 ### Frontend
 
