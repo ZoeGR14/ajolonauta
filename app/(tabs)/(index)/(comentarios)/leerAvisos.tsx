@@ -126,28 +126,34 @@ export default function CombinedView() {
           </TouchableOpacity>
 
           {showLineasDropdown && (
-            <FlatList
-              data={lineas}
-              keyExtractor={(item) => item}
-              style={styles.listContainer}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.lineItem}
-                  onPress={() => {
-                    setSelectedLinea(item);
-                    setShowLineasDropdown(false);
-                    setShowEstacionesDropdown(true);
-                  }}
-                  activeOpacity={0.7}
-                >
-                  <View style={styles.lineContent}>
-                    <Ionicons name="subway" size={22} color="#e68059" />
-                    <Text style={styles.lineText}>{item}</Text>
-                    <Ionicons name="arrow-forward" size={18} color="#95a5a6" />
-                  </View>
-                </TouchableOpacity>
-              )}
-            />
+            <View style={styles.dropdownOverlay}>
+              <FlatList
+                data={lineas}
+                keyExtractor={(item) => item}
+                style={styles.listContainer}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={styles.lineItem}
+                    onPress={() => {
+                      setSelectedLinea(item);
+                      setShowLineasDropdown(false);
+                      setShowEstacionesDropdown(true);
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.lineContent}>
+                      <Ionicons name="subway" size={22} color="#e68059" />
+                      <Text style={styles.lineText}>{item}</Text>
+                      <Ionicons
+                        name="arrow-forward"
+                        size={18}
+                        color="#95a5a6"
+                      />
+                    </View>
+                  </TouchableOpacity>
+                )}
+              />
+            </View>
           )}
 
           {/* Selector de estación (solo se muestra después de elegir una línea) */}
@@ -175,29 +181,35 @@ export default function CombinedView() {
               </TouchableOpacity>
 
               {showEstacionesDropdown && (
-                <FlatList
-                  data={getStationsByLine(selectedLinea)}
-                  keyExtractor={(item) => item}
-                  style={styles.listContainer}
-                  renderItem={({ item }) => (
-                    <TouchableOpacity
-                      style={styles.stationItem}
-                      onPress={() => {
-                        setSelectedStation(item);
-                        setShowEstacionesDropdown(false);
-                        fetchComments(item, selectedLinea);
-                      }}
-                      activeOpacity={0.7}
-                    >
-                      <View style={styles.stationContent}>
-                        <View style={styles.stationIcon}>
-                          <Ionicons name="location" size={16} color="#e68059" />
+                <View style={styles.dropdownOverlay}>
+                  <FlatList
+                    data={getStationsByLine(selectedLinea)}
+                    keyExtractor={(item) => item}
+                    style={styles.listContainer}
+                    renderItem={({ item }) => (
+                      <TouchableOpacity
+                        style={styles.stationItem}
+                        onPress={() => {
+                          setSelectedStation(item);
+                          setShowEstacionesDropdown(false);
+                          fetchComments(item, selectedLinea);
+                        }}
+                        activeOpacity={0.7}
+                      >
+                        <View style={styles.stationContent}>
+                          <View style={styles.stationIcon}>
+                            <Ionicons
+                              name="location"
+                              size={16}
+                              color="#e68059"
+                            />
+                          </View>
+                          <Text style={styles.stationText}>{item}</Text>
                         </View>
-                        <Text style={styles.stationText}>{item}</Text>
-                      </View>
-                    </TouchableOpacity>
-                  )}
-                />
+                      </TouchableOpacity>
+                    )}
+                  />
+                </View>
               )}
             </>
           )}
@@ -361,6 +373,14 @@ const styles = StyleSheet.create({
   },
   activeTabText: {
     color: "#e68059",
+  },
+  dropdownOverlay: {
+    position: "absolute",
+    top: 200,
+    left: 0,
+    right: 0,
+    zIndex: 1000,
+    maxHeight: "60%",
   },
   listContainer: {
     maxHeight: 280,

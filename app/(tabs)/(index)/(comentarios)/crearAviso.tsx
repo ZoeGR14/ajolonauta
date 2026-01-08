@@ -267,37 +267,39 @@ export default function AddComment() {
       </View>
 
       {showLineasDropdown && (
-        <FlatList
-          data={lineas}
-          keyExtractor={(item) => item}
-          style={styles.listContainer}
-          renderItem={({ item }) => {
-            const bgColor = lineaColors[item] || "#CCCCCC";
-            return (
-              <TouchableOpacity
-                style={[styles.lineItem, { backgroundColor: bgColor }]}
-                onPress={() => {
-                  LayoutAnimation.configureNext(
-                    LayoutAnimation.Presets.easeInEaseOut
-                  );
-                  setSelectedLinea(item);
-                  setShowLineasDropdown(false);
-                  setShowEstacionesDropdown(true);
-                }}
-              >
-                <View style={styles.lineContent}>
-                  <Ionicons name="subway" size={24} color="#fff" />
-                  <Text style={styles.lineText}>{item}</Text>
-                  <Ionicons
-                    name="arrow-forward"
-                    size={20}
-                    color="rgba(255,255,255,0.7)"
-                  />
-                </View>
-              </TouchableOpacity>
-            );
-          }}
-        />
+        <View style={styles.dropdownOverlay}>
+          <FlatList
+            data={lineas}
+            keyExtractor={(item) => item}
+            style={styles.listContainer}
+            renderItem={({ item }) => {
+              const bgColor = lineaColors[item] || "#CCCCCC";
+              return (
+                <TouchableOpacity
+                  style={[styles.lineItem, { backgroundColor: bgColor }]}
+                  onPress={() => {
+                    LayoutAnimation.configureNext(
+                      LayoutAnimation.Presets.easeInEaseOut
+                    );
+                    setSelectedLinea(item);
+                    setShowLineasDropdown(false);
+                    setShowEstacionesDropdown(true);
+                  }}
+                >
+                  <View style={styles.lineContent}>
+                    <Ionicons name="subway" size={24} color="#fff" />
+                    <Text style={styles.lineText}>{item}</Text>
+                    <Ionicons
+                      name="arrow-forward"
+                      size={20}
+                      color="rgba(255,255,255,0.7)"
+                    />
+                  </View>
+                </TouchableOpacity>
+              );
+            }}
+          />
+        </View>
       )}
 
       {/* Estación */}
@@ -329,24 +331,25 @@ export default function AddComment() {
           </View>
 
           {showEstacionesDropdown && (
-            <FlatList
-              data={getStationsByLine(selectedLinea)}
-              keyExtractor={(item) => item}
-              style={styles.listContainer}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.stationItem}
-                  onPress={() => {
-                    LayoutAnimation.configureNext(
-                      LayoutAnimation.Presets.easeInEaseOut
-                    );
-                    setSelectedStation(item);
-                    setShowEstacionesDropdown(false);
-                  }}
-                >
-                  <View style={styles.stationContent}>
-                    <View style={styles.stationIcon}>
-                      <Ionicons name="location" size={18} color="#e68059" />
+            <View style={styles.dropdownOverlay}>
+              <FlatList
+                data={getStationsByLine(selectedLinea)}
+                keyExtractor={(item) => item}
+                style={styles.listContainer}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={styles.stationItem}
+                    onPress={() => {
+                      LayoutAnimation.configureNext(
+                        LayoutAnimation.Presets.easeInEaseOut
+                      );
+                      setSelectedStation(item);
+                      setShowEstacionesDropdown(false);
+                    }}
+                  >
+                    <View style={styles.stationContent}>
+                      <View style={styles.stationIcon}>
+                        <Ionicons name="location" size={18} color="#e68059" />
                     </View>
                     <Text style={styles.stationText}>{item}</Text>
                   </View>
@@ -478,6 +481,14 @@ const styles = StyleSheet.create({
     color: "#7f8c8d",
     marginBottom: 8,
     letterSpacing: 1.2,
+  },
+  dropdownOverlay: {
+    position: "absolute",
+    top: 250,
+    left: 0,
+    right: 0,
+    zIndex: 1000,
+    maxHeight: "60%",
   },
   listContainer: {
     maxHeight: 300,
