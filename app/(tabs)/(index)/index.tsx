@@ -144,38 +144,51 @@ export default function CombinedView() {
       </View>
 
       {showLineasDropdown && (
-        <FlatList
-          data={lineas}
-          keyExtractor={(item) => item}
-          style={styles.listContainer}
-          renderItem={({ item }) => {
-            const bgColor = lineaColors[item];
-            return (
-              <TouchableOpacity
-                style={[styles.lineItem, { backgroundColor: bgColor }]}
-                onPress={() => {
-                  setSelectedLinea(item);
-                  setShowLineasDropdown(false);
-                  setShowEstacionesDropdown(true);
-                  LayoutAnimation.configureNext(
-                    LayoutAnimation.Presets.easeInEaseOut
-                  );
-                }}
-                activeOpacity={0.7}
-              >
-                <View style={styles.lineContent}>
-                  <Ionicons name="subway" size={24} color="#fff" />
-                  <Text style={styles.lineText}>{item}</Text>
-                  <Ionicons
-                    name="arrow-forward"
-                    size={20}
-                    color="rgba(255,255,255,0.7)"
-                  />
-                </View>
-              </TouchableOpacity>
-            );
-          }}
-        />
+        <View style={styles.dropdownOverlay}>
+          <Pressable
+            style={styles.overlayBackground}
+            onPress={() => {
+              setShowLineasDropdown(false);
+              LayoutAnimation.configureNext(
+                LayoutAnimation.Presets.easeInEaseOut
+              );
+            }}
+          />
+          <View style={styles.dropdownContainer}>
+            <FlatList
+              data={lineas}
+              keyExtractor={(item) => item}
+              style={styles.listContainer}
+              renderItem={({ item }) => {
+                const bgColor = lineaColors[item];
+                return (
+                  <TouchableOpacity
+                    style={[styles.lineItem, { backgroundColor: bgColor }]}
+                    onPress={() => {
+                      setSelectedLinea(item);
+                      setShowLineasDropdown(false);
+                      setShowEstacionesDropdown(true);
+                      LayoutAnimation.configureNext(
+                        LayoutAnimation.Presets.easeInEaseOut
+                      );
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.lineContent}>
+                      <Ionicons name="subway" size={24} color="#fff" />
+                      <Text style={styles.lineText}>{item}</Text>
+                      <Ionicons
+                        name="arrow-forward"
+                        size={20}
+                        color="rgba(255,255,255,0.7)"
+                      />
+                    </View>
+                  </TouchableOpacity>
+                );
+              }}
+            />
+          </View>
+        </View>
       )}
 
       {/* Selector de estación */}
@@ -207,32 +220,45 @@ export default function CombinedView() {
           </View>
 
           {showEstacionesDropdown && (
-            <FlatList
-              data={getStationsByLine(selectedLinea)}
-              keyExtractor={(item) => item}
-              style={styles.listContainer}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.stationItem}
-                  onPress={() => {
-                    setSelectedStation(item);
-                    setShowEstacionesDropdown(false);
-                    fetchComments(item, selectedLinea);
-                    LayoutAnimation.configureNext(
-                      LayoutAnimation.Presets.easeInEaseOut
-                    );
-                  }}
-                  activeOpacity={0.7}
-                >
-                  <View style={styles.stationContent}>
-                    <View style={styles.stationIcon}>
-                      <Ionicons name="location" size={18} color="#e68059" />
-                    </View>
-                    <Text style={styles.stationText}>{item}</Text>
-                  </View>
-                </TouchableOpacity>
-              )}
-            />
+            <View style={styles.dropdownOverlay}>
+              <Pressable
+                style={styles.overlayBackground}
+                onPress={() => {
+                  setShowEstacionesDropdown(false);
+                  LayoutAnimation.configureNext(
+                    LayoutAnimation.Presets.easeInEaseOut
+                  );
+                }}
+              />
+              <View style={styles.dropdownContainer}>
+                <FlatList
+                  data={getStationsByLine(selectedLinea)}
+                  keyExtractor={(item) => item}
+                  style={styles.listContainer}
+                  renderItem={({ item }) => (
+                    <TouchableOpacity
+                      style={styles.stationItem}
+                      onPress={() => {
+                        setSelectedStation(item);
+                        setShowEstacionesDropdown(false);
+                        fetchComments(item, selectedLinea);
+                        LayoutAnimation.configureNext(
+                          LayoutAnimation.Presets.easeInEaseOut
+                        );
+                      }}
+                      activeOpacity={0.7}
+                    >
+                      <View style={styles.stationContent}>
+                        <View style={styles.stationIcon}>
+                          <Ionicons name="location" size={18} color="#e68059" />
+                        </View>
+                        <Text style={styles.stationText}>{item}</Text>
+                      </View>
+                    </TouchableOpacity>
+                  )}
+                />
+              </View>
+            </View>
           )}
         </>
       )}
@@ -387,6 +413,30 @@ const styles = StyleSheet.create({
     color: "#7f8c8d",
     marginBottom: 10,
     letterSpacing: 1.2,
+  },
+  dropdownOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 1000,
+  },
+  overlayBackground: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  dropdownContainer: {
+    position: "absolute",
+    top: 220,
+    left: 0,
+    right: 0,
+    maxHeight: "60%",
+    backgroundColor: "transparent",
   },
   listContainer: {
     maxHeight: 300,
