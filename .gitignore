@@ -1,39 +1,191 @@
 # Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
 
-# dependencies
+# ========================================
+# Dependencies
+# ========================================
 node_modules/
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+pnpm-debug.log*
+.pnpm-store/
 
+# ========================================
 # Expo
+# ========================================
 .expo/
+.expo-shared/
 dist/
 web-build/
 expo-env.d.ts
 
-# Native
-.kotlin/
+# ========================================
+# Native builds
+# ========================================
 *.orig.*
 *.jks
 *.p8
 *.p12
 *.key
 *.mobileprovision
+*.hprof
+.cxx/
+.gradle/
+.idea/
+.kotlin/
+local.properties
 
-# Metro
+# Android
+*.apk
+*.aab
+*.ap_
+*.dex
+android/app/build/
+android/app/release/
+android/.gradle/
+android/captures/
+android/gradle/
+android/local.properties
+
+# iOS
+ios/Pods/
+ios/build/
+ios/*.xcworkspace
+ios/*.xcodeproj/xcuserdata/
+ios/*.xcodeproj/project.xcworkspace/
+ios/Podfile.lock
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# ========================================
+# Metro Bundler
+# ========================================
 .metro-health-check*
+.metro/
 
-# debug
-npm-debug.*
-yarn-debug.*
-yarn-error.*
+# ========================================
+# Environment & Configuration
+# ========================================
+.env
+.env*.local
+.env.development
+.env.production
+.env.test
+*.env
 
+# Firebase
+FirebaseConfig.ts.backup
+google-services.json
+GoogleService-Info.plist
+
+# ========================================
+# Debug & Logs
+# ========================================
+*.log
+logs/
+*.log.*
+lerna-debug.log*
+
+# ========================================
+# Testing
+# ========================================
+coverage/
+.nyc_output/
+*.lcov
+.jest/
+
+# ========================================
+# TypeScript
+# ========================================
+*.tsbuildinfo
+*.d.ts.map
+.tscache/
+
+# ========================================
+# IDE & Editors
+# ========================================
+# VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# JetBrains
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# ========================================
+# OS Files
+# ========================================
 # macOS
 .DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
 *.pem
 
-# local env files
-.env*.local
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.lnk
 
-# typescript
-*.tsbuildinfo
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
 
-app-example
+# ========================================
+# Temporary & Cache
+# ========================================
+*.tmp
+*.temp
+*.swp
+*.swo
+*~.nib
+*.bak
+*.cache
+.cache/
+
+# ========================================
+# Build artifacts
+# ========================================
+build/
+dist/
+*.bundle
+
+# ========================================
+# EAS (Expo Application Services)
+# ========================================
+# Keep eas.json for build configuration
+# .easignore is used for excluding files from EAS builds
+
+# ========================================
+# Project specific
+# ========================================
+app-example/
