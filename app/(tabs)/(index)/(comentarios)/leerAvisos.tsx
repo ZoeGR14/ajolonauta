@@ -463,6 +463,7 @@ const styles = StyleSheet.create({
     color: "#2c3e50",
   },
   dropdownScroll: {
+    flex: 1,
     paddingHorizontal: 16,
     paddingVertical: 12,
     backgroundColor: "#ffffff",
