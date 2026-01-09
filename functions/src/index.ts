@@ -162,12 +162,13 @@ export const detectarEstacionCerrada = onDocumentUpdated(
 );
 
 /**
- * Función programada que se ejecuta cada 15 minutos
+ * Función programada que se ejecuta cada 6 horas
  * Revisa las estaciones cerradas y reabre aquellas que no han recibido reportes
- * en los últimos 15 minutos
+ * en los últimos 15 minutos.
  */
 export const reabrirEstacionesInactivas = onSchedule(
-   "every 15 minutes",
+   //cambiar en deploy
+   "every 6 hours",
    async (event) => {
       try {
          logger.info("Iniciando revisión de estaciones cerradas...");
