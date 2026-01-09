@@ -53,6 +53,7 @@ export const detectarEstacionCerrada = onDocumentUpdated(
             return null;
          }
 
+         const dataAntes = event.data.before.data() as EstacionDoc | undefined;
          const dataDespues = event.data.after.data() as EstacionDoc;
 
          if (!dataDespues) {
@@ -61,6 +62,14 @@ export const detectarEstacionCerrada = onDocumentUpdated(
          }
 
          logger.info(`Revisando estación: ${estacionId}`);
+
+         // Si la estación acaba de ser reabierta (de cerrada a abierta), no hacer nada
+         if (dataAntes?.estadoCerrada && !dataDespues.estadoCerrada) {
+            logger.info(
+               `La estación ${estacionId} acaba de ser reabierta, omitiendo verificación`
+            );
+            return null;
+         }
 
          // Obtener timestamp actual
          const ahora = Date.now();
@@ -153,19 +162,19 @@ export const detectarEstacionCerrada = onDocumentUpdated(
 );
 
 /**
- * Función programada que se ejecuta cada 5 minutos
+ * Función programada que se ejecuta cada 15 minutos
  * Revisa las estaciones cerradas y reabre aquellas que no han recibido reportes
- * en los últimos 30 minutos
+ * en los últimos 15 minutos
  */
 export const reabrirEstacionesInactivas = onSchedule(
-   "every 10 minutes",
+   "every 15 minutes",
    async (event) => {
       try {
          logger.info("Iniciando revisión de estaciones cerradas...");
 
          const ahora = Date.now();
-         // Tiempo de inactividad: 30 minutos (en milisegundos)
-         const TIEMPO_INACTIVIDAD = 5 * 60 * 1000;
+         // Tiempo de inactividad: 15 minutos (en milisegundos)
+         const TIEMPO_INACTIVIDAD = 15 * 60 * 1000;
 
          // Obtener todas las estaciones cerradas
          const estacionesCerradasSnapshot = await db
