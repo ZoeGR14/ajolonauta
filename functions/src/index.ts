@@ -62,14 +62,6 @@ export const detectarEstacionCerrada = onDocumentUpdated(
 
          logger.info(`Revisando estación: ${estacionId}`);
 
-         // Si ya está cerrada, no hacer nada
-         if (dataDespues.estadoCerrada) {
-            logger.info(
-               `La estación ${estacionId} ya está marcada como cerrada`
-            );
-            return null;
-         }
-
          // Obtener timestamp actual
          const ahora = Date.now();
          // Ventana de tiempo: últimos 15 minutos (en milisegundos)
@@ -88,6 +80,29 @@ export const detectarEstacionCerrada = onDocumentUpdated(
          // Umbral: 5 o más reportes
          const UMBRAL_REPORTES = 5;
 
+         // Si ya está cerrada, solo actualizar el contador de reportes
+         if (dataDespues.estadoCerrada) {
+            logger.info(
+               `La estación ${estacionId} ya está cerrada, actualizando contador`
+            );
+
+            if (reportesRecientes.length >= UMBRAL_REPORTES) {
+               // Actualizar el contador en estaciones_cerradas
+               await db
+                  .collection("estaciones_cerradas")
+                  .doc(dataDespues.estacionId)
+                  .update({
+                     cantidadReportes: reportesRecientes.length,
+                  });
+
+               logger.info(
+                  `Contador actualizado: ${reportesRecientes.length} reportes`
+               );
+            }
+
+            return null;
+         }
+
          if (reportesRecientes.length >= UMBRAL_REPORTES) {
             logger.info(
                `¡Umbral alcanzado! Marcando estación ${estacionId} como cerrada`
@@ -104,6 +119,7 @@ export const detectarEstacionCerrada = onDocumentUpdated(
             // Crear documento en 'estaciones_cerradas' usando el estacionId
             const estacionCerradaDoc = {
                razon: "Alta actividad de reportes",
+               cantidadReportes: reportesRecientes.length,
             };
 
             await db
