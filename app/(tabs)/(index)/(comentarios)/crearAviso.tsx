@@ -70,14 +70,35 @@ export default function AddComment() {
 
       setLoading(true);
       const stationRef = doc(db, "estaciones", estacionId);
+
+      const ahora = new Date();
+      const timestamp = ahora.getTime();
+      const horaCompleta = ahora.toLocaleString("es-MX", {
+         timeZone: "America/Mexico_City",
+      });
+      const soloFecha = ahora.toLocaleDateString("es-MX", {
+         timeZone: "America/Mexico_City",
+      });
+      const soloHora = ahora.toLocaleTimeString("es-MX", {
+         timeZone: "America/Mexico_City",
+      });
+
       const comentario = {
          usuario: auth.currentUser?.displayName || "Anónimo",
+         userId: auth.currentUser?.uid || "",
          texto: comment,
-         hora: new Date().toLocaleString(),
+         timestamp: timestamp,
+         hora: horaCompleta,
+         fecha: soloFecha,
+         horaFormato: soloHora,
+         estacion: selectedStation,
+         linea: selectedLinea,
       };
+
       try {
          await updateDoc(stationRef, {
             comentarios: arrayUnion(comentario),
+            ultimaActualizacion: new Date(),
          });
 
          Alert.alert(
@@ -90,9 +111,16 @@ export default function AddComment() {
          router.replace("/(index)");
       } catch (error: any) {
          if (error.code === "not-found") {
-            // Documento no existe, así que lo creamos
+            // Documento no existe, así que lo creamos con la estructura completa
             await setDoc(stationRef, {
+               estacionId: estacionId,
+               estacion: selectedStation,
+               linea: selectedLinea,
                comentarios: [comentario],
+               estadoCerrada: false,
+               ultimaActualizacion: new Date(),
+               totalReportes: [timestamp],
+               fechaCreacion: new Date(),
             });
             Alert.alert(
                "Comentario agregado",
