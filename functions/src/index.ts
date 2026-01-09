@@ -1,32 +1,136 @@
-/**
- * Import function triggers from their respective submodules:
- *
- * import {onCall} from "firebase-functions/v2/https";
- * import {onDocumentWritten} from "firebase-functions/v2/firestore";
- *
- * See a full list of supported triggers at https://firebase.google.com/docs/functions
- */
-
-import {setGlobalOptions} from "firebase-functions";
-import {onRequest} from "firebase-functions/https";
+import * as admin from "firebase-admin";
+import { setGlobalOptions } from "firebase-functions";
 import * as logger from "firebase-functions/logger";
+import { onDocumentUpdated } from "firebase-functions/v2/firestore";
 
-// Start writing functions
-// https://firebase.google.com/docs/functions/typescript
+// Inicializar Firebase Admin
+admin.initializeApp();
 
-// For cost control, you can set the maximum number of containers that can be
-// running at the same time. This helps mitigate the impact of unexpected
-// traffic spikes by instead downgrading performance. This limit is a
-// per-function limit. You can override the limit for each function using the
-// `maxInstances` option in the function's options, e.g.
-// `onRequest({ maxInstances: 5 }, (req, res) => { ... })`.
-// NOTE: setGlobalOptions does not apply to functions using the v1 API. V1
-// functions should each use functions.runWith({ maxInstances: 10 }) instead.
-// In the v1 API, each function can only serve one request per container, so
-// this will be the maximum concurrent request count.
+const db = admin.firestore();
+
 setGlobalOptions({ maxInstances: 10 });
 
-// export const helloWorld = onRequest((request, response) => {
-//   logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
+// Interfaz para el Reporte
+interface Reporte {
+   usuario: string;
+   userId: string;
+   texto: string;
+   timestamp: number;
+   hora: string;
+   fecha: string;
+   horaFormato: string;
+   estacion: string;
+   linea: string;
+}
+
+// Interfaz para el documento de estación
+interface EstacionDoc {
+   estacionId: string;
+   estacion: string;
+   linea: string;
+   comentarios: Reporte[];
+   estadoCerrada: boolean;
+   fechaCierre?: number;
+   ultimaActualizacion: admin.firestore.Timestamp;
+   totalReportes: number[];
+   fechaCreacion: admin.firestore.Timestamp;
+}
+
+/**
+ * Función que se ejecuta cuando se actualiza un documento en la colección 'estaciones'
+ * Detecta si una estación debe marcarse como cerrada basándose en la cantidad de reportes
+ * en los últimos 15 minutos.
+ */
+export const detectarEstacionCerrada = onDocumentUpdated(
+   "estaciones/{estacionId}",
+   async (event) => {
+      try {
+         const estacionId = event.params.estacionId;
+
+         if (!event.data) {
+            logger.warn("No hay datos en el evento");
+            return null;
+         }
+
+         const dataDespues = event.data.after.data() as EstacionDoc;
+
+         if (!dataDespues) {
+            logger.warn(`No hay datos para la estación ${estacionId}`);
+            return null;
+         }
+
+         logger.info(`Revisando estación: ${estacionId}`);
+
+         // Si ya está cerrada, no hacer nada
+         if (dataDespues.estadoCerrada) {
+            logger.info(
+               `La estación ${estacionId} ya está marcada como cerrada`
+            );
+            return null;
+         }
+
+         // Obtener timestamp actual
+         const ahora = Date.now();
+         // Ventana de tiempo: últimos 15 minutos (en milisegundos)
+         const ventanaTiempo = 15 * 60 * 1000;
+         const tiempoMinimo = ahora - ventanaTiempo;
+
+         // Filtrar reportes de los últimos 15 minutos
+         const reportesRecientes = dataDespues.comentarios.filter(
+            (reporte) => reporte.timestamp >= tiempoMinimo
+         );
+
+         logger.info(
+            `Reportes en los últimos 15 minutos: ${reportesRecientes.length}`
+         );
+
+         // Umbral: 5 o más reportes
+         const UMBRAL_REPORTES = 5;
+
+         if (reportesRecientes.length >= UMBRAL_REPORTES) {
+            logger.info(
+               `¡Umbral alcanzado! Marcando estación ${estacionId} como cerrada`
+            );
+
+            // Actualizar documento en 'estaciones'
+            await event.data.after.ref.update({
+               estadoCerrada: true,
+               fechaCierre: ahora,
+               ultimaActualizacion:
+                  admin.firestore.FieldValue.serverTimestamp(),
+            });
+
+            // Crear documento en 'estaciones_cerradas' usando el nombre de la estación
+            const estacionCerradaDoc = {
+               razon: "Alta actividad de reportes",
+            };
+
+            await db
+               .collection("estaciones_cerradas")
+               .doc(dataDespues.estacion)
+               .set(estacionCerradaDoc);
+
+            logger.info(
+               `Estación ${dataDespues.estacion} (${dataDespues.linea}) marcada como cerrada`
+            );
+            logger.info(`Reportes detectados: ${reportesRecientes.length}`);
+            logger.info(`Documento creado en estaciones_cerradas`);
+
+            return {
+               success: true,
+               estacion: dataDespues.estacion,
+               linea: dataDespues.linea,
+               reportes: reportesRecientes.length,
+            };
+         } else {
+            logger.info(
+               `Umbral no alcanzado (${reportesRecientes.length}/${UMBRAL_REPORTES})`
+            );
+            return null;
+         }
+      } catch (error) {
+         logger.error("Error en detectarEstacionCerrada:", error);
+         throw error;
+      }
+   }
+);
