@@ -2,6 +2,7 @@ import * as admin from "firebase-admin";
 import { setGlobalOptions } from "firebase-functions";
 import * as logger from "firebase-functions/logger";
 import { onDocumentUpdated } from "firebase-functions/v2/firestore";
+import { onSchedule } from "firebase-functions/v2/scheduler";
 
 // Inicializar Firebase Admin
 admin.initializeApp();
@@ -100,14 +101,14 @@ export const detectarEstacionCerrada = onDocumentUpdated(
                   admin.firestore.FieldValue.serverTimestamp(),
             });
 
-            // Crear documento en 'estaciones_cerradas' usando el nombre de la estación
+            // Crear documento en 'estaciones_cerradas' usando el estacionId
             const estacionCerradaDoc = {
                razon: "Alta actividad de reportes",
             };
 
             await db
                .collection("estaciones_cerradas")
-               .doc(dataDespues.estacion)
+               .doc(dataDespues.estacionId)
                .set(estacionCerradaDoc);
 
             logger.info(
@@ -130,6 +131,125 @@ export const detectarEstacionCerrada = onDocumentUpdated(
          }
       } catch (error) {
          logger.error("Error en detectarEstacionCerrada:", error);
+         throw error;
+      }
+   }
+);
+
+/**
+ * Función programada que se ejecuta cada 5 minutos
+ * Revisa las estaciones cerradas y reabre aquellas que no han recibido reportes
+ * en los últimos 30 minutos
+ */
+export const reabrirEstacionesInactivas = onSchedule(
+   "every 10 minutes",
+   async (event) => {
+      try {
+         logger.info("Iniciando revisión de estaciones cerradas...");
+
+         const ahora = Date.now();
+         // Tiempo de inactividad: 30 minutos (en milisegundos)
+         const TIEMPO_INACTIVIDAD = 5 * 60 * 1000;
+
+         // Obtener todas las estaciones cerradas
+         const estacionesCerradasSnapshot = await db
+            .collection("estaciones_cerradas")
+            .where("razon", "==", "Alta actividad de reportes")
+            .get();
+
+         if (estacionesCerradasSnapshot.empty) {
+            logger.info("No hay estaciones cerradas para revisar");
+            return;
+         }
+
+         logger.info(
+            `Revisando ${estacionesCerradasSnapshot.size} estaciones cerradas`
+         );
+
+         const batch = db.batch();
+         let estacionesReabiertas = 0;
+
+         for (const docCerrada of estacionesCerradasSnapshot.docs) {
+            const estacionId = docCerrada.id;
+
+            // Buscar la estación en la colección 'estaciones'
+            const estacionRef = db.collection("estaciones").doc(estacionId);
+            const estacionDoc = await estacionRef.get();
+
+            if (!estacionDoc.exists) {
+               logger.warn(
+                  `Estación ${estacionId} no encontrada en colección estaciones`
+               );
+               continue;
+            }
+
+            const estacionData = estacionDoc.data() as EstacionDoc;
+
+            if (!estacionData.estadoCerrada) {
+               // Si ya está abierta, eliminar de estaciones_cerradas
+               batch.delete(docCerrada.ref);
+               estacionesReabiertas++;
+               logger.info(
+                  `Estación ${estacionId} ya estaba abierta, eliminando registro`
+               );
+               continue;
+            }
+
+            // Buscar el reporte más reciente
+            const reportesOrdenados = estacionData.comentarios
+               .filter((r) => r.timestamp)
+               .sort((a, b) => b.timestamp - a.timestamp);
+
+            if (reportesOrdenados.length === 0) {
+               // No hay reportes, reabrir estación
+               batch.update(estacionRef, {
+                  estadoCerrada: false,
+                  ultimaActualizacion:
+                     admin.firestore.FieldValue.serverTimestamp(),
+               });
+               batch.delete(docCerrada.ref);
+               estacionesReabiertas++;
+               logger.info(`Estación ${estacionId} reabierta (sin reportes)`);
+               continue;
+            }
+
+            const ultimoReporte = reportesOrdenados[0];
+            const tiempoDesdeUltimoReporte = ahora - ultimoReporte.timestamp;
+
+            if (tiempoDesdeUltimoReporte >= TIEMPO_INACTIVIDAD) {
+               // Reabrir estación
+               batch.update(estacionRef, {
+                  estadoCerrada: false,
+                  ultimaActualizacion:
+                     admin.firestore.FieldValue.serverTimestamp(),
+               });
+               batch.delete(docCerrada.ref);
+               estacionesReabiertas++;
+               logger.info(
+                  `Estación ${estacionId} reabierta (${Math.round(
+                     tiempoDesdeUltimoReporte / 60000
+                  )} minutos sin reportes)`
+               );
+            } else {
+               logger.info(
+                  `Estación ${estacionId} sigue activa (último reporte hace ${Math.round(
+                     tiempoDesdeUltimoReporte / 60000
+                  )} minutos)`
+               );
+            }
+         }
+
+         // Ejecutar todas las operaciones en batch
+         if (estacionesReabiertas > 0) {
+            await batch.commit();
+            logger.info(
+               `✅ Total de estaciones reabiertas: ${estacionesReabiertas}`
+            );
+         } else {
+            logger.info("No hay estaciones para reabrir en este momento");
+         }
+      } catch (error) {
+         logger.error("Error en reabrirEstacionesInactivas:", error);
          throw error;
       }
    }
