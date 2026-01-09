@@ -10,7 +10,6 @@ import {
   BackHandler,
   FlatList,
   LayoutAnimation,
-  Pressable,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -330,12 +329,16 @@ export default function CombinedView() {
       )}
 
       {/* Botón flotante */}
-      <Pressable style={styles.fab} onPress={() => router.push("/crearAviso")}>
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() => router.push("/crearAviso")}
+        activeOpacity={0.8}
+      >
         <View style={styles.fabContent}>
           <Ionicons name="add" size={28} color="white" />
         </View>
         <View style={styles.fabPulse} />
-      </Pressable>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -397,8 +400,9 @@ const styles = StyleSheet.create({
     top: 220,
     left: 0,
     right: 0,
-    zIndex: 1000,
     maxHeight: "60%",
+    zIndex: 1000,
+    backgroundColor: "transparent",
   },
   listContainer: {
     maxHeight: 300,

@@ -11,6 +11,7 @@ import {
   TouchableOpacity,
   View,
   ActivityIndicator,
+  ScrollView,
 } from "react-native";
 import { WebView } from "react-native-webview";
 import {
@@ -126,33 +127,50 @@ export default function CombinedView() {
           </TouchableOpacity>
 
           {showLineasDropdown && (
-            <View style={styles.dropdownOverlay}>
-              <FlatList
-                data={lineas}
-                keyExtractor={(item) => item}
-                style={styles.listContainer}
-                renderItem={({ item }) => (
-                  <TouchableOpacity
-                    style={styles.lineItem}
-                    onPress={() => {
-                      setSelectedLinea(item);
-                      setShowLineasDropdown(false);
-                      setShowEstacionesDropdown(true);
-                    }}
-                    activeOpacity={0.7}
-                  >
-                    <View style={styles.lineContent}>
-                      <Ionicons name="subway" size={22} color="#e68059" />
-                      <Text style={styles.lineText}>{item}</Text>
-                      <Ionicons
-                        name="arrow-forward"
-                        size={18}
-                        color="#95a5a6"
-                      />
-                    </View>
-                  </TouchableOpacity>
-                )}
+            <View style={styles.modalOverlay}>
+              <TouchableOpacity
+                style={styles.modalBackdrop}
+                activeOpacity={1}
+                onPress={() => setShowLineasDropdown(false)}
               />
+              <View style={styles.modalCard}>
+                <View style={styles.dropdownHeader}>
+                  <Text style={styles.dropdownHeaderText}>
+                    Selecciona una línea
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => setShowLineasDropdown(false)}
+                  >
+                    <Ionicons name="close-circle" size={28} color="#95a5a6" />
+                  </TouchableOpacity>
+                </View>
+                <ScrollView
+                  style={styles.dropdownScroll}
+                  showsVerticalScrollIndicator={false}
+                >
+                  {lineas.map((item) => (
+                    <TouchableOpacity
+                      key={item}
+                      style={styles.lineItem}
+                      onPress={() => {
+                        setSelectedLinea(item);
+                        setShowLineasDropdown(false);
+                      }}
+                      activeOpacity={0.7}
+                    >
+                      <View style={styles.lineContent}>
+                        <Ionicons name="subway" size={22} color="#e68059" />
+                        <Text style={styles.lineText}>{item}</Text>
+                        <Ionicons
+                          name="arrow-forward"
+                          size={18}
+                          color="#95a5a6"
+                        />
+                      </View>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
             </View>
           )}
 
@@ -181,34 +199,56 @@ export default function CombinedView() {
               </TouchableOpacity>
 
               {showEstacionesDropdown && (
-                <View style={styles.dropdownOverlay}>
-                  <FlatList
-                    data={getStationsByLine(selectedLinea)}
-                    keyExtractor={(item) => item}
-                    style={styles.listContainer}
-                    renderItem={({ item }) => (
-                      <TouchableOpacity
-                        style={styles.stationItem}
-                        onPress={() => {
-                          setSelectedStation(item);
-                          setShowEstacionesDropdown(false);
-                          fetchComments(item, selectedLinea);
-                        }}
-                        activeOpacity={0.7}
-                      >
-                        <View style={styles.stationContent}>
-                          <View style={styles.stationIcon}>
-                            <Ionicons
-                              name="location"
-                              size={16}
-                              color="#e68059"
-                            />
-                          </View>
-                          <Text style={styles.stationText}>{item}</Text>
-                        </View>
-                      </TouchableOpacity>
-                    )}
+                <View style={styles.modalOverlay}>
+                  <TouchableOpacity
+                    style={styles.modalBackdrop}
+                    activeOpacity={1}
+                    onPress={() => setShowEstacionesDropdown(false)}
                   />
+                  <View style={styles.modalCard}>
+                    <View style={styles.dropdownHeader}>
+                      <Text style={styles.dropdownHeaderText}>
+                        Selecciona una estación
+                      </Text>
+                      <TouchableOpacity
+                        onPress={() => setShowEstacionesDropdown(false)}
+                      >
+                        <Ionicons
+                          name="close-circle"
+                          size={28}
+                          color="#95a5a6"
+                        />
+                      </TouchableOpacity>
+                    </View>
+                    <ScrollView
+                      style={styles.dropdownScroll}
+                      showsVerticalScrollIndicator={false}
+                    >
+                      {getStationsByLine(selectedLinea).map((item) => (
+                        <TouchableOpacity
+                          key={item}
+                          style={styles.stationItem}
+                          onPress={() => {
+                            setSelectedStation(item);
+                            setShowEstacionesDropdown(false);
+                            fetchComments(item, selectedLinea);
+                          }}
+                          activeOpacity={0.7}
+                        >
+                          <View style={styles.stationContent}>
+                            <View style={styles.stationIcon}>
+                              <Ionicons
+                                name="location"
+                                size={16}
+                                color="#e68059"
+                              />
+                            </View>
+                            <Text style={styles.stationText}>{item}</Text>
+                          </View>
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+                  </View>
                 </View>
               )}
             </>
@@ -374,16 +414,58 @@ const styles = StyleSheet.create({
   activeTabText: {
     color: "#e68059",
   },
-  dropdownOverlay: {
-    position: "absolute",
-    top: 200,
-    left: 0,
-    right: 0,
-    zIndex: 1000,
-    maxHeight: "60%",
-  },
   listContainer: {
     maxHeight: 280,
+  },
+  modalOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 1000,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalBackdrop: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
+  },
+  modalCard: {
+    backgroundColor: "#ffffff",
+    borderRadius: 20,
+    width: "88%",
+    maxHeight: "75%",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 25,
+    elevation: 20,
+    overflow: "hidden",
+  },
+  dropdownHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 24,
+    paddingVertical: 18,
+    backgroundColor: "#ffffff",
+    borderBottomWidth: 2,
+    borderBottomColor: "#f0f0f0",
+  },
+  dropdownHeaderText: {
+    fontSize: 20,
+    fontWeight: "900",
+    color: "#2c3e50",
+  },
+  dropdownScroll: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: "#ffffff",
   },
   dropdownButton: {
     backgroundColor: "#ffffff",
@@ -412,15 +494,15 @@ const styles = StyleSheet.create({
   },
   lineItem: {
     padding: 18,
-    marginHorizontal: 20,
-    marginVertical: 6,
-    borderRadius: 16,
-    backgroundColor: "#fff",
+    marginVertical: 8,
+    marginHorizontal: 4,
+    borderRadius: 14,
+    backgroundColor: "#f8f9fa",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 1,
     borderLeftWidth: 4,
     borderLeftColor: "#e68059",
   },
@@ -436,16 +518,18 @@ const styles = StyleSheet.create({
     color: "#2c3e50",
   },
   stationItem: {
-    padding: 16,
-    marginHorizontal: 20,
-    marginVertical: 4,
-    borderRadius: 16,
-    backgroundColor: "#ffffff",
+    padding: 18,
+    marginVertical: 6,
+    marginHorizontal: 4,
+    borderRadius: 14,
+    backgroundColor: "#f8f9fa",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 1,
+    borderLeftWidth: 4,
+    borderLeftColor: "#e68059",
   },
   stationContent: {
     flexDirection: "row",
