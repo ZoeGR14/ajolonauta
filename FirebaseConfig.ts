@@ -1,5 +1,6 @@
 // Import the functions you need from the SDKs you need
 import ReactNativeAsyncStorage from "@react-native-async-storage/async-storage";
+import Constants from "expo-constants";
 import { initializeApp } from "firebase/app";
 //@ts-ignore
 import { getReactNativePersistence, initializeAuth } from "firebase/auth";
@@ -11,12 +12,14 @@ import { getStorage } from "firebase/storage";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-   apiKey: "AIzaSyB4Dqv6NMWScbqho8F7PYNjH-u0egGYpWA",
-   authDomain: "app-rutas-fb36d.firebaseapp.com",
-   projectId: "app-rutas-fb36d",
-   storageBucket: "app-rutas-fb36d.firebasestorage.app",
-   messagingSenderId: "170674374323",
-   appId: "1:170674374323:web:2ed297469f90544c3192c6",
+   apiKey: Constants.expoConfig?.extra?.EXPO_PUBLIC_FIREBASE_API_KEY,
+   authDomain: Constants.expoConfig?.extra?.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
+   projectId: Constants.expoConfig?.extra?.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
+   storageBucket:
+      Constants.expoConfig?.extra?.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
+   messagingSenderId:
+      Constants.expoConfig?.extra?.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+   appId: Constants.expoConfig?.extra?.EXPO_PUBLIC_FIREBASE_APP_ID,
 };
 
 // Initialize Firebase
