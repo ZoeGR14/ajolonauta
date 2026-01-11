@@ -131,94 +131,132 @@ export default function SOS() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.sectionTitle}>Números de emergencia</Text>
-      <View style={styles.emergencyList}>
-        {NUMEROS_EMERGENCIA.map((item, index) => (
-          <Pressable
-            key={item.telefono}
-            style={styles.emergencyRow}
-            onPress={() => llamarContacto(item.telefono)}
-          >
-            <View style={styles.emergencyInfo}>
-              <Feather
-                name="alert-triangle"
-                size={18}
-                color="#e68059"
-                style={{ marginRight: 8 }}
-              />
-              <Text style={styles.emergencyName}>{item.nombre}</Text>
-            </View>
-            <Text style={styles.emergencyPhone}>{item.telefono}</Text>
-            {index < NUMEROS_EMERGENCIA.length - 1 && (
-              <View style={styles.emergencyDivider} />
-            )}
-          </Pressable>
-        ))}
+      {/* Header Mejorado */}
+      <View style={styles.header}>
+        <View style={styles.decorativeCircle1} />
+        <View style={styles.decorativeCircle2} />
+        <View style={styles.headerContent}>
+          <View style={styles.iconContainer}>
+            <Feather name="shield" size={36} color="#fff" />
+          </View>
+          <Text style={styles.headerTitle}>Emergencias</Text>
+          <Text style={styles.headerSubtitle}>Ayuda rápida cuando más la necesitas</Text>
+        </View>
       </View>
 
-      <Text style={styles.sectionTitle}>Tus contactos</Text>
-      {contactos.length === 0 ? (
-        <Text style={styles.emptyText}>No hay contactos guardados</Text>
-      ) : (
-        <FlatList
-          data={contactos}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <View style={styles.card}>
-              <View style={styles.cardLeft}>
-                <Feather name="user" size={20} color="#333" />
-                <View>
-                  <Text style={styles.cardText}>{item.nombre}</Text>
-                  <Text style={styles.cardNumber}>{item.telefono}</Text>
+      {/* Números de Emergencia Mejorados */}
+      <View style={styles.emergencySection}>
+        <View style={styles.sectionHeader}>
+          <Feather name="phone-call" size={20} color="#DC2626" />
+          <Text style={styles.sectionTitle}>Líneas de Emergencia</Text>
+        </View>
+        <View style={styles.emergencyGrid}>
+          {NUMEROS_EMERGENCIA.map((item) => (
+            <Pressable
+              key={item.telefono}
+              style={styles.emergencyCard}
+              onPress={() => llamarContacto(item.telefono)}
+            >
+              <View style={styles.emergencyIconBg}>
+                <Feather name="phone" size={24} color="#fff" />
+              </View>
+              <Text style={styles.emergencyCardName}>{item.nombre}</Text>
+              <Text style={styles.emergencyCardPhone}>{item.telefono}</Text>
+            </Pressable>
+          ))}
+        </View>
+      </View>
+
+      {/* Contactos Personales Mejorados */}
+      <View style={styles.contactsSection}>
+        <View style={styles.sectionHeader}>
+          <Feather name="users" size={20} color="#059669" />
+          <Text style={styles.sectionTitle}>Contactos de Confianza</Text>
+        </View>
+        {contactos.length === 0 ? (
+          <View style={styles.emptyState}>
+            <View style={styles.emptyIconBg}>
+              <Feather name="user-plus" size={40} color="#9CA3AF" />
+            </View>
+            <Text style={styles.emptyTitle}>Sin contactos</Text>
+            <Text style={styles.emptyText}>Agrega personas de confianza para emergencias</Text>
+          </View>
+        ) : (
+          <FlatList
+            data={contactos}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <View style={styles.contactCard}>
+                <View style={styles.contactAvatar}>
+                  <Text style={styles.contactInitial}>
+                    {item.nombre.charAt(0).toUpperCase()}
+                  </Text>
+                </View>
+                <View style={styles.contactInfo}>
+                  <Text style={styles.contactName}>{item.nombre}</Text>
+                  <Text style={styles.contactPhone}>{item.telefono}</Text>
+                </View>
+                <View style={styles.contactActions}>
+                  <Pressable 
+                    style={styles.actionBtn}
+                    onPress={() => llamarContacto(item.telefono)}
+                  >
+                    <Feather name="phone" size={18} color="#fff" />
+                  </Pressable>
+                  <Pressable 
+                    style={[styles.actionBtn, styles.deleteBtn]}
+                    onPress={() => eliminarContacto(item.id)}
+                  >
+                    <Feather name="trash-2" size={18} color="#fff" />
+                  </Pressable>
                 </View>
               </View>
-              <View style={styles.actions}>
-                <Pressable onPress={() => llamarContacto(item.telefono)}>
-                  <Feather name="phone-call" size={20} color="#4CAF50" />
-                </Pressable>
-                <Pressable onPress={() => eliminarContacto(item.id)}>
-                  <Feather name="trash-2" size={20} color="#ff4444" />
-                </Pressable>
-              </View>
-            </View>
-          )}
-          ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
-          contentContainerStyle={{ paddingBottom: 80 }}
-        />
-      )}
+            )}
+            ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+            contentContainerStyle={{ paddingBottom: 100 }}
+          />
+        )}
+      </View>
 
       <Modal
-        animationType="fade"
+        animationType="slide"
         transparent={true}
         visible={modalVisible}
         onRequestClose={() => setModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Agregar contacto</Text>
-            <TextInput
-              placeholder="Nombre del contacto"
-              placeholderTextColor="#A9A9A9"
-              value={nombre}
-              onChangeText={setNombre}
-              style={styles.input}
-            />
-            <TextInput
-              placeholder="Número telefónico"
-              placeholderTextColor="#A9A9A9"
-              keyboardType="phone-pad"
-              value={telefono}
-              onChangeText={setTelefono}
-              style={styles.input}
-            />
+            <View style={styles.modalHeader}>
+              <Feather name="user-plus" size={24} color="#059669" />
+              <Text style={styles.modalTitle}>Nuevo Contacto</Text>
+            </View>
+            <View style={styles.inputContainer}>
+              <Feather name="user" size={18} color="#6B7280" style={styles.inputIcon} />
+              <TextInput
+                placeholder="Nombre del contacto"
+                placeholderTextColor="#9CA3AF"
+                value={nombre}
+                onChangeText={setNombre}
+                style={styles.input}
+              />
+            </View>
+            <View style={styles.inputContainer}>
+              <Feather name="phone" size={18} color="#6B7280" style={styles.inputIcon} />
+              <TextInput
+                placeholder="Número telefónico"
+                placeholderTextColor="#9CA3AF"
+                keyboardType="phone-pad"
+                value={telefono}
+                onChangeText={setTelefono}
+                style={styles.input}
+              />
+            </View>
             <View style={styles.formButtons}>
               <Pressable
                 style={styles.cancelButton}
                 onPress={() => setModalVisible(false)}
               >
-                <Text style={{ color: "#666", fontWeight: "bold" }}>
-                  Cancelar
-                </Text>
+                <Text style={styles.cancelButtonText}>Cancelar</Text>
               </Pressable>
               <Pressable
                 style={styles.saveButton}
@@ -227,9 +265,8 @@ export default function SOS() {
                   setModalVisible(false);
                 }}
               >
-                <Text style={{ color: "white", fontWeight: "bold" }}>
-                  Guardar
-                </Text>
+                <Feather name="check" size={18} color="#fff" />
+                <Text style={styles.saveButtonText}>Guardar</Text>
               </Pressable>
             </View>
           </View>
@@ -237,7 +274,7 @@ export default function SOS() {
       </Modal>
 
       <Pressable style={styles.fab} onPress={() => setModalVisible(true)}>
-        <Feather name="plus" size={24} color="white" />
+        <Feather name="user-plus" size={26} color="white" />
       </Pressable>
     </View>
   );
@@ -246,150 +283,342 @@ export default function SOS() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F9FAFB",
-    padding: 20,
+    backgroundColor: "#F3F4F6",
   },
   loader: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "#F3F4F6",
+  },
+
+  /* Header Mejorado */
+  header: {
+    backgroundColor: "#DC2626",
+    paddingTop: 20,
+    paddingBottom: 30,
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 15,
+    elevation: 8,
+    overflow: "hidden",
+    position: "relative",
+  },
+  decorativeCircle1: {
+    position: "absolute",
+    width: 180,
+    height: 180,
+    borderRadius: 90,
+    backgroundColor: "rgba(239, 68, 68, 0.3)",
+    top: -60,
+    right: -40,
+  },
+  decorativeCircle2: {
+    position: "absolute",
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    bottom: -20,
+    left: -30,
+  },
+  headerContent: {
+    alignItems: "center",
+    paddingHorizontal: 24,
+    zIndex: 1,
+  },
+  iconContainer: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 12,
+    borderWidth: 2,
+    borderColor: "rgba(255, 255, 255, 0.3)",
+  },
+  headerTitle: {
+    fontSize: 28,
+    fontWeight: "900",
+    color: "#fff",
+    marginBottom: 6,
+    textShadowColor: "rgba(0, 0, 0, 0.3)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
+  },
+  headerSubtitle: {
+    fontSize: 14,
+    color: "rgba(255, 255, 255, 0.9)",
+    fontWeight: "600",
+    textAlign: "center",
+  },
+
+  /* Secciones */
+  emergencySection: {
+    padding: 20,
+    paddingTop: 25,
+  },
+  contactsSection: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    marginBottom: 16,
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: "bold",
-    marginTop: 10,
-    marginBottom: 10,
-    color: "#333",
+    fontWeight: "800",
+    color: "#111827",
   },
-  emergencyList: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    paddingVertical: 8,
-    marginBottom: 16,
-    elevation: 2,
-  },
-  emergencyRow: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  emergencyInfo: {
+
+  /* Grid de Emergencias */
+  emergencyGrid: {
     flexDirection: "row",
-    alignItems: "center",
-  },
-  emergencyName: {
-    fontSize: 16,
-    color: "#333",
-    fontWeight: "500",
-  },
-  emergencyPhone: {
-    position: "absolute",
-    right: 16,
-    top: 12,
-    fontSize: 15,
-    color: "#666",
-  },
-  emergencyDivider: {
-    height: 1,
-    backgroundColor: "#f1f1f1",
-    marginTop: 12,
-  },
-  card: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 14,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-  },
-  cardLeft: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexWrap: "wrap",
     gap: 12,
   },
-  cardText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#333",
+  emergencyCard: {
+    width: "48%",
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 16,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: "#FEE2E2",
   },
-  cardNumber: {
+  emergencyIconBg: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: "#DC2626",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 12,
+    shadowColor: "#DC2626",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  emergencyCardName: {
+    fontSize: 13,
+    fontWeight: "800",
+    color: "#1F2937",
+    textAlign: "center",
+    marginBottom: 6,
+  },
+  emergencyCardPhone: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#DC2626",
+  },
+
+  /* Tarjetas de Contacto */
+  contactCard: {
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: "#F3F4F6",
+  },
+  contactAvatar: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: "#059669",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  contactInitial: {
+    fontSize: 22,
+    fontWeight: "900",
+    color: "#fff",
+  },
+  contactInfo: {
+    flex: 1,
+  },
+  contactName: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#111827",
+    marginBottom: 4,
+  },
+  contactPhone: {
     fontSize: 14,
-    color: "#666",
+    color: "#6B7280",
+    fontWeight: "500",
+  },
+  contactActions: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  actionBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#059669",
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#059669",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  deleteBtn: {
+    backgroundColor: "#DC2626",
+    shadowColor: "#DC2626",
+  },
+
+  /* Estado Vacío */
+  emptyState: {
+    alignItems: "center",
+    paddingVertical: 40,
+  },
+  emptyIconBg: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: "#F3F4F6",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#374151",
+    marginBottom: 8,
   },
   emptyText: {
+    fontSize: 14,
+    color: "#9CA3AF",
     textAlign: "center",
-    color: "#999",
-    marginTop: 20,
+    lineHeight: 20,
   },
-  actions: {
+
+  /* Modal Mejorado */
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "flex-end",
+  },
+  modalContent: {
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 24,
+    paddingBottom: 40,
+  },
+  modalHeader: {
     flexDirection: "row",
-    gap: 15,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    marginBottom: 24,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F3F4F6",
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "800",
+    color: "#111827",
+  },
+  inputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F9FAFB",
+    borderRadius: 12,
+    marginBottom: 16,
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+  },
+  inputIcon: {
+    marginRight: 12,
   },
   input: {
-    backgroundColor: "#f1f5f9",
-    borderRadius: 8,
-    padding: 10,
-    marginBottom: 10,
+    flex: 1,
+    paddingVertical: 14,
     fontSize: 16,
+    color: "#111827",
   },
   formButtons: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 10,
+    gap: 12,
+    marginTop: 8,
   },
   cancelButton: {
-    backgroundColor: "#f3f4f6",
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#ddd",
+    flex: 1,
+    backgroundColor: "#F3F4F6",
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  cancelButtonText: {
+    color: "#6B7280",
+    fontWeight: "700",
+    fontSize: 15,
   },
   saveButton: {
-    backgroundColor: "#e68059",
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 8,
+    flex: 1,
+    backgroundColor: "#059669",
+    paddingVertical: 14,
+    borderRadius: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    shadowColor: "#059669",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
+  saveButtonText: {
+    color: "#fff",
+    fontWeight: "700",
+    fontSize: 15,
+  },
+
+  /* FAB */
   fab: {
     position: "absolute",
     bottom: 30,
     right: 30,
-    backgroundColor: "#e68059",
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    backgroundColor: "#059669",
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     justifyContent: "center",
     alignItems: "center",
-    elevation: 6,
-    shadowColor: "#000",
-    shadowOpacity: 0.3,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.4)",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-  modalContent: {
-    backgroundColor: "#fff",
-    width: "100%",
-    borderRadius: 12,
-    padding: 20,
-    elevation: 6,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#333",
-    marginBottom: 10,
-    textAlign: "center",
+    shadowColor: "#059669",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 8,
   },
 });

@@ -16,6 +16,7 @@ import {
   Animated,
   BackHandler,
   Dimensions,
+  Modal,
   ScrollView,
   StyleSheet,
   Text,
@@ -55,6 +56,7 @@ export default function Mapa() {
   const [estacionesCerradas, setEstacionesCerradas] = useState<string[]>([]);
   const [isLoading, setLoading] = useState(true);
   const [modal, setModal] = useState<boolean>(false);
+  const [modalInfo, setModalInfo] = useState<boolean>(false);
   const slideAnim = useRef(
     new Animated.Value(Dimensions.get("window").width)
   ).current;
@@ -96,6 +98,11 @@ export default function Mapa() {
     [checkedItems]
   );
 
+  const selectedCount = useMemo(
+    () => Object.values(checkedItems).filter(Boolean).length,
+    [checkedItems]
+  );
+
   useEffect(() => {
     const collectionRef = collection(db, "estaciones_cerradas");
     const q = query(collectionRef);
@@ -111,16 +118,50 @@ export default function Mapa() {
   }, []);
 
   const InfoEstacion = () => {
-    const mensaje =
-      estacionesCerradas.length > 0
-        ? `\n${estacionesCerradas.map((e) => `🔸 ${e}`).join("\n\n")}`
-        : "✅ ¡Todas las estaciones están disponibles!";
-
-    Alert.alert("🚧 Estaciones cerradas", mensaje);
+    setModalInfo(true);
   };
 
   return (
     <View style={styles.container}>
+      {/* Header Superior */}
+      <View style={styles.topBar}>
+        <View style={styles.topBarContent}>
+          <View style={styles.topBarInfo}>
+            <Feather name="map" size={24} color="#E68059" />
+            <View style={styles.topBarTextContainer}>
+              <Text style={styles.topBarTitle}>Mapa del Metro</Text>
+              <Text style={styles.topBarSubtitle}>
+                {selectedCount > 0 
+                  ? `${selectedCount} línea${selectedCount > 1 ? 's' : ''} visible${selectedCount > 1 ? 's' : ''}`
+                  : "Selecciona líneas para ver"}
+              </Text>
+            </View>
+          </View>
+          <View style={styles.topBarActions}>
+            <TouchableOpacity
+              style={styles.topBarButton}
+              activeOpacity={0.8}
+              onPress={InfoEstacion}
+            >
+              <Feather name="alert-circle" size={20} color="#E68059" />
+              {estacionesCerradas.length > 0 && (
+                <View style={[styles.miniBadge, styles.badgeDanger]}>
+                  <Text style={styles.miniBadgeText}>{estacionesCerradas.length}</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.topBarButton, styles.topBarButtonPrimary]}
+              activeOpacity={0.8}
+              onPress={openPanel}
+            >
+              <Feather name="layers" size={20} color="#fff" />
+              <Text style={styles.topBarButtonText}>Líneas</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+
       <MapView
         style={styles.map}
         initialRegion={origin}
@@ -165,51 +206,58 @@ export default function Mapa() {
         )}
       </MapView>
 
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity
-          style={styles.infoButton}
-          activeOpacity={0.9}
-          onPress={openPanel}
-        >
-          <Feather name="menu" size={28} color="white" />
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.infoButton, { marginTop: 12 }]}
-          activeOpacity={0.9}
-          onPress={InfoEstacion}
-        >
-          <Feather name="info" size={28} color="white" />
-        </TouchableOpacity>
-      </View>
-
       {modal && (
         <Animated.View style={[styles.slidePanel, { left: slideAnim }]}>
-          <Text style={styles.panelTitle}>Líneas del Metro</Text>
+          {/* Header del Panel */}
+          <View style={styles.panelHeader}>
+            <View style={styles.panelIconBg}>
+              <Feather name="layers" size={24} color="#fff" />
+            </View>
+            <Text style={styles.panelTitle}>Líneas del Metro</Text>
+            <Text style={styles.panelSubtitle}>Selecciona las líneas a visualizar</Text>
+          </View>
+          
           <View style={styles.divider} />
 
-          <ScrollView showsVerticalScrollIndicator={false}>
+          <ScrollView 
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: 20 }}
+          >
             {lineas.map((line) => (
               <TouchableOpacity
                 key={line}
                 style={[
-                  styles.row,
+                  styles.lineItem,
                   {
                     backgroundColor: checkedItems[line]
                       ? getColorForLine(line)
-                      : "#f4f4f4",
-                    ...styles.lineItem,
+                      : "#F9FAFB",
+                    borderColor: checkedItems[line]
+                      ? getColorForLine(line)
+                      : "#E5E7EB",
                   },
                 ]}
-                activeOpacity={0.9}
+                activeOpacity={0.8}
                 onPress={() => toggleCheckbox(line)}
               >
-                <Checkbox
-                  value={checkedItems[line]}
-                  onValueChange={() => toggleCheckbox(line)}
-                  color="#E68059"
-                />
-                <Text style={styles.checkboxText}>{line}</Text>
+                <View style={styles.lineItemContent}>
+                  <Checkbox
+                    value={checkedItems[line]}
+                    onValueChange={() => toggleCheckbox(line)}
+                    color={checkedItems[line] ? "#fff" : "#E68059"}
+                  />
+                  <Text
+                    style={[
+                      styles.checkboxText,
+                      checkedItems[line] && styles.checkboxTextActive,
+                    ]}
+                  >
+                    {line}
+                  </Text>
+                </View>
+                {checkedItems[line] && (
+                  <Feather name="check-circle" size={18} color="#fff" />
+                )}
               </TouchableOpacity>
             ))}
 
@@ -217,20 +265,87 @@ export default function Mapa() {
               style={styles.selectAllButton}
               onPress={handleSelectAll}
             >
-              <Checkbox
-                value={isAllSelected}
-                onValueChange={handleSelectAll}
-                color="green"
-              />
-              <Text style={styles.checkboxTextBold}>Seleccionar Todos</Text>
+              <View style={styles.selectAllIconBg}>
+                <Feather 
+                  name={isAllSelected ? "check-square" : "square"} 
+                  size={20} 
+                  color="#059669" 
+                />
+              </View>
+              <Text style={styles.selectAllText}>
+                {isAllSelected ? "Deseleccionar Todos" : "Seleccionar Todos"}
+              </Text>
             </TouchableOpacity>
           </ScrollView>
 
           <TouchableOpacity style={styles.closeButton} onPress={closePanel}>
+            <Feather name="x" size={20} color="#fff" />
             <Text style={styles.closeButtonText}>Cerrar</Text>
           </TouchableOpacity>
         </Animated.View>
       )}
+
+      {/* Modal de Estaciones Cerradas */}
+      <Modal
+        visible={modalInfo}
+        animationType="fade"
+        transparent={true}
+        onRequestClose={() => setModalInfo(false)}
+      >
+        <View style={styles.infoModalOverlay}>
+          <View style={styles.infoModalContent}>
+            <View style={styles.infoModalHeader}>
+              <View style={styles.infoIconBg}>
+                <Feather 
+                  name={estacionesCerradas.length > 0 ? "alert-triangle" : "check-circle"} 
+                  size={32} 
+                  color="#fff" 
+                />
+              </View>
+              <Text style={styles.infoModalTitle}>
+                {estacionesCerradas.length > 0 
+                  ? "Estaciones Cerradas" 
+                  : "Estado del Metro"}
+              </Text>
+              <Text style={styles.infoModalSubtitle}>
+                {estacionesCerradas.length > 0
+                  ? `${estacionesCerradas.length} estación${estacionesCerradas.length > 1 ? 'es' : ''} fuera de servicio`
+                  : "¡Todas las estaciones disponibles!"}
+              </Text>
+            </View>
+
+            <ScrollView 
+              style={styles.infoModalScroll}
+              showsVerticalScrollIndicator={false}
+            >
+              {estacionesCerradas.length > 0 ? (
+                estacionesCerradas.map((estacion, index) => (
+                  <View key={index} style={styles.estacionItem}>
+                    <View style={styles.estacionIconBg}>
+                      <Feather name="x-circle" size={20} color="#DC2626" />
+                    </View>
+                    <Text style={styles.estacionText}>{estacion}</Text>
+                  </View>
+                ))
+              ) : (
+                <View style={styles.emptyState}>
+                  <Feather name="check-circle" size={64} color="#10B981" />
+                  <Text style={styles.emptyStateText}>
+                    Todas las estaciones{"\n"}están operando normalmente
+                  </Text>
+                </View>
+              )}
+            </ScrollView>
+
+            <TouchableOpacity 
+              style={styles.infoModalButton} 
+              onPress={() => setModalInfo(false)}
+            >
+              <Text style={styles.infoModalButtonText}>Entendido</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -238,105 +353,350 @@ export default function Mapa() {
 const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: "center", alignItems: "center" },
   map: { width: "100%", height: "100%" },
-  buttonContainer: {
+  
+  /* Top Bar */
+  topBar: {
     position: "absolute",
-    top: 20,
-    right: 20,
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
+    backgroundColor: "#fff",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 8,
   },
-  infoButton: {
-    backgroundColor: "#E68059",
-    width: 50,
-    height: 50,
+  topBarContent: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    paddingTop: 16,
+  },
+  topBarInfo: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    flex: 1,
+  },
+  topBarTextContainer: {
+    flex: 1,
+  },
+  topBarTitle: {
+    fontSize: 18,
+    fontWeight: "900",
+    color: "#111827",
+    marginBottom: 2,
+  },
+  topBarSubtitle: {
+    fontSize: 12,
+    color: "#6B7280",
+    fontWeight: "600",
+  },
+  topBarActions: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  topBarButton: {
+    backgroundColor: "#F9FAFB",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    position: "relative",
     justifyContent: "center",
     alignItems: "center",
-    borderRadius: 25,
   },
+  topBarButtonPrimary: {
+    backgroundColor: "#E68059",
+    borderColor: "#E68059",
+    flexDirection: "row",
+    gap: 6,
+    paddingHorizontal: 14,
+  },
+  topBarButtonText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "800",
+  },
+  miniBadge: {
+    position: "absolute",
+    top: -6,
+    right: -6,
+    backgroundColor: "#10B981",
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: "#fff",
+  },
+  miniBadgeText: {
+    color: "#fff",
+    fontSize: 10,
+    fontWeight: "900",
+  },
+  badgeDanger: {
+    backgroundColor: "#DC2626",
+  },
+  
+  /* Panel Lateral */
   slidePanel: {
     position: "absolute",
     top: 0,
     bottom: 0,
     width: Dimensions.get("window").width / 2,
-    backgroundColor: "#ffffffee",
-    paddingTop: 60,
-    paddingHorizontal: 16,
+    backgroundColor: "#fff",
+    paddingTop: 40,
+    paddingHorizontal: 20,
     paddingBottom: 20,
-    borderTopLeftRadius: 15,
-    borderBottomLeftRadius: 15,
+    borderTopLeftRadius: 24,
+    borderBottomLeftRadius: 24,
     shadowColor: "#000",
-    shadowOpacity: 0.2,
-    shadowOffset: { width: -2, height: 0 },
-    shadowRadius: 8,
-    elevation: 10,
+    shadowOpacity: 0.3,
+    shadowOffset: { width: -4, height: 0 },
+    shadowRadius: 12,
+    elevation: 15,
     zIndex: 99,
   },
-  row: {
-    flexDirection: "row",
+  panelHeader: {
     alignItems: "center",
+    marginBottom: 20,
   },
-  checkboxText: {
-    paddingLeft: 12,
-    fontSize: 16,
-    color: "#333",
-  },
-  checkboxTextBold: {
-    paddingLeft: 12,
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#2d6a4f",
-  },
-  closeButton: {
-    marginTop: 20,
-    padding: 12,
+  panelIconBg: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     backgroundColor: "#E68059",
-    borderRadius: 8,
+    justifyContent: "center",
     alignItems: "center",
-  },
-  closeButtonText: {
-    color: "white",
-    fontWeight: "bold",
-    fontSize: 16,
+    marginBottom: 12,
+    shadowColor: "#E68059",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
   },
   panelTitle: {
     fontSize: 20,
-    fontWeight: "bold",
-    color: "#222",
+    fontWeight: "900",
+    color: "#111827",
+    marginBottom: 4,
+  },
+  panelSubtitle: {
+    fontSize: 13,
+    color: "#6B7280",
+    fontWeight: "600",
     textAlign: "center",
-    marginBottom: 10,
   },
-
   divider: {
-    height: 1,
-    backgroundColor: "#ddd",
+    height: 2,
+    backgroundColor: "#F3F4F6",
     marginBottom: 16,
+    borderRadius: 1,
   },
-
+  
+  /* Items de Línea */
   lineItem: {
-    borderRadius: 10,
-    padding: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderRadius: 12,
+    padding: 14,
     marginBottom: 10,
+    borderWidth: 2,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 3,
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
     elevation: 2,
   },
-
+  lineItemContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+  checkboxText: {
+    paddingLeft: 12,
+    fontSize: 15,
+    color: "#374151",
+    fontWeight: "700",
+  },
+  checkboxTextActive: {
+    color: "#fff",
+    fontWeight: "800",
+  },
+  
+  /* Botón Seleccionar Todos */
   selectAllButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#d2f5dc",
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 20,
+    backgroundColor: "#ECFDF5",
+    borderRadius: 12,
+    padding: 14,
+    marginTop: 10,
+    marginBottom: 10,
+    borderWidth: 2,
+    borderColor: "#059669",
+    shadowColor: "#059669",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  selectAllIconBg: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: "#fff",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 10,
+  },
+  selectAllText: {
+    fontSize: 15,
+    fontWeight: "800",
+    color: "#059669",
+  },
+  
+  /* Botón Cerrar */
+  closeButton: {
+    marginTop: 10,
+    padding: 14,
+    backgroundColor: "#E68059",
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+    gap: 8,
+    shadowColor: "#E68059",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  closeButtonText: {
+    color: "white",
+    fontWeight: "800",
+    fontSize: 15,
+  },
+  
+  /* Modal de Información */
+  infoModalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  infoModalContent: {
+    backgroundColor: "#fff",
+    borderRadius: 20,
+    width: "100%",
+    maxWidth: 400,
+    maxHeight: "80%",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 10,
+  },
+  infoModalHeader: {
+    alignItems: "center",
+    padding: 24,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F3F4F6",
+  },
+  infoIconBg: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: "#E68059",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 16,
+    shadowColor: "#E68059",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  infoModalTitle: {
+    fontSize: 22,
+    fontWeight: "900",
+    color: "#111827",
+    marginBottom: 6,
+    textAlign: "center",
+  },
+  infoModalSubtitle: {
+    fontSize: 14,
+    color: "#6B7280",
+    fontWeight: "600",
+    textAlign: "center",
+  },
+  infoModalScroll: {
+    maxHeight: 300,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+  },
+  estacionItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    backgroundColor: "#FEF2F2",
+    padding: 14,
+    borderRadius: 12,
+    marginBottom: 10,
+    borderLeftWidth: 4,
+    borderLeftColor: "#DC2626",
+  },
+  estacionIconBg: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#fff",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  estacionText: {
+    flex: 1,
+    fontSize: 15,
+    color: "#374151",
+    fontWeight: "700",
+  },
+  emptyState: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 40,
+  },
+  emptyStateText: {
+    fontSize: 16,
+    color: "#10B981",
+    fontWeight: "700",
+    textAlign: "center",
+    marginTop: 16,
+    lineHeight: 24,
+  },
+  infoModalButton: {
+    backgroundColor: "#E68059",
+    margin: 20,
+    padding: 16,
+    borderRadius: 12,
+    alignItems: "center",
+    shadowColor: "#E68059",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  infoModalButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "800",
   },
 });

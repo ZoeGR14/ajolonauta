@@ -80,6 +80,10 @@ export default function MisRutas() {
    const [start, setStart] = useState("");
    const [end, setEnd] = useState("");
    const [modal, setModal] = useState(false);
+   const [modalStart, setModalStart] = useState(false);
+   const [modalEnd, setModalEnd] = useState(false);
+   const [searchStart, setSearchStart] = useState("");
+   const [searchEnd, setSearchEnd] = useState("");
 
    const [hideS, setHideS] = useState(false);
    const [hideE, setHideE] = useState(false);
@@ -413,102 +417,187 @@ export default function MisRutas() {
 
    return (
       <View style={styles.container}>
+         {/* Header Dramático */}
+         <View style={styles.header}>
+            <View style={styles.decorativeCircle1} />
+            <View style={styles.decorativeCircle2} />
+            <View style={styles.decorativeCircle3} />
+            <View style={styles.headerContent}>
+               <View style={styles.iconContainer}>
+                  <Feather name="navigation" size={32} color="#fff" />
+               </View>
+               <Text style={styles.headerTitle}>Mis Rutas</Text>
+               <Text style={styles.headerSubtitle}>
+                  Encuentra la mejor ruta en el metro
+               </Text>
+            </View>
+         </View>
+
          <View style={styles.searchCard}>
             <Text style={styles.switchText}>Selecciona tus estaciones</Text>
             {mensajeRutas.length > 0 && (
                <View style={styles.warningCard}>
-                  <Feather name="alert-triangle" size={20} color="#ff9800" />
+                  <Feather name="alert-triangle" size={20} color="#D97706" />
                   <Text style={styles.warningText}>{mensajeRutas}</Text>
                </View>
             )}
-            <View style={{ position: "relative" }}>
-               <Autocomplete
-                  data={filteredEstacionesS}
-                  autoCorrect={false}
-                  onPress={() => {
-                     setHideE(true);
-                     setHideS(false);
-                  }}
-                  placeholder="Punto de partida"
-                  placeholderTextColor="#A9A9A9"
-                  defaultValue={start}
-                  onChangeText={(text) => {
-                     setStart(text);
-                     setHideS(false);
-                  }}
-                  hideResults={hideS}
-                  flatListProps={{
-                     keyExtractor: (_, idx) => idx.toString(),
-                     renderItem: ({ item }) => (
-                        <TouchableOpacity onPress={() => handleSelectS(item)}>
-                           <Text style={{ padding: 10 }}>{item}</Text>
-                        </TouchableOpacity>
-                     ),
-                     keyboardShouldPersistTaps: "always",
-                  }}
-                  inputContainerStyle={styles.inputUber}
-                  listContainerStyle={styles.list}
-                  containerStyle={{ marginBottom: 10 }}
-               />
-               {start.length > 0 && (
-                  <TouchableOpacity
-                     style={styles.clearIconWrapper}
-                     onPress={() => {
-                        setStart("");
-                        setHideS(true);
-                     }}
-                  >
-                     <Feather name="x" size={20} color="#999" />
-                  </TouchableOpacity>
-               )}
-            </View>
+            
+            <View style={styles.stationButtonsRow}>
+               <TouchableOpacity 
+                  style={[styles.stationButton, start && styles.stationButtonActive]}
+                  onPress={() => setModalStart(true)}
+               >
+                  <View style={styles.stationButtonIcon}>
+                     <Feather name="map-pin" size={20} color={start ? "#E68059" : "#9CA3AF"} />
+                  </View>
+                  <View style={styles.stationButtonText}>
+                     <Text style={styles.stationButtonLabel}>Origen</Text>
+                     <Text style={styles.stationButtonValue} numberOfLines={1}>
+                        {start || "Selecciona"}
+                     </Text>
+                  </View>
+                  {start && (
+                     <TouchableOpacity 
+                        onPress={() => setStart("")}
+                        style={styles.stationButtonClear}
+                     >
+                        <Feather name="x" size={16} color="#9CA3AF" />
+                     </TouchableOpacity>
+                  )}
+               </TouchableOpacity>
 
-            <View style={{ position: "relative" }}>
-               <Autocomplete
-                  data={filteredEstacionesE}
-                  placeholder="Destino"
-                  placeholderTextColor="#A9A9A9"
-                  autoCorrect={false}
-                  onPress={() => {
-                     setHideS(true);
-                     setHideE(false);
-                  }}
-                  defaultValue={end}
-                  onChangeText={(text) => {
-                     setEnd(text);
-                     setHideE(false);
-                  }}
-                  hideResults={hideE}
-                  flatListProps={{
-                     keyExtractor: (_, idx) => idx.toString(),
-                     renderItem: ({ item }) => (
-                        <TouchableOpacity
-                           onPress={() => {
-                              handleSelectE(item);
-                              Keyboard.dismiss();
-                           }}
-                        >
-                           <Text style={{ padding: 10 }}>{item}</Text>
-                        </TouchableOpacity>
-                     ),
-                     keyboardShouldPersistTaps: "always",
-                  }}
-                  inputContainerStyle={styles.inputUber}
-                  listContainerStyle={styles.list}
-               />
-               {end.length > 0 && (
-                  <TouchableOpacity
-                     style={styles.clearIconWrapper}
-                     onPress={() => {
-                        setEnd("");
-                        setHideE(true);
-                     }}
-                  >
-                     <Feather name="x" size={20} color="#999" />
-                  </TouchableOpacity>
-               )}
+               <TouchableOpacity 
+                  style={[styles.stationButton, end && styles.stationButtonActive]}
+                  onPress={() => setModalEnd(true)}
+               >
+                  <View style={styles.stationButtonIcon}>
+                     <Feather name="flag" size={20} color={end ? "#E68059" : "#9CA3AF"} />
+                  </View>
+                  <View style={styles.stationButtonText}>
+                     <Text style={styles.stationButtonLabel}>Destino</Text>
+                     <Text style={styles.stationButtonValue} numberOfLines={1}>
+                        {end || "Selecciona"}
+                     </Text>
+                  </View>
+                  {end && (
+                     <TouchableOpacity 
+                        onPress={() => setEnd("")}
+                        style={styles.stationButtonClear}
+                     >
+                        <Feather name="x" size={16} color="#9CA3AF" />
+                     </TouchableOpacity>
+                  )}
+               </TouchableOpacity>
             </View>
          </View>
+
+         {/* Modal de Selección de Origen */}
+         <Modal
+            visible={modalStart}
+            animationType="slide"
+            transparent={true}
+            onRequestClose={() => setModalStart(false)}
+         >
+            <View style={styles.modalOverlay}>
+               <View style={styles.modalContent}>
+                  <View style={styles.modalHeader}>
+                     <Text style={styles.modalTitle}>Selecciona el Origen</Text>
+                     <TouchableOpacity onPress={() => setModalStart(false)}>
+                        <Feather name="x" size={24} color="#111827" />
+                     </TouchableOpacity>
+                  </View>
+                  
+                  <View style={styles.searchInputContainer}>
+                     <Feather name="search" size={20} color="#9CA3AF" />
+                     <Autocomplete
+                        data={searchStart ? arregloEstaciones.filter((n) =>
+                           n?.toLowerCase().includes(searchStart.toLowerCase())
+                        ) : []}
+                        autoCorrect={false}
+                        placeholder="Buscar estación..."
+                        placeholderTextColor="#9CA3AF"
+                        value={searchStart}
+                        onChangeText={setSearchStart}
+                        hideResults={false}
+                        flatListProps={{
+                           keyExtractor: (_, idx) => idx.toString(),
+                           renderItem: ({ item }) => (
+                              <TouchableOpacity 
+                                 onPress={() => {
+                                    setStart(item);
+                                    setSearchStart("");
+                                    setModalStart(false);
+                                 }}
+                                 style={styles.modalStationItem}
+                              >
+                                 <Feather name="map-pin" size={18} color="#E68059" />
+                                 <Text style={styles.modalStationText}>{item}</Text>
+                              </TouchableOpacity>
+                           ),
+                           keyboardShouldPersistTaps: "always",
+                        }}
+                        inputContainerStyle={styles.modalSearchInput}
+                        listContainerStyle={styles.modalList}
+                        containerStyle={{ flex: 1 }}
+                     />
+                  </View>
+               </View>
+            </View>
+         </Modal>
+
+         {/* Modal de Selección de Destino */}
+         <Modal
+            visible={modalEnd}
+            animationType="slide"
+            transparent={true}
+            onRequestClose={() => setModalEnd(false)}
+         >
+            <View style={styles.modalOverlay}>
+               <View style={styles.modalContent}>
+                  <View style={styles.modalHeader}>
+                     <Text style={styles.modalTitle}>Selecciona el Destino</Text>
+                     <TouchableOpacity onPress={() => setModalEnd(false)}>
+                        <Feather name="x" size={24} color="#111827" />
+                     </TouchableOpacity>
+                  </View>
+                  
+                  <View style={styles.searchInputContainer}>
+                     <Feather name="search" size={20} color="#9CA3AF" />
+                     <Autocomplete
+                        data={searchEnd ? arregloEstaciones.filter((n) =>
+                           n?.toLowerCase().includes(searchEnd.toLowerCase())
+                        ) : []}
+                        autoCorrect={false}
+                        placeholder="Buscar estación..."
+                        placeholderTextColor="#9CA3AF"
+                        value={searchEnd}
+                        onChangeText={setSearchEnd}
+                        hideResults={false}
+                        flatListProps={{
+                           keyExtractor: (_, idx) => idx.toString(),
+                           renderItem: ({ item }) => (
+                              <TouchableOpacity 
+                                 onPress={() => {
+                                    setEnd(item);
+                                    setSearchEnd("");
+                                    setModalEnd(false);
+                                 }}
+                                 style={styles.modalStationItem}
+                              >
+                                 <Feather name="flag" size={18} color="#E68059" />
+                                 <Text style={styles.modalStationText}>{item}</Text>
+                              </TouchableOpacity>
+                           ),
+                           keyboardShouldPersistTaps: "always",
+                        }}
+                        inputContainerStyle={styles.modalSearchInput}
+                        listContainerStyle={styles.modalList}
+                        containerStyle={{ flex: 1 }}
+                     />
+                  </View>
+               </View>
+            </View>
+         </Modal>
 
          <View style={{ flex: 4 }}>
             <MapView
@@ -716,94 +805,248 @@ export default function MisRutas() {
 const styles = StyleSheet.create({
    container: {
       flex: 1,
-      justifyContent: "center",
+      backgroundColor: "#F9FAFB",
    },
-   input: {
-      borderColor: "#e68059",
-      borderWidth: 1,
-      padding: 5,
-      borderRadius: 5,
-   },
-   list: {
-      zIndex: 1,
-      position: "absolute",
-      top: "100%",
-      left: 0,
-      right: 0,
-      maxHeight: 300,
-   },
-   modalContainer: {
-      flex: 1,
-      backgroundColor: "#fff",
-      padding: 20,
+   
+   /* Header Dramático */
+   header: {
+      backgroundColor: "#E68059",
       paddingTop: 50,
+      paddingBottom: 120,
+      position: "relative",
+      overflow: "hidden",
    },
-   modalTitle: {
-      fontSize: 22,
-      fontWeight: "bold",
-      color: "#e68059",
-      marginBottom: 20,
-      textAlign: "center",
+   decorativeCircle1: {
+      position: "absolute",
+      top: -80,
+      right: -60,
+      width: 200,
+      height: 200,
+      borderRadius: 100,
+      backgroundColor: "rgba(255, 255, 255, 0.1)",
    },
-   stepCard: {
-      padding: 14,
-      borderRadius: 12,
-      backgroundColor: "#fff",
-      borderWidth: 1,
-      borderColor: "#eee",
-      marginHorizontal: 4,
-   },
-   stepText: {
-      fontSize: 16,
-      color: "#444",
-      fontWeight: "500",
-   },
-
-   separator: {
-      alignItems: "center",
-      marginVertical: 6,
-      opacity: 0.6,
-   },
-   closeButton: {
-      backgroundColor: "#e68059",
-      padding: 15,
-      borderRadius: 10,
-      marginTop: 20,
-   },
-   closeButtonText: {
-      color: "#fff",
-      fontWeight: "bold",
-      textAlign: "center",
-      fontSize: 16,
-   },
-   searchCard: {
+   decorativeCircle2: {
       position: "absolute",
       top: 20,
-      left: 20,
-      right: 20,
+      right: 40,
+      width: 150,
+      height: 150,
+      borderRadius: 75,
+      backgroundColor: "rgba(255, 255, 255, 0.08)",
+   },
+   decorativeCircle3: {
+      position: "absolute",
+      top: 60,
+      right: -20,
+      width: 100,
+      height: 100,
+      borderRadius: 50,
+      backgroundColor: "rgba(255, 255, 255, 0.12)",
+   },
+   headerContent: {
+      alignItems: "center",
+      zIndex: 1,
+   },
+   iconContainer: {
+      width: 70,
+      height: 70,
+      borderRadius: 35,
+      backgroundColor: "rgba(255, 255, 255, 0.25)",
+      justifyContent: "center",
+      alignItems: "center",
+      marginBottom: 12,
+   },
+   headerTitle: {
+      fontSize: 28,
+      fontWeight: "900",
+      color: "#fff",
+      marginBottom: 6,
+      textShadowColor: "rgba(0, 0, 0, 0.15)",
+      textShadowOffset: { width: 0, height: 2 },
+      textShadowRadius: 4,
+   },
+   headerSubtitle: {
+      fontSize: 14,
+      color: "rgba(255, 255, 255, 0.95)",
+      fontWeight: "600",
+   },
+   
+   /* Tarjeta de Búsqueda */
+   searchCard: {
+      marginTop: -90,
+      marginHorizontal: 20,
       backgroundColor: "white",
+      borderRadius: 16,
+      padding: 20,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.12,
+      shadowRadius: 12,
+      elevation: 8,
+      zIndex: 999,
+   },
+   switchText: {
+      color: "#374151",
+      fontSize: 15,
+      fontWeight: "700",
+      marginBottom: 16,
+      textAlign: "center",
+   },
+   
+   /* Botones de Estación */
+   stationButtonsRow: {
+      flexDirection: "row",
+      gap: 12,
+   },
+   stationButton: {
+      flex: 1,
+      backgroundColor: "#F9FAFB",
       borderRadius: 12,
-      padding: 15,
+      padding: 14,
+      borderWidth: 2,
+      borderColor: "#E5E7EB",
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 10,
+      minHeight: 70,
+   },
+   stationButtonActive: {
+      backgroundColor: "#FFF7ED",
+      borderColor: "#E68059",
+   },
+   stationButtonIcon: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: "#fff",
+      justifyContent: "center",
+      alignItems: "center",
+   },
+   stationButtonText: {
+      flex: 1,
+   },
+   stationButtonLabel: {
+      fontSize: 11,
+      color: "#6B7280",
+      fontWeight: "700",
+      marginBottom: 2,
+      textTransform: "uppercase",
+   },
+   stationButtonValue: {
+      fontSize: 14,
+      color: "#111827",
+      fontWeight: "700",
+   },
+   stationButtonClear: {
+      padding: 4,
+   },
+   
+   /* Modales */
+   modalOverlay: {
+      flex: 1,
+      backgroundColor: "rgba(0, 0, 0, 0.5)",
+      justifyContent: "flex-end",
+   },
+   modalContent: {
+      backgroundColor: "#fff",
+      borderTopLeftRadius: 24,
+      borderTopRightRadius: 24,
+      padding: 20,
+      maxHeight: "80%",
+   },
+   modalHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 20,
+   },
+   modalTitle: {
+      fontSize: 20,
+      fontWeight: "900",
+      color: "#111827",
+   },
+   searchInputContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 10,
+      backgroundColor: "#F9FAFB",
+      borderRadius: 12,
+      paddingHorizontal: 12,
+      borderWidth: 2,
+      borderColor: "#E5E7EB",
+   },
+   modalSearchInput: {
+      borderWidth: 0,
+      paddingVertical: 12,
+      fontSize: 15,
+      color: "#111827",
+      fontWeight: "600",
+   },
+   modalList: {
+      maxHeight: 400,
+      backgroundColor: "#fff",
+      borderRadius: 12,
+      marginTop: 8,
       shadowColor: "#000",
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.1,
-      shadowRadius: 4,
+      shadowRadius: 8,
       elevation: 5,
-      zIndex: 999,
    },
+   modalStationItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      padding: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: "#F3F4F6",
+   },
+   modalStationText: {
+      fontSize: 15,
+      color: "#374151",
+      fontWeight: "600",
+      flex: 1,
+   },
+   
+   /* Inputs */
    inputUber: {
       borderWidth: 0,
-      borderBottomWidth: 1,
-      borderColor: "#ccc",
-      paddingVertical: 8,
-      paddingHorizontal: 10,
+      borderBottomWidth: 2,
+      borderColor: "#E5E7EB",
+      paddingVertical: 16,
+      paddingHorizontal: 12,
+      fontSize: 16,
+      color: "#111827",
+      fontWeight: "600",
+      minHeight: 50,
    },
-   switchText: {
-      color: "#666",
-      fontSize: 14,
-      marginBottom: 10,
-      textAlign: "center",
+   
+   /* Warnings */
+   warningCard: {
+      flexDirection: "row",
+      backgroundColor: "#FEF3C7",
+      padding: 14,
+      borderRadius: 12,
+      marginBottom: 14,
+      alignItems: "flex-start",
+      gap: 10,
+      borderLeftWidth: 4,
+      borderLeftColor: "#F59E0B",
+      shadowColor: "#F59E0B",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 2,
    },
+   warningText: {
+      flex: 1,
+      color: "#78350F",
+      fontSize: 13,
+      fontWeight: "600",
+      lineHeight: 18,
+   },
+   
+   /* Botones Flotantes */
    floatingButtons: {
       position: "absolute",
       bottom: 30,
@@ -816,26 +1059,17 @@ const styles = StyleSheet.create({
       width: 56,
       height: 56,
       borderRadius: 28,
-      backgroundColor: "#e68059",
+      backgroundColor: "#E68059",
       justifyContent: "center",
       alignItems: "center",
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.3,
-      shadowRadius: 4,
+      shadowColor: "#E68059",
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.4,
+      shadowRadius: 8,
       elevation: 6,
    },
-   stepRow: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-   },
-   lineDot: {
-      width: 12,
-      height: 12,
-      borderRadius: 6,
-      marginLeft: 8,
-   },
+   
+   /* Clear Icon */
    clearIconWrapper: {
       position: "absolute",
       right: 10,
@@ -843,49 +1077,121 @@ const styles = StyleSheet.create({
       transform: [{ translateY: -12 }],
       zIndex: 2,
    },
-   warningCard: {
-      flexDirection: "row",
-      backgroundColor: "#fff3cd",
-      padding: 12,
-      borderRadius: 8,
-      marginBottom: 10,
-      alignItems: "center",
-      gap: 10,
-      borderLeftWidth: 4,
-      borderLeftColor: "#ff9800",
-   },
-   warningText: {
+   /* Modal */
+   modalContainer: {
       flex: 1,
-      color: "#856404",
-      fontSize: 13,
-      fontWeight: "500",
+      backgroundColor: "#F9FAFB",
+      padding: 20,
+      paddingTop: 50,
    },
    modalWarning: {
       flexDirection: "row",
-      backgroundColor: "#fff3cd",
-      padding: 12,
-      borderRadius: 8,
-      marginBottom: 15,
-      alignItems: "center",
+      backgroundColor: "#FEF3C7",
+      padding: 14,
+      borderRadius: 12,
+      marginBottom: 16,
+      alignItems: "flex-start",
       gap: 10,
       borderLeftWidth: 4,
-      borderLeftColor: "#ff9800",
+      borderLeftColor: "#F59E0B",
    },
    modalWarningText: {
       flex: 1,
-      color: "#856404",
+      color: "#78350F",
       fontSize: 13,
-      fontWeight: "500",
+      fontWeight: "600",
+      lineHeight: 18,
+   },
+   stepCard: {
+      padding: 16,
+      borderRadius: 12,
+      backgroundColor: "#fff",
+      borderWidth: 2,
+      borderColor: "#E5E7EB",
+      marginHorizontal: 4,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.08,
+      shadowRadius: 4,
+      elevation: 2,
+   },
+   stepText: {
+      fontSize: 15,
+      color: "#374151",
+      fontWeight: "700",
+   },
+   stepRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+   },
+   lineDot: {
+      width: 14,
+      height: 14,
+      borderRadius: 7,
+      marginLeft: 8,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.2,
+      shadowRadius: 2,
+      elevation: 1,
+   },
+   separator: {
+      alignItems: "center",
+      marginVertical: 8,
+      opacity: 0.5,
+   },
+   closeButton: {
+      backgroundColor: "#E68059",
+      padding: 16,
+      borderRadius: 12,
+      marginTop: 20,
+      shadowColor: "#E68059",
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+      elevation: 5,
+   },
+   closeButtonText: {
+      color: "#fff",
+      fontWeight: "800",
+      textAlign: "center",
+      fontSize: 15,
    },
    routeLabel: {
       fontSize: 16,
-      fontWeight: "bold",
-      color: "#333",
+      fontWeight: "800",
+      color: "#111827",
       marginBottom: 10,
-      marginTop: 5,
+      marginTop: 8,
    },
    alternativeCard: {
-      borderLeftWidth: 3,
-      borderLeftColor: "#4CAF50",
+      borderLeftWidth: 4,
+      borderLeftColor: "#10B981",
+   },
+   list: {
+      zIndex: 1,
+      position: "absolute",
+      top: "100%",
+      left: 0,
+      right: 0,
+      maxHeight: 300,
+      backgroundColor: "#fff",
+      borderRadius: 8,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3,
+   },
+   autocompleteItem: {
+      padding: 14,
+      borderBottomWidth: 1,
+      borderBottomColor: "#F3F4F6",
+   },
+   autocompleteText: {
+      fontSize: 14,
+      color: "#374151",
+      fontWeight: "600",
    },
 });

@@ -178,32 +178,67 @@ export default function MyAccountScreen() {
 
    return (
       <View style={styles.container}>
-         <View style={styles.profileWrapper}>
-            <View style={styles.imageContainer}>
-               <Image source={{ uri: image }} style={styles.profileImage} />
-               <TouchableOpacity style={styles.editButton} onPress={pickImage}>
-                  <Feather name="edit" size={20} color="#e68059" />
-               </TouchableOpacity>
+         {/* Header con Imagen de Perfil */}
+         <View style={styles.header}>
+            <View style={styles.decorativeCircle1} />
+            <View style={styles.decorativeCircle2} />
+            <View style={styles.decorativeCircle3} />
+            
+            <View style={styles.headerContent}>
+               <View style={styles.imageContainer}>
+                  <Image source={{ uri: image }} style={styles.profileImage} />
+                  <TouchableOpacity style={styles.editButton} onPress={pickImage}>
+                     <Feather name="camera" size={18} color="#fff" />
+                  </TouchableOpacity>
+               </View>
             </View>
-            <Text style={styles.name}>{username}</Text>
-            <Text style={styles.email}>{email}</Text>
          </View>
 
-         <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+         {/* Tarjeta de Información */}
+         <View style={styles.infoCard}>
+            <View style={styles.infoRow}>
+               <Feather name="user" size={20} color="#E68059" />
+               <View style={styles.infoTextContainer}>
+                  <Text style={styles.infoLabel}>Nombre</Text>
+                  <Text style={styles.infoValue}>{username}</Text>
+               </View>
+            </View>
+            <View style={styles.infoDivider} />
+            <View style={styles.infoRow}>
+               <Feather name="mail" size={20} color="#E68059" />
+               <View style={styles.infoTextContainer}>
+                  <Text style={styles.infoLabel}>Correo electrónico</Text>
+                  <Text style={styles.infoValue}>{email}</Text>
+               </View>
+            </View>
+         </View>
+
+         <ScrollView 
+            style={styles.scrollContent} 
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: 30 }}
+         >
+            <Text style={styles.sectionTitle}>Opciones</Text>
+            
             <Option
-               icon="heart"
+               icon="bookmark"
                label="Rutas guardadas"
+               description="Consulta tus rutas favoritas"
                onPress={() => router.push("./rutasGuardadas")}
             />
             <Option
                icon="settings"
                label="Modificar datos"
+               description="Actualiza tu información"
                onPress={() => router.push("./configuracion")}
             />
+            
             <TouchableOpacity
                style={styles.logoutButton}
                onPress={handleLogout}
+               activeOpacity={0.8}
             >
+               <Feather name="log-out" size={20} color="#DC2626" />
                <Text style={styles.logoutText}>Cerrar Sesión</Text>
             </TouchableOpacity>
          </ScrollView>
@@ -214,93 +249,214 @@ export default function MyAccountScreen() {
 const Option = ({
    icon,
    label,
+   description,
    onPress,
 }: {
    icon: string;
    label: string;
+   description?: string;
    onPress?: () => void;
 }) => (
-   <TouchableOpacity style={styles.option} onPress={onPress}>
-      <View style={styles.optionLeft}>
-         <Feather name={icon as any} size={24} color="#e68059" />
-         <Text style={styles.optionText}>{label}</Text>
+   <TouchableOpacity style={styles.option} onPress={onPress} activeOpacity={0.8}>
+      <View style={styles.optionIconBg}>
+         <Feather name={icon as any} size={22} color="#E68059" />
       </View>
-      <Feather name="chevron-right" size={20} color="#ccc" />
+      <View style={styles.optionContent}>
+         <Text style={styles.optionText}>{label}</Text>
+         {description && <Text style={styles.optionDescription}>{description}</Text>}
+      </View>
+      <Feather name="chevron-right" size={20} color="#9CA3AF" />
    </TouchableOpacity>
 );
 
 const styles = StyleSheet.create({
    container: {
       flex: 1,
-      backgroundColor: "#fff",
-      paddingTop: 60,
-      paddingHorizontal: 20,
+      backgroundColor: "#F9FAFB",
    },
-   name: {
-      fontSize: 18,
-      fontWeight: "bold",
-      marginTop: 10,
+   
+   /* Header Dramático */
+   header: {
+      backgroundColor: "#E68059",
+      paddingTop: 50,
+      paddingBottom: 80,
+      position: "relative",
+      overflow: "hidden",
    },
-   email: {
-      fontSize: 14,
-      color: "gray",
+   decorativeCircle1: {
+      position: "absolute",
+      top: -80,
+      right: -60,
+      width: 200,
+      height: 200,
+      borderRadius: 100,
+      backgroundColor: "rgba(255, 255, 255, 0.1)",
    },
-   option: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      backgroundColor: "#fffbf6",
-      padding: 15,
-      borderRadius: 12,
-      marginBottom: 15,
+   decorativeCircle2: {
+      position: "absolute",
+      top: 20,
+      right: 40,
+      width: 150,
+      height: 150,
+      borderRadius: 75,
+      backgroundColor: "rgba(255, 255, 255, 0.08)",
+   },
+   decorativeCircle3: {
+      position: "absolute",
+      top: 60,
+      right: -20,
+      width: 100,
+      height: 100,
+      borderRadius: 50,
+      backgroundColor: "rgba(255, 255, 255, 0.12)",
+   },
+   headerContent: {
       alignItems: "center",
-   },
-   optionLeft: {
-      flexDirection: "row",
-      alignItems: "center",
-   },
-   optionText: {
-      marginLeft: 15,
-      fontSize: 16,
-   },
-   logoutButton: {
-      marginTop: 30,
-      padding: 15,
-      borderColor: "red",
-      borderWidth: 1,
-      borderRadius: 12,
-      alignItems: "center",
-   },
-   logoutText: {
-      color: "red",
-      fontWeight: "bold",
-      fontSize: 16,
-   },
-   profileWrapper: {
-      alignItems: "center",
-      marginTop: 20,
-      marginBottom: 20,
+      zIndex: 1,
    },
    imageContainer: {
       position: "relative",
-      width: 160,
-      height: 160,
+      width: 120,
+      height: 120,
    },
    profileImage: {
-      width: 160,
-      height: 160,
-      borderRadius: 80,
+      width: 120,
+      height: 120,
+      borderRadius: 60,
+      borderWidth: 4,
+      borderColor: "#fff",
    },
    editButton: {
       position: "absolute",
-      bottom: 3,
-      right: 15,
-      backgroundColor: "white",
-      borderRadius: 20,
-      padding: 6,
-      elevation: 3,
+      bottom: 0,
+      right: 0,
+      backgroundColor: "#E68059",
+      borderRadius: 18,
+      width: 36,
+      height: 36,
+      justifyContent: "center",
+      alignItems: "center",
+      borderWidth: 3,
+      borderColor: "#fff",
+      shadowColor: "#E68059",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.4,
+      shadowRadius: 4,
+      elevation: 5,
+   },
+   
+   /* Tarjeta de Información */
+   infoCard: {
+      backgroundColor: "#fff",
+      marginTop: -50,
+      marginHorizontal: 20,
+      borderRadius: 16,
+      padding: 20,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.1,
+      shadowRadius: 12,
+      elevation: 8,
+      zIndex: 2,
+   },
+   infoRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 14,
+   },
+   infoTextContainer: {
+      flex: 1,
+   },
+   infoLabel: {
+      fontSize: 12,
+      color: "#6B7280",
+      fontWeight: "600",
+      marginBottom: 4,
+   },
+   infoValue: {
+      fontSize: 16,
+      color: "#111827",
+      fontWeight: "700",
+   },
+   infoDivider: {
+      height: 1,
+      backgroundColor: "#F3F4F6",
+      marginVertical: 16,
+   },
+   
+   /* Contenido */
+   scrollContent: {
+      flex: 1,
+      paddingHorizontal: 20,
+      marginTop: 20,
+   },
+   sectionTitle: {
+      fontSize: 18,
+      fontWeight: "900",
+      color: "#111827",
+      marginBottom: 16,
+      marginTop: 10,
+   },
+   
+   /* Opciones */
+   option: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: "#fff",
+      padding: 16,
+      borderRadius: 14,
+      marginBottom: 12,
+      gap: 14,
       shadowColor: "#000",
       shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.2,
-      shadowRadius: 3,
+      shadowOpacity: 0.06,
+      shadowRadius: 4,
+      elevation: 2,
+   },
+   optionIconBg: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      backgroundColor: "#FFF7ED",
+      justifyContent: "center",
+      alignItems: "center",
+   },
+   optionContent: {
+      flex: 1,
+   },
+   optionText: {
+      fontSize: 16,
+      fontWeight: "700",
+      color: "#111827",
+      marginBottom: 2,
+   },
+   optionDescription: {
+      fontSize: 13,
+      color: "#6B7280",
+      fontWeight: "600",
+   },
+   
+   /* Botón de Logout */
+   logoutButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 10,
+      marginTop: 20,
+      padding: 16,
+      backgroundColor: "#FEF2F2",
+      borderWidth: 2,
+      borderColor: "#FEE2E2",
+      borderRadius: 14,
+      shadowColor: "#DC2626",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 2,
+   },
+   logoutText: {
+      color: "#DC2626",
+      fontWeight: "800",
+      fontSize: 16,
    },
 });
