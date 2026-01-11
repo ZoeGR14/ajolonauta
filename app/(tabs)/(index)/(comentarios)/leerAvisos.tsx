@@ -1,5 +1,5 @@
 import { db } from "@/FirebaseConfig";
-import { lineas, lines } from "@/assets/data/info"; // 🔥 Importando líneas y estaciones desde info.ts
+import { lineas, lines } from "@/assets/data/info";
 import { Ionicons } from "@expo/vector-icons";
 import { doc, getDoc } from "firebase/firestore";
 import { useState } from "react";
@@ -12,6 +12,8 @@ import {
   View,
   ActivityIndicator,
   ScrollView,
+  SafeAreaView,
+  StatusBar,
 } from "react-native";
 import { WebView } from "react-native-webview";
 import {
@@ -20,6 +22,21 @@ import {
 } from "@/utils/stationStatus";
 
 const TABS = ["Comentarios", "Twitter"];
+
+const lineaColors: { [key: string]: string } = {
+  "Línea 1": "#f0658f",
+  "Línea 2": "#0571b9",
+  "Línea 3": "#bcb600",
+  "Línea 4": "#81c5b8",
+  "Línea 5": "#fae202",
+  "Línea 6": "#e61f24",
+  "Línea 7": "#eb8519",
+  "Línea 8": "#0b9557",
+  "Línea 9": "#461e04",
+  "Línea A": "#970081",
+  "Línea B": "#c5c5c5",
+  "Línea 12": "#b4a442",
+};
 
 export default function CombinedView() {
   const [activeTab, setActiveTab] = useState("Comentarios");
@@ -33,22 +50,18 @@ export default function CombinedView() {
   const [loading, setLoading] = useState(false);
   const [stationClosed, setStationClosed] = useState<any>(null);
 
-  // Obtener estaciones de la línea seleccionada
   const getStationsByLine = (lineaId: string) => {
     const linea = lines.find((l) => l.linea === lineaId);
     return linea ? linea.estaciones.map((est) => est.nombre) : [];
   };
 
-  // Obtener comentarios de la estación seleccionada
   const fetchComments = async (stationName: string, lineaName: string) => {
     setLoading(true);
     try {
       const estacionId = `${stationName} - ${lineaName.replace(
         "Línea",
         "Linea"
-      )}`; // 🔥 Corrige el nombre de línea
-
-      // Verificar estado de la estación
+      )}`;
       const status = await checkStationStatus(estacionId);
       setStationClosed(status.cerrada ? status : null);
 
@@ -57,7 +70,7 @@ export default function CombinedView() {
       if (docSnap.exists()) {
         const data = docSnap.data();
         const loadedComments = data.comentarios || [];
-        setComments(loadedComments.slice(-10)); // 🔥 Mostrar solo los últimos 10 comentarios
+        setComments(loadedComments.slice(-10).reverse()); // Invertimos para ver el más reciente arriba
       } else {
         setComments([]);
       }
@@ -69,34 +82,42 @@ export default function CombinedView() {
     }
   };
 
-  return (
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Reportes en Vivo</Text>
-        <Text style={styles.headerSubtitle}>
-          Información compartida por la comunidad
-        </Text>
+  const renderHeader = () => (
+    <View style={styles.headerContainer}>
+      <View style={styles.headerContent}>
+        <View>
+          <Text style={styles.headerTitle}>Reportes en Vivo</Text>
+          <Text style={styles.headerSubtitle}>Estado del servicio</Text>
+        </View>
+        <View style={styles.liveIndicator}>
+          <View style={styles.dot} />
+          <Text style={styles.liveText}>LIVE</Text>
+        </View>
       </View>
 
-      {/* Tabs */}
-      <View style={styles.tabContainer}>
+      {/* Segmented Control Tabs */}
+      <View style={styles.segmentedControl}>
         {TABS.map((tab) => (
           <TouchableOpacity
             key={tab}
-            style={[styles.tab, activeTab === tab && styles.activeTab]}
+            style={[
+              styles.segmentBtn,
+              activeTab === tab && styles.segmentBtnActive,
+            ]}
             onPress={() => setActiveTab(tab)}
-            activeOpacity={0.7}
+            activeOpacity={0.8}
           >
             <Ionicons
-              name={tab === "Comentarios" ? "chatbubbles" : "logo-twitter"}
-              size={20}
-              color={activeTab === tab ? "#e68059" : "#95a5a6"}
+              name={
+                tab === "Comentarios" ? "chatbubbles-sharp" : "logo-twitter"
+              }
+              size={18}
+              color={activeTab === tab ? "#fff" : "#888"}
             />
             <Text
               style={[
-                styles.tabText,
-                activeTab === tab && styles.activeTabText,
+                styles.segmentText,
+                activeTab === tab && styles.segmentTextActive,
               ]}
             >
               {tab}
@@ -104,319 +125,483 @@ export default function CombinedView() {
           </TouchableOpacity>
         ))}
       </View>
+    </View>
+  );
 
-      {/* Comentarios */}
-      {activeTab === "Comentarios" && (
-        <View style={{ flex: 1 }}>
-          {/* Selector de línea */}
-          <TouchableOpacity
-            style={styles.dropdownButton}
-            onPress={() => setShowLineasDropdown(!showLineasDropdown)}
-          >
-            <View style={styles.dropdownContent}>
-              <Ionicons name="train" size={22} color="#e68059" />
-              <Text style={styles.dropdownText}>
-                {selectedLinea || "Selecciona una línea"}
-              </Text>
-              <Ionicons
-                name={showLineasDropdown ? "chevron-up" : "chevron-down"}
-                size={22}
-                color="#95a5a6"
-              />
-            </View>
-          </TouchableOpacity>
+  return (
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+      {renderHeader()}
 
-          {showLineasDropdown && (
-            <View style={styles.modalOverlay}>
+      <View style={styles.contentContainer}>
+        {activeTab === "Comentarios" && (
+          <View style={{ flex: 1 }}>
+            {/* Filtros Container */}
+            <View style={styles.filtersContainer}>
               <TouchableOpacity
-                style={styles.modalBackdrop}
-                activeOpacity={1}
-                onPress={() => setShowLineasDropdown(false)}
-              />
-              <View style={styles.modalCard}>
-                <View style={styles.dropdownHeader}>
-                  <Text style={styles.dropdownHeaderText}>
-                    Selecciona una línea
-                  </Text>
-                  <TouchableOpacity
-                    onPress={() => setShowLineasDropdown(false)}
-                  >
-                    <Ionicons name="close-circle" size={28} color="#95a5a6" />
-                  </TouchableOpacity>
-                </View>
-                <ScrollView
-                  style={styles.dropdownScroll}
-                  showsVerticalScrollIndicator={false}
-                >
-                  {lineas.map((item) => (
-                    <TouchableOpacity
-                      key={item}
-                      style={styles.lineItem}
-                      onPress={() => {
-                        setSelectedLinea(item);
-                        setShowLineasDropdown(false);
-                      }}
-                      activeOpacity={0.7}
-                    >
-                      <View style={styles.lineContent}>
-                        <Ionicons name="subway" size={22} color="#e68059" />
-                        <Text style={styles.lineText}>{item}</Text>
-                        <Ionicons
-                          name="arrow-forward"
-                          size={18}
-                          color="#95a5a6"
-                        />
-                      </View>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              </View>
-            </View>
-          )}
-
-          {/* Selector de estación (solo se muestra después de elegir una línea) */}
-          {selectedLinea && (
-            <>
-              <TouchableOpacity
-                style={styles.dropdownButton}
-                onPress={() =>
-                  setShowEstacionesDropdown(!showEstacionesDropdown)
-                }
+                style={[
+                  styles.filterButton,
+                  selectedLinea ? styles.filterButtonActive : null,
+                  {
+                    borderColor: selectedLinea
+                      ? lineaColors[selectedLinea]
+                      : "transparent",
+                  },
+                ]}
+                onPress={() => setShowLineasDropdown(true)}
               >
-                <View style={styles.dropdownContent}>
-                  <Ionicons name="location" size={22} color="#e68059" />
-                  <Text style={styles.dropdownText}>
-                    {selectedStation || "Selecciona una estación"}
-                  </Text>
+                <View
+                  style={[
+                    styles.iconBadge,
+                    {
+                      backgroundColor: selectedLinea
+                        ? lineaColors[selectedLinea]
+                        : "#F0F2F5",
+                    },
+                  ]}
+                >
                   <Ionicons
-                    name={
-                      showEstacionesDropdown ? "chevron-up" : "chevron-down"
-                    }
-                    size={22}
-                    color="#95a5a6"
+                    name="git-branch"
+                    size={18}
+                    color={selectedLinea ? "#fff" : "#A0A0A0"}
                   />
                 </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.filterLabel}>Línea</Text>
+                  <Text numberOfLines={1} style={styles.filterValue}>
+                    {selectedLinea || "Seleccionar"}
+                  </Text>
+                </View>
+                <Ionicons name="chevron-down" size={20} color="#ccc" />
               </TouchableOpacity>
 
-              {showEstacionesDropdown && (
-                <View style={styles.modalOverlay}>
-                  <TouchableOpacity
-                    style={styles.modalBackdrop}
-                    activeOpacity={1}
-                    onPress={() => setShowEstacionesDropdown(false)}
-                  />
-                  <View style={styles.modalCard}>
-                    <View style={styles.dropdownHeader}>
-                      <Text style={styles.dropdownHeaderText}>
-                        Selecciona una estación
-                      </Text>
-                      <TouchableOpacity
-                        onPress={() => setShowEstacionesDropdown(false)}
-                      >
-                        <Ionicons
-                          name="close-circle"
-                          size={28}
-                          color="#95a5a6"
-                        />
-                      </TouchableOpacity>
-                    </View>
-                    <ScrollView
-                      style={styles.dropdownScroll}
-                      showsVerticalScrollIndicator={false}
-                    >
-                      {getStationsByLine(selectedLinea).map((item) => (
-                        <TouchableOpacity
-                          key={item}
-                          style={styles.stationItem}
-                          onPress={() => {
-                            setSelectedStation(item);
-                            setShowEstacionesDropdown(false);
-                            fetchComments(item, selectedLinea);
-                          }}
-                          activeOpacity={0.7}
-                        >
-                          <View style={styles.stationContent}>
-                            <View style={styles.stationIcon}>
-                              <Ionicons
-                                name="location"
-                                size={16}
-                                color="#e68059"
-                              />
-                            </View>
-                            <Text style={styles.stationText}>{item}</Text>
-                          </View>
-                        </TouchableOpacity>
-                      ))}
-                    </ScrollView>
-                  </View>
-                </View>
-              )}
-            </>
-          )}
-
-          {/* Alerta de estación cerrada */}
-          {stationClosed && (
-            <View style={styles.closedAlert}>
-              <View style={styles.closedAlertHeader}>
-                <Ionicons name="warning" size={28} color="#e74c3c" />
-                <Text style={styles.closedAlertTitle}>ESTACIÓN CERRADA</Text>
-              </View>
-              <Text style={styles.closedAlertText}>
-                Esta estación ha sido marcada como cerrada por alta actividad de
-                reportes
-              </Text>
-              <View style={styles.closedAlertStats}>
-                <View style={styles.closedStat}>
-                  <Ionicons name="time-outline" size={16} color="#e74c3c" />
-                  <Text style={styles.closedStatText}>
-                    {formatTimeSinceClosed(Date.now() - 15 * 60 * 1000)}
-                  </Text>
-                </View>
-                <View style={styles.closedStat}>
-                  <Ionicons
-                    name="alert-circle-outline"
-                    size={16}
-                    color="#e74c3c"
-                  />
-                  <Text style={styles.closedStatText}>
-                    {stationClosed.cantidadReportes}+ reportes
-                  </Text>
-                </View>
-              </View>
-            </View>
-          )}
-
-          {/* Lista de comentarios */}
-          {loading ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color="#e68059" />
-              <Text style={styles.loadingText}>Cargando reportes...</Text>
-            </View>
-          ) : selectedStation && comments.length > 0 ? (
-            <FlatList
-              data={comments}
-              keyExtractor={(_, index) => index.toString()}
-              contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 12 }}
-              renderItem={({ item, index }) => (
+              <TouchableOpacity
+                style={[
+                  styles.filterButton,
+                  selectedStation ? styles.filterButtonActive : null,
+                  !selectedLinea && styles.filterButtonDisabled,
+                ]}
+                onPress={() => {
+                  if (selectedLinea) setShowEstacionesDropdown(true);
+                }}
+                disabled={!selectedLinea}
+              >
                 <View
-                  style={[styles.comment, { marginTop: index === 0 ? 0 : 12 }]}
+                  style={[
+                    styles.iconBadge,
+                    {
+                      backgroundColor: selectedStation ? "#4CAF50" : "#F0F2F5",
+                    },
+                  ]}
                 >
-                  <View style={styles.commentHeader}>
-                    <View style={styles.userAvatar}>
-                      <Ionicons name="person" size={18} color="#fff" />
-                    </View>
-                    <View style={styles.commentMeta}>
-                      <Text style={styles.commentUser}>{item.usuario}</Text>
-                      <Text style={styles.commentTime}>{item.hora}</Text>
-                    </View>
-                  </View>
-                  <Text style={styles.commentText}>{item.texto}</Text>
+                  <Ionicons
+                    name="location"
+                    size={18}
+                    color={selectedStation ? "#fff" : "#A0A0A0"}
+                  />
                 </View>
-              )}
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.filterLabel}>Estación</Text>
+                  <Text numberOfLines={1} style={styles.filterValue}>
+                    {selectedStation || "Seleccionar"}
+                  </Text>
+                </View>
+                <Ionicons name="chevron-down" size={20} color="#ccc" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Alertas */}
+            {stationClosed && (
+              <View style={styles.alertCard}>
+                <View style={styles.alertHeader}>
+                  <Ionicons name="warning" size={24} color="#D32F2F" />
+                  <Text style={styles.alertTitle}>ESTACIÓN CERRADA</Text>
+                </View>
+                <Text style={styles.alertDesc}>
+                  Alta actividad de reportes detectada.
+                </Text>
+                <View style={styles.alertStats}>
+                  <Text style={styles.alertStatText}>
+                    🕒 Hace {formatTimeSinceClosed(Date.now() - 15 * 60 * 1000)}
+                  </Text>
+                  <Text style={styles.alertStatText}>
+                    ⚠️ {stationClosed.cantidadReportes}+ reportes
+                  </Text>
+                </View>
+              </View>
+            )}
+
+            {/* Lista */}
+            {loading ? (
+              <View style={styles.centerView}>
+                <ActivityIndicator size="large" color="#e68059" />
+                <Text style={styles.loadingText}>
+                  Sincronizando reportes...
+                </Text>
+              </View>
+            ) : selectedStation && comments.length > 0 ? (
+              <FlatList
+                data={comments}
+                keyExtractor={(_, index) => index.toString()}
+                contentContainerStyle={styles.listContent}
+                showsVerticalScrollIndicator={false}
+                renderItem={({ item }) => (
+                  <View style={styles.chatBubble}>
+                    <View style={styles.chatHeader}>
+                      <View style={styles.avatar}>
+                        <Text style={styles.avatarText}>
+                          {item.usuario.charAt(0).toUpperCase()}
+                        </Text>
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.username}>{item.usuario}</Text>
+                        <Text style={styles.timestamp}>{item.hora}</Text>
+                      </View>
+                    </View>
+                    <Text style={styles.commentBody}>{item.texto}</Text>
+                  </View>
+                )}
+              />
+            ) : (
+              <View style={styles.emptyState}>
+                <View style={styles.emptyIconBg}>
+                  <Ionicons
+                    name={
+                      selectedStation
+                        ? "chatbox-ellipses-outline"
+                        : "map-outline"
+                    }
+                    size={40}
+                    color="#e68059"
+                  />
+                </View>
+                <Text style={styles.emptyTitle}>
+                  {selectedStation
+                    ? "Sin reportes recientes"
+                    : "Selecciona una ruta"}
+                </Text>
+                <Text style={styles.emptyDesc}>
+                  {selectedStation
+                    ? "¡Sé el primero en reportar el estado de esta estación!"
+                    : "Elige una línea y estación para ver lo que está pasando."}
+                </Text>
+              </View>
+            )}
+          </View>
+        )}
+
+        {activeTab === "Twitter" && (
+          <View style={styles.webviewContainer}>
+            <WebView
+              source={{ uri: "https://twitter.com/MetroCDMX" }}
+              style={{ flex: 1 }}
             />
-          ) : selectedStation ? (
-            <View style={styles.emptyContainer}>
-              <View style={styles.emptyIcon}>
-                <Ionicons
-                  name="chatbubbles-outline"
-                  size={64}
-                  color="#bdc3c7"
-                />
-              </View>
-              <Text style={styles.noComments}>Sin reportes aún</Text>
-              <Text style={styles.noCommentsSubtitle}>
-                Sé el primero en compartir información
-              </Text>
+          </View>
+        )}
+      </View>
+
+      {/* Modales (Lineas) */}
+      {showLineasDropdown && (
+        <View style={styles.modalOverlay}>
+          <TouchableOpacity
+            style={styles.modalBackdrop}
+            onPress={() => setShowLineasDropdown(false)}
+          />
+          <View style={styles.bottomSheet}>
+            <View style={styles.sheetHeader}>
+              <Text style={styles.sheetTitle}>Selecciona la Línea</Text>
+              <TouchableOpacity
+                onPress={() => setShowLineasDropdown(false)}
+                style={styles.closeBtn}
+              >
+                <Ionicons name="close" size={24} color="#333" />
+              </TouchableOpacity>
             </View>
-          ) : (
-            <View style={styles.emptyContainer}>
-              <View style={styles.emptyIcon}>
-                <Ionicons name="map-outline" size={64} color="#bdc3c7" />
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <View style={styles.gridContainer}>
+                {lineas.map((item) => (
+                  <TouchableOpacity
+                    key={item}
+                    style={[
+                      styles.gridItem,
+                      { borderColor: lineaColors[item] },
+                    ]}
+                    onPress={() => {
+                      setSelectedLinea(item);
+                      setSelectedStation(null); // Reset station
+                      setShowLineasDropdown(false);
+                    }}
+                  >
+                    <View
+                      style={[
+                        styles.colorDot,
+                        { backgroundColor: lineaColors[item] },
+                      ]}
+                    />
+                    <Text style={styles.gridText}>
+                      {item.replace("Línea ", "L")}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
               </View>
-              <Text style={styles.noComments}>Selecciona una estación</Text>
-              <Text style={styles.noCommentsSubtitle}>
-                para ver los reportes de la comunidad
-              </Text>
-            </View>
-          )}
+            </ScrollView>
+          </View>
         </View>
       )}
 
-      {/* Twitter */}
-      {activeTab === "Twitter" && (
-        <WebView
-          source={{ uri: "https://x.com/MetroCDMX" }}
-          style={{ flex: 1 }}
-          javaScriptEnabled
-          domStorageEnabled
-          startInLoadingState
-        />
+      {/* Modales (Estaciones) */}
+      {showEstacionesDropdown && (
+        <View style={styles.modalOverlay}>
+          <TouchableOpacity
+            style={styles.modalBackdrop}
+            onPress={() => setShowEstacionesDropdown(false)}
+          />
+          <View style={[styles.bottomSheet, { height: "70%" }]}>
+            <View style={styles.sheetHeader}>
+              <Text style={styles.sheetTitle}>Selecciona la Estación</Text>
+              <TouchableOpacity
+                onPress={() => setShowEstacionesDropdown(false)}
+                style={styles.closeBtn}
+              >
+                <Ionicons name="close" size={24} color="#333" />
+              </TouchableOpacity>
+            </View>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {selectedLinea &&
+                getStationsByLine(selectedLinea).map((item) => (
+                  <TouchableOpacity
+                    key={item}
+                    style={styles.listOption}
+                    onPress={() => {
+                      setSelectedStation(item);
+                      setShowEstacionesDropdown(false);
+                      fetchComments(item, selectedLinea);
+                    }}
+                  >
+                    <Ionicons name="location-outline" size={22} color="#555" />
+                    <Text style={styles.listOptionText}>{item}</Text>
+                    <Ionicons name="chevron-forward" size={18} color="#ccc" />
+                  </TouchableOpacity>
+                ))}
+            </ScrollView>
+          </View>
+        </View>
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f0f4f8" },
-  header: {
-    backgroundColor: "#e68059",
-    paddingTop: 60,
-    paddingBottom: 24,
+  container: { flex: 1, backgroundColor: "#F8F9FA" },
+  headerContainer: {
+    backgroundColor: "#fff",
     paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 20,
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
-    shadowColor: "#e68059",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: "900",
-    color: "#fff",
-    marginBottom: 4,
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    color: "rgba(255,255,255,0.9)",
-    fontWeight: "600",
-  },
-  tabContainer: {
-    flexDirection: "row",
-    margin: 20,
-    backgroundColor: "#ffffff",
-    borderRadius: 20,
-    padding: 4,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
     elevation: 5,
+    zIndex: 10,
   },
-  tab: {
+  headerContent: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  headerTitle: { fontSize: 26, fontWeight: "900", color: "#1A1A1A" },
+  headerSubtitle: { fontSize: 14, color: "#888", fontWeight: "500" },
+  liveIndicator: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFE5E5",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#FFCDD2",
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#D32F2F",
+    marginRight: 6,
+  },
+  liveText: { color: "#D32F2F", fontWeight: "800", fontSize: 10 },
+
+  segmentedControl: {
+    flexDirection: "row",
+    backgroundColor: "#F0F2F5",
+    borderRadius: 16,
+    padding: 4,
+  },
+  segmentBtn: {
     flex: 1,
     flexDirection: "row",
-    paddingVertical: 14,
     alignItems: "center",
     justifyContent: "center",
+    paddingVertical: 10,
+    borderRadius: 12,
+    gap: 6,
+  },
+  segmentBtnActive: {
+    backgroundColor: "#e68059",
+    shadowColor: "#e68059",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  segmentText: { fontWeight: "600", color: "#888", fontSize: 14 },
+  segmentTextActive: { color: "#fff" },
+
+  contentContainer: { flex: 1 },
+  filtersContainer: {
+    flexDirection: "row",
+    gap: 15,
+    paddingHorizontal: 20,
+    marginTop: 20,
+    marginBottom: 10,
+  },
+  filterButton: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    padding: 12,
     borderRadius: 16,
-    gap: 8,
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
+    shadowColor: "#000",
+    shadowOpacity: 0.03,
+    shadowRadius: 5,
+    elevation: 2,
+    gap: 10,
   },
-  activeTab: {
-    backgroundColor: "#fff5f2",
+  filterButtonActive: {
+    backgroundColor: "#fff",
+    borderWidth: 1,
   },
-  tabText: {
+  filterButtonDisabled: {
+    opacity: 0.6,
+    backgroundColor: "#F5F5F5",
+  },
+  iconBadge: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  filterLabel: {
+    fontSize: 10,
+    color: "#999",
     fontWeight: "700",
-    fontSize: 15,
-    color: "#95a5a6",
+    textTransform: "uppercase",
   },
-  activeTabText: {
-    color: "#e68059",
+  filterValue: { fontSize: 14, color: "#333", fontWeight: "700" },
+
+  /* List & Cards */
+  listContent: { paddingHorizontal: 20, paddingBottom: 100 },
+  chatBubble: {
+    backgroundColor: "#fff",
+    borderRadius: 20,
+    padding: 16,
+    marginBottom: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
-  listContainer: {
-    maxHeight: 280,
+  chatHeader: {
+    flexDirection: "row",
+    marginBottom: 10,
+    alignItems: "center",
+    gap: 10,
   },
+  avatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#e68059",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  avatarText: { color: "#fff", fontWeight: "bold", fontSize: 16 },
+  username: { fontWeight: "bold", fontSize: 15, color: "#333" },
+  timestamp: { fontSize: 11, color: "#999" },
+  commentBody: { fontSize: 15, color: "#444", lineHeight: 22 },
+
+  /* States */
+  centerView: { flex: 1, justifyContent: "center", alignItems: "center" },
+  loadingText: { marginTop: 10, color: "#666", fontWeight: "600" },
+  emptyState: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 40,
+  },
+  emptyIconBg: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: "#FFEFEA",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#333",
+    marginBottom: 8,
+    textAlign: "center",
+  },
+  emptyDesc: {
+    fontSize: 14,
+    color: "#777",
+    textAlign: "center",
+    lineHeight: 20,
+  },
+
+  /* Alerts */
+  alertCard: {
+    marginHorizontal: 20,
+    marginBottom: 20,
+    backgroundColor: "#FFEBEE",
+    borderRadius: 16,
+    padding: 16,
+    borderLeftWidth: 4,
+    borderLeftColor: "#D32F2F",
+  },
+  alertHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 5,
+  },
+  alertTitle: { color: "#D32F2F", fontWeight: "900", fontSize: 14 },
+  alertDesc: { color: "#B71C1C", fontSize: 14, marginBottom: 10 },
+  alertStats: { flexDirection: "row", gap: 15 },
+  alertStatText: { fontSize: 12, color: "#D32F2F", fontWeight: "600" },
+
+  /* WebView */
+  webviewContainer: {
+    flex: 1,
+    margin: 20,
+    borderRadius: 20,
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: "#eee",
+  },
+
+  /* Bottom Sheet / Modal */
   modalOverlay: {
     position: "absolute",
     top: 0,
@@ -424,263 +609,62 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     zIndex: 1000,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: "flex-end",
   },
   modalBackdrop: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "rgba(0, 0, 0, 0.6)",
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.4)",
   },
-  modalCard: {
-    backgroundColor: "#ffffff",
-    borderRadius: 20,
-    width: "88%",
-    maxHeight: "75%",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
-    shadowRadius: 25,
-    elevation: 20,
-    overflow: "hidden",
-  },
-  dropdownHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 24,
-    paddingVertical: 18,
-    backgroundColor: "#ffffff",
-    borderBottomWidth: 2,
-    borderBottomColor: "#f0f0f0",
-  },
-  dropdownHeaderText: {
-    fontSize: 20,
-    fontWeight: "900",
-    color: "#2c3e50",
-  },
-  dropdownScroll: {
-    flex: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: "#ffffff",
-  },
-  dropdownButton: {
-    backgroundColor: "#ffffff",
-    marginHorizontal: 20,
-    marginBottom: 12,
-    paddingVertical: 18,
-    paddingHorizontal: 20,
-    borderRadius: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 5,
-  },
-  dropdownContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  dropdownText: {
-    flex: 1,
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#2c3e50",
-    marginLeft: 12,
-  },
-  lineItem: {
-    padding: 18,
-    marginVertical: 8,
-    marginHorizontal: 4,
-    borderRadius: 14,
-    backgroundColor: "#f8f9fa",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 1,
-    borderLeftWidth: 4,
-    borderLeftColor: "#e68059",
-  },
-  lineContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  lineText: {
-    flex: 1,
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#2c3e50",
-  },
-  stationItem: {
-    padding: 18,
-    marginVertical: 6,
-    marginHorizontal: 4,
-    borderRadius: 14,
-    backgroundColor: "#f8f9fa",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 1,
-    borderLeftWidth: 4,
-    borderLeftColor: "#e68059",
-  },
-  stationContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  stationIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "#fff5f2",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  stationText: {
-    flex: 1,
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#2c3e50",
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingVertical: 60,
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#e68059",
-  },
-  comment: {
-    backgroundColor: "#ffffff",
-    padding: 18,
-    borderRadius: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
-  },
-  commentHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 14,
-  },
-  userAvatar: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: "#e68059",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-  },
-  commentMeta: {
-    flex: 1,
-  },
-  commentUser: {
-    fontSize: 15,
-    fontWeight: "800",
-    color: "#2c3e50",
-    marginBottom: 2,
-  },
-  commentTime: {
-    fontSize: 12,
-    color: "#95a5a6",
-    fontWeight: "600",
-  },
-  commentText: {
-    fontSize: 15,
-    lineHeight: 22,
-    color: "#34495e",
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingVertical: 60,
-    paddingHorizontal: 40,
-  },
-  emptyIcon: {
-    marginBottom: 20,
-    opacity: 0.7,
-  },
-  noComments: {
-    textAlign: "center",
-    fontSize: 18,
-    color: "#7f8c8d",
-    fontWeight: "700",
-    marginBottom: 8,
-  },
-  noCommentsSubtitle: {
-    textAlign: "center",
-    fontSize: 14,
-    color: "#95a5a6",
-    fontWeight: "600",
-  },
-  closedAlert: {
-    backgroundColor: "#ffe5e5",
-    marginHorizontal: 20,
-    marginVertical: 16,
+  bottomSheet: {
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 25,
+    borderTopRightRadius: 25,
     padding: 20,
-    borderRadius: 20,
-    borderWidth: 2,
-    borderColor: "#e74c3c",
-    shadowColor: "#e74c3c",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 12,
-    elevation: 6,
+    height: "50%",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -5 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 20,
   },
-  closedAlertHeader: {
+  sheetHeader: {
     flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 12,
-    gap: 12,
+    marginBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
+    paddingBottom: 15,
   },
-  closedAlertTitle: {
-    fontSize: 18,
-    fontWeight: "900",
-    color: "#e74c3c",
-    letterSpacing: 1,
-  },
-  closedAlertText: {
-    fontSize: 14,
-    color: "#c0392b",
-    lineHeight: 20,
-    marginBottom: 16,
-    fontWeight: "600",
-  },
-  closedAlertStats: {
+  sheetTitle: { fontSize: 18, fontWeight: "bold", color: "#333" },
+  closeBtn: { padding: 5, backgroundColor: "#f0f0f0", borderRadius: 20 },
+
+  /* Grid de Líneas */
+  gridContainer: {
     flexDirection: "row",
-    justifyContent: "space-around",
-    gap: 12,
+    flexWrap: "wrap",
+    gap: 10,
+    justifyContent: "center",
   },
-  closedStat: {
-    flex: 1,
-    flexDirection: "row",
+  gridItem: {
+    width: "30%",
+    padding: 15,
+    borderRadius: 12,
+    borderWidth: 2,
     alignItems: "center",
     backgroundColor: "#fff",
-    padding: 12,
-    borderRadius: 12,
-    gap: 8,
-    justifyContent: "center",
   },
-  closedStatText: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: "#e74c3c",
+  colorDot: { width: 12, height: 12, borderRadius: 6, marginBottom: 8 },
+  gridText: { fontWeight: "700", color: "#333" },
+
+  /* Lista de Estaciones */
+  listOption: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f9f9f9",
+    gap: 12,
   },
+  listOptionText: { fontSize: 16, color: "#333", flex: 1 },
 });
