@@ -48,6 +48,19 @@ export default function AddComment() {
   const [showEstacionesDropdown, setShowEstacionesDropdown] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  // Sugerencias rápidas de reportes comunes
+  const quickReports = [
+    { icon: "people", text: "Vagones llenos", emoji: "🚇" },
+    { icon: "time", text: "Retraso considerable", emoji: "⏱️" },
+    { icon: "warning", text: "Andén saturado", emoji: "⚠️" },
+    { icon: "close-circle", text: "Servicio suspendido", emoji: "🚫" },
+    { icon: "speedometer", text: "Avance lento", emoji: "🐌" },
+  ];
+
+  const handleQuickReport = (text: string) => {
+    setComment(text);
+  };
+
   const getStationsByLine = (lineaId: string) => {
     const linea = lines.find((l) => l.linea === lineaId);
     return linea ? linea.estaciones.map((est) => est.nombre) : [];
@@ -118,10 +131,9 @@ export default function AddComment() {
       return;
     }
 
-    const estacionId = `${selectedStation.replace(
-      "/",
-      "|"
-    )} - ${selectedLinea}`;
+    // FIX: Formatear la línea correctamente para que coincida con el formato usado en index.tsx
+    const lineaFixed = selectedLinea.replace("Línea", "Linea");
+    const estacionId = `${selectedStation.replace("/", "|")} - ${lineaFixed}`;
 
     setLoading(true);
     const stationRef = doc(db, "estaciones", estacionId);
@@ -129,6 +141,7 @@ export default function AddComment() {
     const comentario = {
       usuario: auth.currentUser?.displayName || "Anónimo",
       userId: auth.currentUser?.uid || "anonimo",
+      photoURL: auth.currentUser?.photoURL || null,
       texto: comment,
       timestamp: ahora,
       hora: new Date().toLocaleString(),
@@ -206,13 +219,24 @@ export default function AddComment() {
       <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
         
         {/* Intro */}
-        <Text style={styles.introText}>
-          Tu reporte ayuda a miles de usuarios en tiempo real.
-        </Text>
+        <View style={styles.introCard}>
+          <View style={styles.introIconBg}>
+            <Ionicons name="megaphone" size={28} color="#e68059" />
+          </View>
+          <Text style={styles.introTitle}>Reporta en tiempo real</Text>
+          <Text style={styles.introText}>
+            Tu reporte ayuda a miles de usuarios a tomar mejores decisiones.
+          </Text>
+        </View>
 
         {/* Card: Selección de Ubicación */}
         <View style={styles.sectionCard}>
-            <Text style={styles.sectionTitle}>1. ¿Dónde estás?</Text>
+            <View style={styles.sectionHeader}>
+              <View style={styles.stepBadge}>
+                <Text style={styles.stepNumber}>1</Text>
+              </View>
+              <Text style={styles.sectionTitle}>¿Dónde estás?</Text>
+            </View>
             
             <View style={styles.row}>
                 {/* Selector Línea */}
@@ -262,14 +286,46 @@ export default function AddComment() {
         </View>
 
         {/* Card: Input de Texto */}
-        <View style={[styles.sectionCard, {minHeight: 200}]}>
-            <Text style={styles.sectionTitle}>2. ¿Qué está pasando?</Text>
+        <View style={[styles.sectionCard, {minHeight: 240}]}>
+            <View style={styles.sectionHeader}>
+              <View style={styles.stepBadge}>
+                <Text style={styles.stepNumber}>2</Text>
+              </View>
+              <Text style={styles.sectionTitle}>¿Qué está pasando?</Text>
+            </View>
+
+            {/* Sugerencias Rápidas */}
+            <View style={styles.quickReportsContainer}>
+              {quickReports.map((report, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={[
+                    styles.quickReportBtn,
+                    comment === report.text && styles.quickReportBtnActive
+                  ]}
+                  onPress={() => handleQuickReport(report.text)}
+                >
+                  <Text style={styles.quickReportEmoji}>{report.emoji}</Text>
+                  <Text style={[
+                    styles.quickReportText,
+                    comment === report.text && styles.quickReportTextActive
+                  ]}>{report.text}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <View style={styles.divider}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>o escribe tu propio mensaje</Text>
+              <View style={styles.dividerLine} />
+            </View>
+
             <TextInput
                 style={styles.textArea}
-                placeholder="Ej: Vagones llenos, retraso de 10 min, andén saturado..."
+                placeholder="Describe lo que está sucediendo..."
                 placeholderTextColor="#A0A0A0"
                 multiline
-                numberOfLines={6}
+                numberOfLines={4}
                 maxLength={200}
                 value={comment}
                 onChangeText={setComment}
@@ -287,16 +343,25 @@ export default function AddComment() {
             style={[styles.submitBtn, (!isFormComplete || loading) && styles.submitBtnDisabled]}
             onPress={handleSubmit}
             disabled={!isFormComplete || loading}
+            activeOpacity={0.8}
         >
             {loading ? (
                 <ActivityIndicator color="#fff" />
             ) : (
                 <>
+                    <Ionicons name="paper-plane" size={22} color="#fff" />
                     <Text style={styles.submitText}>Publicar Reporte</Text>
-                    <Ionicons name="paper-plane" size={20} color="#fff" />
                 </>
             )}
         </TouchableOpacity>
+
+        {/* Info Footer */}
+        <View style={styles.infoFooter}>
+          <Ionicons name="shield-checkmark" size={16} color="#999" />
+          <Text style={styles.infoText}>
+            Los reportes se revisan automáticamente para mantener la comunidad segura.
+          </Text>
+        </View>
 
       </ScrollView>
 
@@ -366,13 +431,49 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between'
+    justifyContent: 'space-between',
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
   },
   headerTitle: { color: '#fff', fontSize: 18, fontWeight: '700' },
   backButton: { padding: 5, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.2)' },
   
-  scrollContent: { padding: 20 },
-  introText: { color: '#666', fontSize: 14, marginBottom: 20, textAlign: 'center' },
+  scrollContent: { padding: 20, paddingBottom: 40 },
+
+  /* Intro Card */
+  introCard: {
+    backgroundColor: '#FFF8F5',
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 20,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#FFE5D9',
+  },
+  introIconBg: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#FFE5D9',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  introTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#333',
+    marginBottom: 8,
+  },
+  introText: { 
+    color: '#666', 
+    fontSize: 14, 
+    textAlign: 'center',
+    lineHeight: 20,
+  },
   
   sectionCard: {
     backgroundColor: '#fff',
@@ -387,7 +488,30 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#f0f0f0'
   },
-  sectionTitle: { fontSize: 16, fontWeight: '700', color: '#333', marginBottom: 15 },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 15,
+    gap: 10,
+  },
+  stepBadge: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#e68059',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  stepNumber: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '900',
+  },
+  sectionTitle: { 
+    fontSize: 16, 
+    fontWeight: '700', 
+    color: '#333',
+  },
   
   row: { flexDirection: 'row', gap: 15 },
   selectorBox: {
@@ -407,14 +531,71 @@ const styles = StyleSheet.create({
   dot: { width: 8, height: 8, borderRadius: 4 },
   chevron: { position: 'absolute', top: 10, right: 10 },
 
+  /* Quick Reports */
+  quickReportsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 15,
+  },
+  quickReportBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F8F9FA',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    gap: 6,
+  },
+  quickReportBtnActive: {
+    backgroundColor: '#e68059',
+    borderColor: '#e68059',
+  },
+  quickReportEmoji: {
+    fontSize: 16,
+  },
+  quickReportText: {
+    fontSize: 13,
+    color: '#555',
+    fontWeight: '600',
+  },
+  quickReportTextActive: {
+    color: '#fff',
+  },
+
+  /* Divider */
+  divider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 15,
+    gap: 10,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#e0e0e0',
+  },
+  dividerText: {
+    fontSize: 12,
+    color: '#999',
+    fontWeight: '600',
+  },
+
   textArea: {
     fontSize: 16,
     color: '#333',
-    minHeight: 100,
+    minHeight: 80,
     lineHeight: 24,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 12,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
   },
-  counterRow: { alignItems: 'flex-end', marginTop: 10, borderTopWidth: 1, borderTopColor: '#f0f0f0', paddingTop: 10 },
-  counterText: { fontSize: 12, color: '#ccc' },
+  counterRow: { alignItems: 'flex-end', marginTop: 10 },
+  counterText: { fontSize: 12, color: '#ccc', fontWeight: '600' },
 
   submitBtn: {
     backgroundColor: '#e68059',
@@ -429,10 +610,27 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 10,
     elevation: 5,
-    marginBottom: 40
+    marginBottom: 15,
   },
   submitBtnDisabled: { backgroundColor: '#ccc', shadowOpacity: 0 },
   submitText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+
+  /* Info Footer */
+  infoFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingHorizontal: 20,
+    marginBottom: 20,
+  },
+  infoText: {
+    fontSize: 12,
+    color: '#999',
+    textAlign: 'center',
+    flex: 1,
+    lineHeight: 18,
+  },
 
   /* Modales Estilo Bottom Sheet */
   modalOverlay: { position: "absolute", top: 0, bottom: 0, left: 0, right: 0, zIndex: 100, justifyContent: 'flex-end' },

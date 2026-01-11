@@ -18,6 +18,8 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Image,
+  Animated,
 } from "react-native";
 
 // Colores por línea
@@ -37,6 +39,37 @@ const lineaColors: { [key: string]: string } = {
 };
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+
+// Función para calcular tiempo transcurrido
+const getTimeAgo = (timestamp: number): string => {
+  const now = Date.now();
+  const diff = now - timestamp;
+  
+  const minutes = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
+  
+  if (minutes < 1) return "Ahora mismo";
+  if (minutes < 60) return `Hace ${minutes} min`;
+  if (hours < 24) return `Hace ${hours}h`;
+  if (days === 1) return "Ayer";
+  return `Hace ${days} días`;
+};
+
+// Función para generar color de avatar basado en userId
+const getAvatarColor = (userId: string): string => {
+  const colors = [
+    '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8',
+    '#F7DC6F', '#BB8FCE', '#85C1E2', '#F8B739', '#52B788',
+    '#FF8E72', '#A8DADC', '#E63946', '#F1C40F', '#9B59B6'
+  ];
+  
+  let hash = 0;
+  for (let i = 0; i < userId.length; i++) {
+    hash = userId.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return colors[Math.abs(hash) % colors.length];
+};
 
 export default function IndexScreen() {
   // Manejo del botón físico de atrás (Android)
@@ -70,7 +103,14 @@ export default function IndexScreen() {
   const [isLoading, setLoading] = useState(false);
   
   // Datos
-  const [comments, setComments] = useState<{ usuario: string; texto: string; hora: string }[]>([]);
+  const [comments, setComments] = useState<{ 
+    usuario: string; 
+    texto: string; 
+    hora: string; 
+    timestamp: number;
+    userId: string;
+    photoURL?: string;
+  }[]>([]);
   const [stationClosed, setStationClosed] = useState<any>(null);
 
   const getStationsByLine = (lineaId: string) => {
@@ -127,68 +167,136 @@ export default function IndexScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+      <StatusBar barStyle="light-content" backgroundColor="#e63946" />
       
-      {/* Header Moderno sin Tabs */}
-      <View style={styles.headerContainer}>
-        <View style={styles.headerRow}>
-          <View>
-             <Text style={styles.headerTitle}>Estado del Metro</Text>
-             <Text style={styles.headerSubtitle}>Reportes de la comunidad</Text>
+      {/* Header Súper Llamativo */}
+      <View style={styles.headerGradient}>
+        {/* Elementos decorativos para simular gradiente */}
+        <View style={styles.decorativeCircle1} />
+        <View style={styles.decorativeCircle2} />
+        <View style={styles.decorativeCircle3} />
+        
+        <View style={styles.headerContent}>
+          {/* Icono Hero */}
+          <View style={styles.heroIconContainer}>
+            <View style={styles.heroIconBg}>
+              <Ionicons name="subway" size={40} color="#fff" />
+            </View>
           </View>
-          <View style={styles.liveBadge}>
-             <View style={styles.liveDot} />
-             <Text style={styles.liveText}>EN VIVO</Text>
+          
+          {/* Títulos */}
+          <Text style={styles.headerMainTitle}>REPORTES</Text>
+          <Text style={styles.headerSubtitleNew}>DE LA COMUNIDAD</Text>
+          
+          {/* Live Indicator Animado */}
+          <View style={styles.liveBadgeNew}>
+            <View style={styles.pulsingDot} />
+            <Text style={styles.liveTextNew}>EN TIEMPO REAL</Text>
+          </View>
+          
+          {/* Stats Row */}
+          <View style={styles.statsRow}>
+            <View style={styles.statBox}>
+              <Ionicons name="people" size={18} color="#fff" />
+              <Text style={styles.statText}>Usuarios</Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.statBox}>
+              <Ionicons name="flash" size={18} color="#fff" />
+              <Text style={styles.statText}>Actualizaciones</Text>
+            </View>
           </View>
         </View>
       </View>
 
       <View style={styles.content}>
-        {/* Filtros de Selección (Tarjetas) */}
-        <View style={styles.filtersRow}>
+        {/* Filtros de Selección Mejorados */}
+        <View style={styles.filtersSection}>
+          <Text style={styles.filtersSectionTitle}>📍 Selecciona tu ubicación</Text>
+          <View style={styles.filtersRow}>
             {/* Selector Línea */}
             <TouchableOpacity 
-            style={[styles.filterCard, selectedLinea && { borderColor: lineaColors[selectedLinea] }]}
-            onPress={() => setShowLineasSheet(true)}
+              style={[
+                styles.filterCard, 
+                selectedLinea && { 
+                  borderColor: lineaColors[selectedLinea],
+                  borderWidth: 2,
+                  backgroundColor: lineaColors[selectedLinea] + '10',
+                  elevation: 0,
+                  shadowOpacity: 0,
+                }
+              ]}
+              onPress={() => setShowLineasSheet(true)}
+              activeOpacity={0.7}
             >
-            <View style={[styles.filterIcon, { backgroundColor: selectedLinea ? lineaColors[selectedLinea] : '#f2f2f2' }]}>
-                <Ionicons name="train" size={20} color={selectedLinea ? "#fff" : "#999"} />
-            </View>
-            <View style={{flex: 1}}>
-                <Text style={styles.filterLabel}>Línea</Text>
-                <Text style={styles.filterValue} numberOfLines={1}>{selectedLinea || "Seleccionar"}</Text>
-            </View>
-            <Ionicons name="chevron-down" size={16} color="#ccc" />
+              <View style={[styles.filterIcon, { backgroundColor: selectedLinea ? lineaColors[selectedLinea] : '#E5E7EB' }]}>
+                <Ionicons name="train" size={22} color={selectedLinea ? "#fff" : "#6B7280"} />
+              </View>
+              <View style={{flex: 1}}>
+                <Text style={styles.filterLabel}>LÍNEA</Text>
+                <Text style={styles.filterValue} numberOfLines={1}>
+                  {selectedLinea ? selectedLinea.replace('Línea ', 'L') : "Elige línea"}
+                </Text>
+              </View>
+              <Ionicons name="chevron-down" size={20} color={selectedLinea ? lineaColors[selectedLinea] : "#9CA3AF"} />
             </TouchableOpacity>
 
             {/* Selector Estación */}
             <TouchableOpacity 
-            style={[styles.filterCard, !selectedLinea && styles.filterCardDisabled]}
-            onPress={() => selectedLinea && setShowEstacionesSheet(true)}
-            disabled={!selectedLinea}
+              style={[
+                styles.filterCard, 
+                !selectedLinea && styles.filterCardDisabled,
+                selectedStation && {
+                  borderColor: '#10B981',
+                  borderWidth: 2,
+                  backgroundColor: '#ECFDF5',
+                }
+              ]}
+              onPress={() => selectedLinea && setShowEstacionesSheet(true)}
+              disabled={!selectedLinea}
+              activeOpacity={0.7}
             >
-            <View style={[styles.filterIcon, { backgroundColor: selectedStation ? '#4CAF50' : '#f2f2f2' }]}>
-                <Ionicons name="location" size={20} color={selectedStation ? "#fff" : "#999"} />
-            </View>
-            <View style={{flex: 1}}>
-                <Text style={styles.filterLabel}>Estación</Text>
-                <Text style={styles.filterValue} numberOfLines={1}>{selectedStation || "Seleccionar"}</Text>
-            </View>
-            <Ionicons name="chevron-down" size={16} color="#ccc" />
+              <View style={[styles.filterIcon, { backgroundColor: selectedStation ? '#10B981' : '#E5E7EB' }]}>
+                <Ionicons name="location" size={22} color={selectedStation ? "#fff" : "#6B7280"} />
+              </View>
+              <View style={{flex: 1}}>
+                <Text style={styles.filterLabel}>ESTACIÓN</Text>
+                <Text style={styles.filterValue} numberOfLines={1}>
+                  {selectedStation || "Elige estación"}
+                </Text>
+              </View>
+              <Ionicons name="chevron-down" size={20} color={selectedStation ? '#10B981' : "#9CA3AF"} />
             </TouchableOpacity>
+          </View>
         </View>
 
-        {/* Alerta de Cierre */}
+        {/* Alerta de Cierre Mejorada */}
         {stationClosed && (
-            <View style={styles.alertBox}>
-                <View style={styles.alertHeader}>
-                <Ionicons name="warning" size={22} color="#D32F2F" />
-                <Text style={styles.alertTitle}>ESTACIÓN CERRADA</Text>
+            <View style={styles.alertBoxNew}>
+                <View style={styles.alertIconContainer}>
+                  <View style={styles.alertIconBg}>
+                    <Ionicons name="warning" size={32} color="#fff" />
+                  </View>
                 </View>
-                <Text style={styles.alertDesc}>Alta actividad de reportes detectada.</Text>
-                <View style={styles.alertStats}>
-                <Text style={styles.alertStatText}>🕒 Hace {formatTimeSinceClosed(Date.now() - 15 * 60 * 1000)}</Text>
-                <Text style={styles.alertStatText}>⚠️ {stationClosed.cantidadReportes}+ reportes</Text>
+                <View style={styles.alertContent}>
+                  <Text style={styles.alertTitleNew}>🚨 ESTACIÓN CERRADA</Text>
+                  <Text style={styles.alertDescNew}>
+                    Alta actividad de reportes detectada en tiempo real.
+                  </Text>
+                  <View style={styles.alertStatsNew}>
+                    <View style={styles.alertStatItem}>
+                      <Ionicons name="time" size={16} color="#DC2626" />
+                      <Text style={styles.alertStatTextNew}>
+                        {formatTimeSinceClosed(Date.now() - 15 * 60 * 1000)}
+                      </Text>
+                    </View>
+                    <View style={styles.alertStatItem}>
+                      <Ionicons name="alert-circle" size={16} color="#DC2626" />
+                      <Text style={styles.alertStatTextNew}>
+                        {stationClosed.cantidadReportes}+ reportes
+                      </Text>
+                    </View>
+                  </View>
                 </View>
             </View>
         )}
@@ -202,30 +310,66 @@ export default function IndexScreen() {
         ) : selectedStation && comments.length > 0 ? (
             <View style={{flex: 1}}>
                 <View style={styles.listHeader}>
-                    <Text style={styles.listTitle}>Últimos reportes</Text>
+                    <View style={styles.listTitleContainer}>
+                      <Ionicons name="chatbubbles" size={20} color="#e68059" />
+                      <Text style={styles.listTitle}>Reportes en vivo</Text>
+                    </View>
                     <View style={styles.badgeCount}>
-                    <Text style={styles.badgeText}>{comments.length}</Text>
+                      <Text style={styles.badgeText}>{comments.length}</Text>
                     </View>
                 </View>
                 <FlatList
                 data={comments}
-                keyExtractor={(_, index) => index.toString()}
+                keyExtractor={(item, index) => `${item.userId}-${index}`}
                 contentContainerStyle={styles.listContent}
                 showsVerticalScrollIndicator={false}
-                renderItem={({ item }) => (
-                    <View style={styles.commentBubble}>
-                        <View style={styles.bubbleHeader}>
-                        <View style={styles.avatar}>
-                            <Text style={styles.avatarText}>{item.usuario ? item.usuario.charAt(0).toUpperCase() : "A"}</Text>
+                renderItem={({ item, index }) => {
+                  const avatarColor = getAvatarColor(item.userId || 'anon');
+                  const timeAgo = item.timestamp ? getTimeAgo(item.timestamp) : item.hora;
+                  
+                  return (
+                    <View style={[styles.reportCard, { borderLeftColor: avatarColor }]}>
+                      {/* Header con foto de perfil */}
+                      <View style={styles.reportHeader}>
+                        <View style={[styles.profilePicture, { backgroundColor: avatarColor }]}>
+                          {item.photoURL ? (
+                            <Image 
+                              source={{ uri: item.photoURL }} 
+                              style={styles.profileImage}
+                            />
+                          ) : (
+                            <Text style={styles.profileInitial}>
+                              {item.usuario?.charAt(0)?.toUpperCase() || "?"}
+                            </Text>
+                          )}
                         </View>
-                        <View style={{flex: 1}}>
-                            <Text style={styles.userName}>{item.usuario}</Text>
-                            <Text style={styles.timeText}>{item.hora}</Text>
+                        <View style={styles.userInfo}>
+                          <Text style={styles.userName} numberOfLines={1}>{item.usuario || "Usuario"}</Text>
+                          <View style={styles.timeContainer}>
+                            <Ionicons name="time-outline" size={12} color="#9CA3AF" />
+                            <Text style={styles.timeText}>{timeAgo}</Text>
+                          </View>
                         </View>
+                        {index === 0 && (
+                          <View style={styles.newBadge}>
+                            <Text style={styles.newBadgeText}>NUEVO</Text>
+                          </View>
+                        )}
+                      </View>
+                      
+                      {/* Contenido del reporte */}
+                      <Text style={styles.reportText}>{item.texto}</Text>
+                      
+                      {/* Footer con interacciones */}
+                      <View style={styles.reportFooter}>
+                        <View style={styles.reportTag}>
+                          <Ionicons name="location" size={12} color="#6B7280" />
+                          <Text style={styles.reportTagText}>{selectedStation}</Text>
                         </View>
-                        <Text style={styles.commentText}>{item.texto}</Text>
+                      </View>
                     </View>
-                )}
+                  );
+                }}
                 />
             </View>
         ) : (
@@ -305,77 +449,384 @@ export default function IndexScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F9FAFB" },
+  container: { flex: 1, backgroundColor: "#F3F4F6" },
   
-  /* Header Styles */
-  headerContainer: {
-    backgroundColor: "#fff",
-    paddingHorizontal: 20,
-    paddingTop: 10,
-    paddingBottom: 20,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
+  /* Header Styles con efecto visual */
+  headerGradient: {
+    backgroundColor: "#e63946",
+    paddingTop: 20,
+    paddingBottom: 30,
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 10,
+    overflow: "hidden",
+    position: "relative",
+  },
+  decorativeCircle1: {
+    position: "absolute",
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: "rgba(247, 127, 0, 0.3)",
+    top: -80,
+    right: -50,
+  },
+  decorativeCircle2: {
+    position: "absolute",
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    backgroundColor: "rgba(252, 191, 73, 0.25)",
+    bottom: -30,
+    left: -40,
+  },
+  decorativeCircle3: {
+    position: "absolute",
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    top: 50,
+    left: 30,
+  },
+  headerContent: {
+    paddingHorizontal: 24,
+    alignItems: "center",
+    zIndex: 1,
+  },
+  heroIconContainer: {
+    marginBottom: 16,
+  },
+  heroIconBg: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: "rgba(255, 255, 255, 0.25)",
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 3,
+    borderColor: "rgba(255, 255, 255, 0.5)",
+  },
+  headerMainTitle: {
+    fontSize: 32,
+    fontWeight: "900",
+    color: "#fff",
+    textAlign: "center",
+    marginBottom: 6,
+    textShadowColor: "rgba(0, 0, 0, 0.3)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
+  },
+  headerSubtitleNew: {
+    fontSize: 15,
+    color: "rgba(255, 255, 255, 0.95)",
+    fontWeight: "600",
+    marginBottom: 16,
+    textAlign: "center",
+  },
+  liveBadgeNew: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.95)",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    gap: 8,
+    marginBottom: 20,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 4,
-    zIndex: 10,
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
   },
-  headerRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  headerTitle: { fontSize: 24, fontWeight: "900", color: "#222" },
-  headerSubtitle: { fontSize: 13, color: "#888", fontWeight: "600" },
-  liveBadge: { 
-     flexDirection: "row", alignItems: "center", backgroundColor: "#FFEBEE", 
-     paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, gap: 6 
+  pulsingDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: "#ef4444",
   },
-  liveDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: "#D32F2F" },
-  liveText: { fontSize: 10, fontWeight: "800", color: "#D32F2F" },
+  liveTextNew: {
+    fontSize: 13,
+    fontWeight: "900",
+    color: "#1F2937",
+    letterSpacing: 0.5,
+  },
+  statsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 16,
+  },
+  statBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  statDivider: {
+    width: 1,
+    height: 20,
+    backgroundColor: "rgba(255, 255, 255, 0.4)",
+  },
+  statText: {
+    fontSize: 12,
+    color: "rgba(255, 255, 255, 0.95)",
+    fontWeight: "600",
+  },
 
-  content: { flex: 1 },
+  content: { flex: 1, marginTop: -10 },
 
-  /* Filtros */
-  filtersRow: { flexDirection: "row", paddingHorizontal: 20, paddingTop: 20, gap: 12 },
+  /* Sección de Filtros */
+  filtersSection: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 10,
+  },
+  filtersSectionTitle: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: "#1F2937",
+    marginBottom: 12,
+  },
+  filtersRow: { flexDirection: "row", gap: 12 },
   filterCard: {
-     flex: 1, flexDirection: "row", alignItems: "center", backgroundColor: "#fff", 
-     padding: 12, borderRadius: 16, gap: 10,
-     borderWidth: 1, borderColor: "#E5E7EB",
-     shadowColor: "#000", shadowOpacity: 0.02, shadowRadius: 4, elevation: 1
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    padding: 14,
+    borderRadius: 18,
+    gap: 10,
+    borderWidth: 2,
+    borderColor: "#E5E7EB",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
-  filterCardDisabled: { opacity: 0.6, backgroundColor: "#F9FAFB" },
-  filterIcon: { width: 32, height: 32, borderRadius: 10, justifyContent: "center", alignItems: "center" },
-  filterLabel: { fontSize: 10, color: "#9CA3AF", fontWeight: "700", textTransform: "uppercase" },
-  filterValue: { fontSize: 14, color: "#374151", fontWeight: "700" },
+  filterCardDisabled: { opacity: 0.5, backgroundColor: "#F9FAFB" },
+  filterIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  filterLabel: {
+    fontSize: 9,
+    color: "#6B7280",
+    fontWeight: "900",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+    marginBottom: 2,
+  },
+  filterValue: {
+    fontSize: 15,
+    color: "#111827",
+    fontWeight: "800",
+  },
 
-  /* Alerta */
-  alertBox: {
-     marginHorizontal: 20, marginTop: 15, backgroundColor: "#FEF2F2", 
-     padding: 16, borderRadius: 16, borderLeftWidth: 4, borderLeftColor: "#EF4444"
+  /* Alerta Mejorada */
+  alertBoxNew: {
+    marginHorizontal: 20,
+    marginTop: 20,
+    marginBottom: 10,
+    backgroundColor: "#FEE2E2",
+    borderRadius: 20,
+    padding: 20,
+    borderLeftWidth: 6,
+    borderLeftColor: "#DC2626",
+    shadowColor: "#DC2626",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 5,
   },
-  alertHeader: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 4 },
-  alertTitle: { color: "#B91C1C", fontWeight: "800", fontSize: 14 },
-  alertDesc: { color: "#7F1D1D", fontSize: 13, marginBottom: 8 },
-  alertStats: { flexDirection: "row", gap: 12 },
-  alertStatText: { fontSize: 11, color: "#B91C1C", fontWeight: "600" },
+  alertIconContainer: {
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  alertIconBg: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: "#DC2626",
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  alertContent: {
+    alignItems: "center",
+  },
+  alertTitleNew: {
+    fontSize: 18,
+    fontWeight: "900",
+    color: "#991B1B",
+    marginBottom: 8,
+    textAlign: "center",
+    letterSpacing: 0.5,
+  },
+  alertDescNew: {
+    fontSize: 14,
+    color: "#7F1D1D",
+    textAlign: "center",
+    marginBottom: 16,
+    lineHeight: 20,
+  },
+  alertStatsNew: {
+    flexDirection: "row",
+    gap: 20,
+  },
+  alertStatItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: "#fff",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+  },
+  alertStatTextNew: {
+    fontSize: 13,
+    color: "#DC2626",
+    fontWeight: "700",
+  },
 
   /* Lista */
-  listHeader: { flexDirection: "row", alignItems: "center", paddingHorizontal: 20, marginTop: 20, marginBottom: 10 },
-  listTitle: { fontSize: 16, fontWeight: "800", color: "#374151", flex: 1 },
-  badgeCount: { backgroundColor: "#e68059", paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10 },
-  badgeText: { color: "#fff", fontSize: 12, fontWeight: "bold" },
+  listHeader: { 
+    flexDirection: "row", 
+    alignItems: "center", 
+    justifyContent: "space-between",
+    paddingHorizontal: 20, 
+    marginTop: 20, 
+    marginBottom: 15 
+  },
+  listTitleContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    flex: 1,
+  },
+  listTitle: { fontSize: 18, fontWeight: "800", color: "#111827" },
+  badgeCount: { 
+    backgroundColor: "#e68059", 
+    paddingHorizontal: 10, 
+    paddingVertical: 4, 
+    borderRadius: 12,
+    minWidth: 28,
+    alignItems: "center",
+  },
+  badgeText: { color: "#fff", fontSize: 13, fontWeight: "900" },
   listContent: { paddingHorizontal: 20, paddingBottom: 100 },
   
-  commentBubble: {
-     backgroundColor: "#fff", padding: 16, borderRadius: 20, marginBottom: 12,
-     shadowColor: "#000", shadowOpacity: 0.03, shadowRadius: 8, elevation: 2,
-     borderBottomLeftRadius: 4 
+  /* Tarjetas de Reportes Mejoradas */
+  reportCard: {
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+    borderLeftWidth: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 3,
   },
-  bubbleHeader: { flexDirection: "row", alignItems: "center", marginBottom: 8, gap: 10 },
-  avatar: { width: 32, height: 32, borderRadius: 16, backgroundColor: "#FCD34D", justifyContent: "center", alignItems: "center" },
-  avatarText: { color: "#78350F", fontWeight: "bold" },
-  userName: { fontSize: 14, fontWeight: "700", color: "#1F2937" },
-  timeText: { fontSize: 11, color: "#9CA3AF" },
-  commentText: { fontSize: 14, color: "#4B5563", lineHeight: 20 },
+  reportHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
+    gap: 12,
+  },
+  profilePicture: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: "#fff",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  profileImage: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 22,
+  },
+  profileInitial: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "900",
+  },
+  userInfo: {
+    flex: 1,
+    gap: 4,
+  },
+  userName: { 
+    fontSize: 15, 
+    fontWeight: "800", 
+    color: "#111827" 
+  },
+  timeContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  timeText: { 
+    fontSize: 12, 
+    color: "#9CA3AF",
+    fontWeight: "600",
+  },
+  newBadge: {
+    backgroundColor: "#10B981",
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+  },
+  newBadgeText: {
+    color: "#fff",
+    fontSize: 10,
+    fontWeight: "900",
+    letterSpacing: 0.5,
+  },
+  reportText: { 
+    fontSize: 15, 
+    color: "#374151", 
+    lineHeight: 22,
+    marginBottom: 12,
+  },
+  reportFooter: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: "#F3F4F6",
+  },
+  reportTag: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: "#F9FAFB",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+  },
+  reportTagText: {
+    fontSize: 12,
+    color: "#6B7280",
+    fontWeight: "600",
+  },
 
   /* Estados Vacíos / Carga */
   centerBox: { flex: 1, justifyContent: "center", alignItems: "center" },
