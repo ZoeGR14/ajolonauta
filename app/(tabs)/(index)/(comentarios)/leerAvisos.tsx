@@ -108,9 +108,7 @@ export default function CombinedView() {
             activeOpacity={0.8}
           >
             <Ionicons
-              name={
-                tab === "Comentarios" ? "chatbubbles-sharp" : "logo-twitter"
-              }
+              name={tab === "Comentarios" ? "chatbubbles-sharp" : "logo-twitter"}
               size={18}
               color={activeTab === tab ? "#fff" : "#888"}
             />
@@ -142,69 +140,37 @@ export default function CombinedView() {
                 style={[
                   styles.filterButton,
                   selectedLinea ? styles.filterButtonActive : null,
-                  {
-                    borderColor: selectedLinea
-                      ? lineaColors[selectedLinea]
-                      : "transparent",
-                  },
+                  { borderColor: selectedLinea ? lineaColors[selectedLinea] : 'transparent' }
                 ]}
                 onPress={() => setShowLineasDropdown(true)}
               >
-                <View
-                  style={[
-                    styles.iconBadge,
-                    {
-                      backgroundColor: selectedLinea
-                        ? lineaColors[selectedLinea]
-                        : "#F0F2F5",
-                    },
-                  ]}
-                >
-                  <Ionicons
-                    name="git-branch"
-                    size={18}
-                    color={selectedLinea ? "#fff" : "#A0A0A0"}
-                  />
+                <View style={[styles.iconBadge, { backgroundColor: selectedLinea ? lineaColors[selectedLinea] : '#F0F2F5' }]}>
+                   <Ionicons name="git-branch" size={18} color={selectedLinea ? "#fff" : "#A0A0A0"} />
                 </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.filterLabel}>Línea</Text>
-                  <Text numberOfLines={1} style={styles.filterValue}>
-                    {selectedLinea || "Seleccionar"}
-                  </Text>
+                <View style={{flex: 1}}>
+                    <Text style={styles.filterLabel}>Línea</Text>
+                    <Text numberOfLines={1} style={styles.filterValue}>{selectedLinea || "Seleccionar"}</Text>
                 </View>
                 <Ionicons name="chevron-down" size={20} color="#ccc" />
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={[
-                  styles.filterButton,
-                  selectedStation ? styles.filterButtonActive : null,
-                  !selectedLinea && styles.filterButtonDisabled,
+                    styles.filterButton, 
+                    selectedStation ? styles.filterButtonActive : null,
+                    !selectedLinea && styles.filterButtonDisabled
                 ]}
                 onPress={() => {
-                  if (selectedLinea) setShowEstacionesDropdown(true);
+                    if(selectedLinea) setShowEstacionesDropdown(true)
                 }}
                 disabled={!selectedLinea}
               >
-                <View
-                  style={[
-                    styles.iconBadge,
-                    {
-                      backgroundColor: selectedStation ? "#4CAF50" : "#F0F2F5",
-                    },
-                  ]}
-                >
-                  <Ionicons
-                    name="location"
-                    size={18}
-                    color={selectedStation ? "#fff" : "#A0A0A0"}
-                  />
+                 <View style={[styles.iconBadge, { backgroundColor: selectedStation ? '#4CAF50' : '#F0F2F5' }]}>
+                   <Ionicons name="location" size={18} color={selectedStation ? "#fff" : "#A0A0A0"} />
                 </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.filterLabel}>Estación</Text>
-                  <Text numberOfLines={1} style={styles.filterValue}>
-                    {selectedStation || "Seleccionar"}
-                  </Text>
+                <View style={{flex: 1}}>
+                    <Text style={styles.filterLabel}>Estación</Text>
+                    <Text numberOfLines={1} style={styles.filterValue}>{selectedStation || "Seleccionar"}</Text>
                 </View>
                 <Ionicons name="chevron-down" size={20} color="#ccc" />
               </TouchableOpacity>
@@ -221,12 +187,8 @@ export default function CombinedView() {
                   Alta actividad de reportes detectada.
                 </Text>
                 <View style={styles.alertStats}>
-                  <Text style={styles.alertStatText}>
-                    🕒 Hace {formatTimeSinceClosed(Date.now() - 15 * 60 * 1000)}
-                  </Text>
-                  <Text style={styles.alertStatText}>
-                    ⚠️ {stationClosed.cantidadReportes}+ reportes
-                  </Text>
+                    <Text style={styles.alertStatText}>🕒 Hace {formatTimeSinceClosed(Date.now() - 15 * 60 * 1000)}</Text>
+                    <Text style={styles.alertStatText}>⚠️ {stationClosed.cantidadReportes}+ reportes</Text>
                 </View>
               </View>
             )}
@@ -235,9 +197,7 @@ export default function CombinedView() {
             {loading ? (
               <View style={styles.centerView}>
                 <ActivityIndicator size="large" color="#e68059" />
-                <Text style={styles.loadingText}>
-                  Sincronizando reportes...
-                </Text>
+                <Text style={styles.loadingText}>Sincronizando reportes...</Text>
               </View>
             ) : selectedStation && comments.length > 0 ? (
               <FlatList
@@ -249,11 +209,9 @@ export default function CombinedView() {
                   <View style={styles.chatBubble}>
                     <View style={styles.chatHeader}>
                       <View style={styles.avatar}>
-                        <Text style={styles.avatarText}>
-                          {item.usuario.charAt(0).toUpperCase()}
-                        </Text>
+                        <Text style={styles.avatarText}>{item.usuario.charAt(0).toUpperCase()}</Text>
                       </View>
-                      <View style={{ flex: 1 }}>
+                      <View style={{flex: 1}}>
                         <Text style={styles.username}>{item.usuario}</Text>
                         <Text style={styles.timestamp}>{item.hora}</Text>
                       </View>
@@ -265,24 +223,14 @@ export default function CombinedView() {
             ) : (
               <View style={styles.emptyState}>
                 <View style={styles.emptyIconBg}>
-                  <Ionicons
-                    name={
-                      selectedStation
-                        ? "chatbox-ellipses-outline"
-                        : "map-outline"
-                    }
-                    size={40}
-                    color="#e68059"
-                  />
+                    <Ionicons name={selectedStation ? "chatbox-ellipses-outline" : "map-outline"} size={40} color="#e68059" />
                 </View>
                 <Text style={styles.emptyTitle}>
-                  {selectedStation
-                    ? "Sin reportes recientes"
-                    : "Selecciona una ruta"}
+                  {selectedStation ? "Sin reportes recientes" : "Selecciona una ruta"}
                 </Text>
                 <Text style={styles.emptyDesc}>
-                  {selectedStation
-                    ? "¡Sé el primero en reportar el estado de esta estación!"
+                  {selectedStation 
+                    ? "¡Sé el primero en reportar el estado de esta estación!" 
                     : "Elige una línea y estación para ver lo que está pasando."}
                 </Text>
               </View>
@@ -303,90 +251,68 @@ export default function CombinedView() {
       {/* Modales (Lineas) */}
       {showLineasDropdown && (
         <View style={styles.modalOverlay}>
-          <TouchableOpacity
-            style={styles.modalBackdrop}
-            onPress={() => setShowLineasDropdown(false)}
-          />
-          <View style={styles.bottomSheet}>
-            <View style={styles.sheetHeader}>
-              <Text style={styles.sheetTitle}>Selecciona la Línea</Text>
-              <TouchableOpacity
-                onPress={() => setShowLineasDropdown(false)}
-                style={styles.closeBtn}
-              >
-                <Ionicons name="close" size={24} color="#333" />
-              </TouchableOpacity>
+            <TouchableOpacity style={styles.modalBackdrop} onPress={() => setShowLineasDropdown(false)} />
+            <View style={styles.bottomSheet}>
+                <View style={styles.sheetHeader}>
+                    <Text style={styles.sheetTitle}>Selecciona la Línea</Text>
+                    <TouchableOpacity onPress={() => setShowLineasDropdown(false)} style={styles.closeBtn}>
+                        <Ionicons name="close" size={24} color="#333" />
+                    </TouchableOpacity>
+                </View>
+                <ScrollView showsVerticalScrollIndicator={false}>
+                    <View style={styles.gridContainer}>
+                        {lineas.map((item) => (
+                            <TouchableOpacity
+                                key={item}
+                                style={[styles.gridItem, { borderColor: lineaColors[item] }]}
+                                onPress={() => {
+                                    setSelectedLinea(item);
+                                    setSelectedStation(null); // Reset station
+                                    setShowLineasDropdown(false);
+                                }}
+                            >
+                                <View style={[styles.colorDot, { backgroundColor: lineaColors[item] }]} />
+                                <Text style={styles.gridText}>{item.replace('Línea ', 'L')}</Text>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
+                </ScrollView>
             </View>
-            <ScrollView showsVerticalScrollIndicator={false}>
-              <View style={styles.gridContainer}>
-                {lineas.map((item) => (
-                  <TouchableOpacity
-                    key={item}
-                    style={[
-                      styles.gridItem,
-                      { borderColor: lineaColors[item] },
-                    ]}
-                    onPress={() => {
-                      setSelectedLinea(item);
-                      setSelectedStation(null); // Reset station
-                      setShowLineasDropdown(false);
-                    }}
-                  >
-                    <View
-                      style={[
-                        styles.colorDot,
-                        { backgroundColor: lineaColors[item] },
-                      ]}
-                    />
-                    <Text style={styles.gridText}>
-                      {item.replace("Línea ", "L")}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </ScrollView>
-          </View>
         </View>
       )}
 
       {/* Modales (Estaciones) */}
       {showEstacionesDropdown && (
         <View style={styles.modalOverlay}>
-          <TouchableOpacity
-            style={styles.modalBackdrop}
-            onPress={() => setShowEstacionesDropdown(false)}
-          />
-          <View style={[styles.bottomSheet, { height: "70%" }]}>
-            <View style={styles.sheetHeader}>
-              <Text style={styles.sheetTitle}>Selecciona la Estación</Text>
-              <TouchableOpacity
-                onPress={() => setShowEstacionesDropdown(false)}
-                style={styles.closeBtn}
-              >
-                <Ionicons name="close" size={24} color="#333" />
-              </TouchableOpacity>
+            <TouchableOpacity style={styles.modalBackdrop} onPress={() => setShowEstacionesDropdown(false)} />
+            <View style={[styles.bottomSheet, { height: '70%' }]}>
+                <View style={styles.sheetHeader}>
+                    <Text style={styles.sheetTitle}>Selecciona la Estación</Text>
+                    <TouchableOpacity onPress={() => setShowEstacionesDropdown(false)} style={styles.closeBtn}>
+                        <Ionicons name="close" size={24} color="#333" />
+                    </TouchableOpacity>
+                </View>
+                <ScrollView showsVerticalScrollIndicator={false}>
+                    {selectedLinea && getStationsByLine(selectedLinea).map((item) => (
+                        <TouchableOpacity
+                            key={item}
+                            style={styles.listOption}
+                            onPress={() => {
+                                setSelectedStation(item);
+                                setShowEstacionesDropdown(false);
+                                fetchComments(item, selectedLinea);
+                            }}
+                        >
+                            <Ionicons name="location-outline" size={22} color="#555" />
+                            <Text style={styles.listOptionText}>{item}</Text>
+                            <Ionicons name="chevron-forward" size={18} color="#ccc" />
+                        </TouchableOpacity>
+                    ))}
+                </ScrollView>
             </View>
-            <ScrollView showsVerticalScrollIndicator={false}>
-              {selectedLinea &&
-                getStationsByLine(selectedLinea).map((item) => (
-                  <TouchableOpacity
-                    key={item}
-                    style={styles.listOption}
-                    onPress={() => {
-                      setSelectedStation(item);
-                      setShowEstacionesDropdown(false);
-                      fetchComments(item, selectedLinea);
-                    }}
-                  >
-                    <Ionicons name="location-outline" size={22} color="#555" />
-                    <Text style={styles.listOptionText}>{item}</Text>
-                    <Ionicons name="chevron-forward" size={18} color="#ccc" />
-                  </TouchableOpacity>
-                ))}
-            </ScrollView>
-          </View>
         </View>
       )}
+
     </SafeAreaView>
   );
 }
@@ -425,15 +351,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#FFCDD2",
   },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: "#D32F2F",
-    marginRight: 6,
-  },
+  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: "#D32F2F", marginRight: 6 },
   liveText: { color: "#D32F2F", fontWeight: "800", fontSize: 10 },
-
+  
   segmentedControl: {
     flexDirection: "row",
     backgroundColor: "#F0F2F5",
@@ -495,15 +415,10 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 10,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  filterLabel: {
-    fontSize: 10,
-    color: "#999",
-    fontWeight: "700",
-    textTransform: "uppercase",
-  },
+  filterLabel: { fontSize: 10, color: "#999", fontWeight: "700", textTransform: 'uppercase' },
   filterValue: { fontSize: 14, color: "#333", fontWeight: "700" },
 
   /* List & Cards */
@@ -519,12 +434,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 2,
   },
-  chatHeader: {
-    flexDirection: "row",
-    marginBottom: 10,
-    alignItems: "center",
-    gap: 10,
-  },
+  chatHeader: { flexDirection: "row", marginBottom: 10, alignItems: "center", gap: 10 },
   avatar: {
     width: 36,
     height: 36,
@@ -541,34 +451,13 @@ const styles = StyleSheet.create({
   /* States */
   centerView: { flex: 1, justifyContent: "center", alignItems: "center" },
   loadingText: { marginTop: 10, color: "#666", fontWeight: "600" },
-  emptyState: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 40,
+  emptyState: { flex: 1, justifyContent: "center", alignItems: "center", padding: 40 },
+  emptyIconBg: { 
+    width: 80, height: 80, borderRadius: 40, backgroundColor: "#FFEFEA", 
+    justifyContent: "center", alignItems: "center", marginBottom: 20 
   },
-  emptyIconBg: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: "#FFEFEA",
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#333",
-    marginBottom: 8,
-    textAlign: "center",
-  },
-  emptyDesc: {
-    fontSize: 14,
-    color: "#777",
-    textAlign: "center",
-    lineHeight: 20,
-  },
+  emptyTitle: { fontSize: 18, fontWeight: "bold", color: "#333", marginBottom: 8, textAlign: 'center' },
+  emptyDesc: { fontSize: 14, color: "#777", textAlign: "center", lineHeight: 20 },
 
   /* Alerts */
   alertCard: {
@@ -580,12 +469,7 @@ const styles = StyleSheet.create({
     borderLeftWidth: 4,
     borderLeftColor: "#D32F2F",
   },
-  alertHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    marginBottom: 5,
-  },
+  alertHeader: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 5 },
   alertTitle: { color: "#D32F2F", fontWeight: "900", fontSize: 14 },
   alertDesc: { color: "#B71C1C", fontSize: 14, marginBottom: 10 },
   alertStats: { flexDirection: "row", gap: 15 },
@@ -604,10 +488,7 @@ const styles = StyleSheet.create({
   /* Bottom Sheet / Modal */
   modalOverlay: {
     position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+    top: 0, left: 0, right: 0, bottom: 0,
     zIndex: 1000,
     justifyContent: "flex-end",
   },
@@ -620,7 +501,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 25,
     borderTopRightRadius: 25,
     padding: 20,
-    height: "50%",
+    height: '50%',
     shadowColor: "#000",
     shadowOffset: { width: 0, height: -5 },
     shadowOpacity: 0.1,
@@ -628,43 +509,39 @@ const styles = StyleSheet.create({
     elevation: 20,
   },
   sheetHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 20,
     borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
+    borderBottomColor: '#f0f0f0',
     paddingBottom: 15,
   },
   sheetTitle: { fontSize: 18, fontWeight: "bold", color: "#333" },
-  closeBtn: { padding: 5, backgroundColor: "#f0f0f0", borderRadius: 20 },
-
+  closeBtn: { padding: 5, backgroundColor: '#f0f0f0', borderRadius: 20 },
+  
   /* Grid de Líneas */
-  gridContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 10,
-    justifyContent: "center",
-  },
+  gridContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, justifyContent: 'center' },
   gridItem: {
-    width: "30%",
+    width: '30%',
     padding: 15,
     borderRadius: 12,
     borderWidth: 2,
-    alignItems: "center",
-    backgroundColor: "#fff",
+    alignItems: 'center',
+    backgroundColor: '#fff',
   },
   colorDot: { width: 12, height: 12, borderRadius: 6, marginBottom: 8 },
   gridText: { fontWeight: "700", color: "#333" },
 
   /* Lista de Estaciones */
   listOption: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#f9f9f9",
+    borderBottomColor: '#f9f9f9',
     gap: 12,
   },
   listOptionText: { fontSize: 16, color: "#333", flex: 1 },
+
 });
