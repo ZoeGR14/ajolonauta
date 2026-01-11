@@ -84,6 +84,14 @@ export default function MisRutas() {
    const [hideS, setHideS] = useState(false);
    const [hideE, setHideE] = useState(false);
 
+   const [rutaAlternativa, setRutaAlternativa] = useState<any>(null);
+   const [mensajeRutas, setMensajeRutas] = useState("");
+   const [result, setResult] = useState<any>(null);
+   const [
+      hayEstacionesCerradasDefinitivamente,
+      setHayEstacionesCerradasDefinitivamente,
+   ] = useState(false);
+
    useEffect(() => {
       const estacionCerrada = estacionesCerradas.find((e) => e.id === start);
       if (estacionCerrada) {
@@ -140,54 +148,163 @@ export default function MisRutas() {
       setHideE(true);
    };
 
-   // Habilitar temporalmente origen/destino si están cerradas por "Alta actividad de reportes"
-   const calcularRuta = () => {
-      if (!start || !end) return null;
+   // Calcular rutas cuando cambien start, end o estacionesCerradas
+   useEffect(() => {
+      if (!start || !end) {
+         setResult(null);
+         setRutaAlternativa(null);
+         setMensajeRutas("");
+         return;
+      }
 
-      const estacionOrigenCerrada = estacionesCerradas.find(
-         (e) => e.id === start
+      console.log("=== DEBUG INICIO ===");
+      console.log("Origen:", start);
+      console.log("Destino:", end);
+      console.log("Estaciones cerradas:", estacionesCerradas);
+
+      // PASO 1: Habilitar TODAS las estaciones temporalmente (ignorar cierres)
+      const estacionesOriginalesDeshabilitadas: string[] = [];
+      Object.keys(grafo).forEach((estacion) => {
+         if (!grafo[estacion].activa) {
+            estacionesOriginalesDeshabilitadas.push(estacion);
+            grafo[estacion].activa = true;
+         }
+      });
+
+      // PASO 2: Calcular la ruta MÁS CORTA sin restricciones
+      const rutaOptima = dijkstra(grafo, start, end);
+      console.log("Ruta óptima calculada, nodos:", rutaOptima.path.length);
+
+      // PASO 3: Verificar si la ruta óptima contiene estaciones cerradas
+      const estacionesConAltaDemanda = rutaOptima.path.filter((estacion) => {
+         const estacionId = `${estacion.nombre} - ${estacion.linea}`;
+         const estacionCerrada = estacionesCerradas.find(
+            (e) =>
+               e.id === estacionId && e.razon === "Alta actividad de reportes"
+         );
+         return !!estacionCerrada;
+      });
+
+      const estacionesCerradasDefinitivamente = rutaOptima.path.filter(
+         (estacion) => {
+            const estacionId = `${estacion.nombre} - ${estacion.linea}`;
+            const estacionCerrada = estacionesCerradas.find(
+               (e) =>
+                  e.id === estacionId &&
+                  e.razon !== "Alta actividad de reportes"
+            );
+            return !!estacionCerrada;
+         }
       );
-      const estacionDestinoCerrada = estacionesCerradas.find(
-         (e) => e.id === end
+
+      console.log(
+         "Estaciones con alta demanda:",
+         estacionesConAltaDemanda.length
+      );
+      console.log(
+         "Estaciones cerradas definitivamente:",
+         estacionesCerradasDefinitivamente.length
       );
 
-      // Habilitar temporalmente origen si está cerrado por alta actividad
-      if (
-         estacionOrigenCerrada &&
-         estacionOrigenCerrada.razon === "Alta actividad de reportes"
-      ) {
-         grafo[start].activa = true;
+      // CASO 1: Hay estaciones cerradas definitivamente - Solo mostrar ruta alternativa
+      if (estacionesCerradasDefinitivamente.length > 0) {
+         // Restaurar estado original primero
+         estacionesOriginalesDeshabilitadas.forEach((estacion) => {
+            grafo[estacion].activa = false;
+         });
+
+         // Calcular SOLO la ruta alternativa (sin las estaciones cerradas)
+         const rutaAlternativaCalculada = dijkstra(grafo, start, end);
+
+         if (
+            rutaAlternativaCalculada.distance !== Infinity &&
+            rutaAlternativaCalculada.path.length > 0
+         ) {
+            setResult(rutaAlternativaCalculada);
+            setRutaAlternativa(null);
+            setHayEstacionesCerradasDefinitivamente(true);
+            const nombresEstaciones = estacionesCerradasDefinitivamente
+               .map((e) => e.nombre)
+               .join(", ");
+            setMensajeRutas(
+               `🚫 Estaciones cerradas: ${nombresEstaciones}. Se muestra la ruta alternativa disponible.`
+            );
+            console.log("🚫 Ruta con estaciones cerradas definitivamente");
+         } else {
+            setResult(null);
+            setRutaAlternativa(null);
+            setHayEstacionesCerradasDefinitivamente(true);
+            const nombresEstaciones = estacionesCerradasDefinitivamente
+               .map((e) => e.nombre)
+               .join(", ");
+            setMensajeRutas(
+               `❌ No hay rutas disponibles. Estaciones cerradas: ${nombresEstaciones}.`
+            );
+            console.log("❌ No hay ruta disponible");
+         }
+         console.log("=== DEBUG FIN ===");
+         return;
       }
 
-      // Habilitar temporalmente destino si está cerrado por alta actividad
-      if (
-         estacionDestinoCerrada &&
-         estacionDestinoCerrada.razon === "Alta actividad de reportes"
-      ) {
-         grafo[end].activa = true;
+      // CASO 2: Solo hay estaciones con alta demanda - Mostrar ambas rutas
+      if (estacionesConAltaDemanda.length > 0) {
+         setHayEstacionesCerradasDefinitivamente(false);
+         // Deshabilitar las estaciones con alta actividad de reportes
+         estacionesConAltaDemanda.forEach((estacion) => {
+            const estacionId = `${estacion.nombre} - ${estacion.linea}`;
+            grafo[estacionId].activa = false;
+         });
+
+         // Calcular ruta alternativa evitando estaciones problemáticas
+         const rutaAlternativaCalculada = dijkstra(grafo, start, end);
+         console.log("Ruta alternativa calculada");
+
+         // Restaurar las estaciones que deshabilitamos para la alternativa
+         estacionesConAltaDemanda.forEach((estacion) => {
+            const estacionId = `${estacion.nombre} - ${estacion.linea}`;
+            grafo[estacionId].activa = true;
+         });
+
+         // Si existe una ruta alternativa válida
+         if (
+            rutaAlternativaCalculada.distance !== Infinity &&
+            rutaAlternativaCalculada.path.length > 0
+         ) {
+            setRutaAlternativa(rutaAlternativaCalculada);
+            const nombresEstaciones = estacionesConAltaDemanda
+               .map((e) => e.nombre)
+               .join(", ");
+            setMensajeRutas(
+               `⚠️ Hay una ruta más corta (azul), pero contiene estaciones con alta demanda de reportes: ${nombresEstaciones}. Se muestra una ruta alternativa en verde.`
+            );
+            console.log("✅ Mensaje establecido:", nombresEstaciones);
+         } else {
+            // No hay ruta alternativa válida, solo mostrar la óptima con advertencia
+            setRutaAlternativa(null);
+            const nombresEstaciones = estacionesConAltaDemanda
+               .map((e) => e.nombre)
+               .join(", ");
+            setMensajeRutas(
+               `⚠️ La ruta más corta contiene estaciones con alta demanda de reportes: ${nombresEstaciones}. No hay rutas alternativas disponibles.`
+            );
+            console.log("⚠️ No hay ruta alternativa válida");
+         }
+      } else {
+         setRutaAlternativa(null);
+         setMensajeRutas("");
+         setHayEstacionesCerradasDefinitivamente(false);
+         console.log("✅ No hay estaciones con problemas en la ruta");
       }
 
-      const resultado = dijkstra(grafo, start, end);
+      // PASO 5: Restaurar el estado original de las estaciones
+      estacionesOriginalesDeshabilitadas.forEach((estacion) => {
+         grafo[estacion].activa = false;
+      });
 
-      // Restaurar estado bloqueado después del cálculo
-      if (
-         estacionOrigenCerrada &&
-         estacionOrigenCerrada.razon === "Alta actividad de reportes"
-      ) {
-         grafo[start].activa = false;
-      }
-
-      if (
-         estacionDestinoCerrada &&
-         estacionDestinoCerrada.razon === "Alta actividad de reportes"
-      ) {
-         grafo[end].activa = false;
-      }
-
-      return resultado;
-   };
-
-   const result = calcularRuta();
+      // Establecer la ruta óptima como resultado principal
+      setResult(rutaOptima);
+      console.log("=== DEBUG FIN ===");
+   }, [start, end, estacionesCerradas]);
 
    const filteredEstacionesS = start
       ? arregloEstaciones.filter((n) =>
@@ -201,7 +318,12 @@ export default function MisRutas() {
         )
       : [];
 
-   const coordenadas = result?.path.map((s) => ({
+   const coordenadas = result?.path.map((s: any) => ({
+      latitude: s.coordenadas.latitude,
+      longitude: s.coordenadas.longitude,
+   }));
+
+   const coordenadasAlternativas = rutaAlternativa?.path.map((s: any) => ({
       latitude: s.coordenadas.latitude,
       longitude: s.coordenadas.longitude,
    }));
@@ -285,6 +407,12 @@ export default function MisRutas() {
       <View style={styles.container}>
          <View style={styles.searchCard}>
             <Text style={styles.switchText}>Selecciona tus estaciones</Text>
+            {mensajeRutas.length > 0 && (
+               <View style={styles.warningCard}>
+                  <Feather name="alert-triangle" size={20} color="#ff9800" />
+                  <Text style={styles.warningText}>{mensajeRutas}</Text>
+               </View>
+            )}
             <View style={{ position: "relative" }}>
                <Autocomplete
                   data={filteredEstacionesS}
@@ -393,7 +521,7 @@ export default function MisRutas() {
                      strokeColor={p.color}
                   />
                ))}
-               {result?.path.map((r, i) => (
+               {result?.path.map((r: any, i: number) => (
                   <Marker
                      coordinate={r.coordenadas}
                      key={i}
@@ -408,6 +536,23 @@ export default function MisRutas() {
                      strokeColor="blue"
                   />
                )}
+               {coordenadasAlternativas &&
+                  coordenadasAlternativas.length > 0 && (
+                     <Polyline
+                        coordinates={coordenadasAlternativas}
+                        strokeWidth={5}
+                        strokeColor="green"
+                     />
+                  )}
+               {rutaAlternativa?.path.map((r: any, i: number) => (
+                  <Marker
+                     coordinate={r.coordenadas}
+                     key={`alt-${i}`}
+                     title={r.nombre}
+                     description={`${r.linea} (Ruta alternativa)`}
+                     pinColor="green"
+                  />
+               ))}
             </MapView>
 
             {coordenadas && coordenadas.length > 0 && (
@@ -437,8 +582,30 @@ export default function MisRutas() {
                   <Text style={styles.modalTitle}>
                      Instrucciones de la Ruta
                   </Text>
+
+                  {mensajeRutas.length > 0 && (
+                     <View style={styles.modalWarning}>
+                        <Feather
+                           name="alert-triangle"
+                           size={20}
+                           color="#ff9800"
+                        />
+                        <Text style={styles.modalWarningText}>
+                           {mensajeRutas}
+                        </Text>
+                     </View>
+                  )}
+
+                  <Text style={styles.routeLabel}>
+                     {hayEstacionesCerradasDefinitivamente
+                        ? "Ruta Alternativa por Cierres"
+                        : "Ruta Principal (Azul)"}{" "}
+                     {mensajeRutas.length > 0 &&
+                        !hayEstacionesCerradasDefinitivamente &&
+                        "- Con estaciones reportadas"}
+                  </Text>
                   <FlatList
-                     data={result?.path.flatMap((s) => ({
+                     data={result?.path.flatMap((s: any) => ({
                         nombre: s.nombre,
                         linea: s.linea,
                      }))}
@@ -472,6 +639,59 @@ export default function MisRutas() {
                      )}
                      contentContainerStyle={{ paddingBottom: 20 }}
                   />
+
+                  {rutaAlternativa && (
+                     <>
+                        <Text style={[styles.routeLabel, { marginTop: 20 }]}>
+                           Ruta Alternativa (Verde) - Evita estaciones
+                           reportadas
+                        </Text>
+                        <FlatList
+                           data={rutaAlternativa?.path.flatMap((s: any) => ({
+                              nombre: s.nombre,
+                              linea: s.linea,
+                           }))}
+                           keyExtractor={(_, index) =>
+                              `alt-${index.toString()}`
+                           }
+                           renderItem={({ item, index }) => (
+                              <View
+                                 style={[
+                                    styles.stepCard,
+                                    styles.alternativeCard,
+                                 ]}
+                              >
+                                 <View style={styles.stepRow}>
+                                    <Text style={styles.stepText}>
+                                       {index + 1}. {item.nombre} - {item.linea}
+                                    </Text>
+                                    <View
+                                       style={[
+                                          styles.lineDot,
+                                          {
+                                             backgroundColor:
+                                                lineaColors[item.linea] ||
+                                                "#ccc",
+                                          },
+                                       ]}
+                                    />
+                                 </View>
+                              </View>
+                           )}
+                           ItemSeparatorComponent={() => (
+                              <View style={styles.separator}>
+                                 <Feather
+                                    name="arrow-down"
+                                    size={24}
+                                    color="#4CAF50"
+                                 />
+                              </View>
+                           )}
+                           contentContainerStyle={{ paddingBottom: 20 }}
+                        />
+                     </>
+                  )}
+
                   <TouchableOpacity
                      style={styles.closeButton}
                      onPress={() => setModal(false)}
@@ -614,5 +834,50 @@ const styles = StyleSheet.create({
       top: "50%",
       transform: [{ translateY: -12 }],
       zIndex: 2,
+   },
+   warningCard: {
+      flexDirection: "row",
+      backgroundColor: "#fff3cd",
+      padding: 12,
+      borderRadius: 8,
+      marginBottom: 10,
+      alignItems: "center",
+      gap: 10,
+      borderLeftWidth: 4,
+      borderLeftColor: "#ff9800",
+   },
+   warningText: {
+      flex: 1,
+      color: "#856404",
+      fontSize: 13,
+      fontWeight: "500",
+   },
+   modalWarning: {
+      flexDirection: "row",
+      backgroundColor: "#fff3cd",
+      padding: 12,
+      borderRadius: 8,
+      marginBottom: 15,
+      alignItems: "center",
+      gap: 10,
+      borderLeftWidth: 4,
+      borderLeftColor: "#ff9800",
+   },
+   modalWarningText: {
+      flex: 1,
+      color: "#856404",
+      fontSize: 13,
+      fontWeight: "500",
+   },
+   routeLabel: {
+      fontSize: 16,
+      fontWeight: "bold",
+      color: "#333",
+      marginBottom: 10,
+      marginTop: 5,
+   },
+   alternativeCard: {
+      borderLeftWidth: 3,
+      borderLeftColor: "#4CAF50",
    },
 });
