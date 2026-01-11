@@ -288,7 +288,7 @@ export default function MapaGuardado() {
    useEffect(() => {
       if (!alertaMostrada && !isLoading && mensajeRutas.length > 0) {
          setAlertaMostrada(true);
-         
+
          if (hayEstacionesCerradasDefinitivamente) {
             Alert.alert(
                "🚫 Ruta Modificada",
@@ -313,7 +313,13 @@ export default function MapaGuardado() {
             );
          }
       }
-   }, [mensajeRutas, isLoading, alertaMostrada, hayEstacionesCerradasDefinitivamente, rutaAlternativa]);
+   }, [
+      mensajeRutas,
+      isLoading,
+      alertaMostrada,
+      hayEstacionesCerradasDefinitivamente,
+      rutaAlternativa,
+   ]);
 
    useEffect(() => {
       const collectionRef = collection(db, "estaciones_cerradas");
