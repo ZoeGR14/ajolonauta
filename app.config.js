@@ -19,6 +19,7 @@ export default {
                apiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY,
             },
          },
+         googleServicesFile: "./google-services.json",
          permissions: ["RECEIVE_BOOT_COMPLETED", "VIBRATE", "NOTIFICATIONS"],
       },
       web: {
@@ -39,13 +40,7 @@ export default {
          ],
          "expo-font",
          "expo-web-browser",
-         [
-            "expo-notifications",
-            {
-               icon: "./assets/images/notification-icon.png",
-               color: "#e68059",
-            },
-         ],
+         "expo-notifications",
       ],
       experiments: {
          typedRoutes: true,

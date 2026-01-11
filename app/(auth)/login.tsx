@@ -38,24 +38,35 @@ export default function LoginScreen() {
       try {
          setLoading(true);
          let email = loginInput;
+
+         // Si el input no contiene @, buscar el email del username
          if (!email.includes("@")) {
-            email = await getEmailFromUsername(loginInput);
-            if (!email) {
+            const foundEmail = await getEmailFromUsername(loginInput);
+            if (!foundEmail) {
                Alert.alert("Error", "Nombre de usuario no encontrado.");
+               setLoading(false);
                return;
             }
+            email = foundEmail;
          }
 
-         const user = await signInWithEmailAndPassword(auth, email, password);
-         if (user) {
-            console.log("✅ Login exitoso, usuario:", user.user.uid);
-            console.log("🔔 Llamando a initializeNotifications...");
-            // Registrar el dispositivo para notificaciones después del login
-            await initializeNotifications();
-            console.log("✅ initializeNotifications completado");
-            router.replace("/(tabs)");
-         }
-      } catch (error) {
+         // Intentar iniciar sesión con el email
+         const userCredential = await signInWithEmailAndPassword(
+            auth,
+            email,
+            password
+         );
+
+         console.log("✅ Login exitoso, usuario:", userCredential.user.uid);
+         console.log("🔔 Registrando notificaciones...");
+
+         // Registrar el dispositivo para notificaciones después del login
+         await initializeNotifications();
+         console.log("✅ Notificaciones inicializadas");
+
+         router.replace("/(tabs)");
+      } catch (error: any) {
+         console.error("❌ Error en login:", error);
          Alert.alert(
             "Error",
             "Credenciales incorrectas o problema de conexión."
