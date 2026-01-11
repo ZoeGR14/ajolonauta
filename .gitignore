@@ -84,7 +84,6 @@ ios/Podfile.lock
 
 # Firebase
 FirebaseConfig.ts.backup
-google-services.json
 GoogleService-Info.plist
 
 # ========================================
