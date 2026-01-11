@@ -82,8 +82,13 @@ Antes de comenzar, asegúrate de tener instalado:
 1. **Clona el repositorio** (o descarga el código fuente):
 
 ```bash
+<<<<<<< HEAD
 git clone https://github.com/tuusuario/app_movil.git
 cd app_movil
+=======
+git clone https://github.com/ZoeGR14/ajolonauta.git
+cd ajolonauta
+>>>>>>> 4741e1066b7ba622f65b0c37eb16e030490ddb1a
 ```
 
 2. **Instala las dependencias**:
