@@ -157,7 +157,7 @@ export default function MisRutas() {
          return;
       }
 
-      console.log("=== DEBUG INICIO ===");
+      console.log("=== INICIO ===");
       console.log("Origen:", start);
       console.log("Destino:", end);
       console.log("Estaciones cerradas:", estacionesCerradas);
@@ -242,7 +242,7 @@ export default function MisRutas() {
             );
             console.log("❌ No hay ruta disponible");
          }
-         console.log("=== DEBUG FIN ===");
+         console.log("=== FIN ===");
          return;
       }
 
