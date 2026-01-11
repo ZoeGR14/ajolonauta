@@ -55,6 +55,8 @@ export default {
          eas: {
             projectId: "327e210d-776c-4591-89e8-538b2839329b",
          },
+         EXPO_PUBLIC_GOOGLE_MAPS_API_KEY:
+            process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY,
          EXPO_PUBLIC_FIREBASE_API_KEY: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
          EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN:
             process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
