@@ -167,8 +167,7 @@ export const detectarEstacionCerrada = onDocumentUpdated(
  * en los últimos 15 minutos.
  */
 export const reabrirEstacionesInactivas = onSchedule(
-   //cambiar en deploy
-   "every 6 hours",
+   "every 15 minutes",
    async (event) => {
       try {
          logger.info("Iniciando revisión de estaciones cerradas...");
