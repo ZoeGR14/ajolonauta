@@ -3,6 +3,7 @@ import { setGlobalOptions } from "firebase-functions";
 import * as logger from "firebase-functions/logger";
 import { onDocumentUpdated } from "firebase-functions/v2/firestore";
 import { onSchedule } from "firebase-functions/v2/scheduler";
+import { notificarUsuariosAfectados } from "./notificaciones";
 
 // Inicializar Firebase Admin
 admin.initializeApp();
@@ -141,6 +142,12 @@ export const detectarEstacionCerrada = onDocumentUpdated(
             );
             logger.info(`Reportes detectados: ${reportesRecientes.length}`);
             logger.info(`Documento creado en estaciones_cerradas`);
+
+            // Enviar notificaciones a usuarios afectados
+            await notificarUsuariosAfectados(
+               dataDespues.estacionId,
+               "Alta actividad de reportes"
+            );
 
             return {
                success: true,

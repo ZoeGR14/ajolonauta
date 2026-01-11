@@ -1,3 +1,4 @@
+import { initializeNotifications } from "@/services/notifications";
 import {
    Poppins_400Regular,
    Poppins_700Bold,
@@ -6,7 +7,7 @@ import {
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { Platform, StatusBar as RNStatusBar, Text, View } from "react-native";
 
 SplashScreen.preventAutoHideAsync();
@@ -16,6 +17,14 @@ export default function RootLayout() {
       Poppins_400Regular,
       Poppins_700Bold,
    });
+
+   // Inicializar notificaciones push
+   useEffect(() => {
+      const cleanup = initializeNotifications();
+      return () => {
+         cleanup.then((fn) => fn && fn());
+      };
+   }, []);
 
    const onLayoutRootView = useCallback(async () => {
       if (fontsLoaded) {

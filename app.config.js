@@ -19,6 +19,7 @@ export default {
                apiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY,
             },
          },
+         permissions: ["RECEIVE_BOOT_COMPLETED", "VIBRATE", "NOTIFICATIONS"],
       },
       web: {
          bundler: "metro",
@@ -38,6 +39,13 @@ export default {
          ],
          "expo-font",
          "expo-web-browser",
+         [
+            "expo-notifications",
+            {
+               icon: "./assets/images/notification-icon.png",
+               color: "#e68059",
+            },
+         ],
       ],
       experiments: {
          typedRoutes: true,

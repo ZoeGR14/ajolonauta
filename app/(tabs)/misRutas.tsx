@@ -362,7 +362,15 @@ export default function MisRutas() {
          } else {
             isLoading2(true);
             ToastAndroid.show("Ruta guardada", ToastAndroid.SHORT);
-            await addDoc(routesCollection, { start, end, userId: user.uid });
+
+            // Guardar la ruta con el path completo de estaciones
+            const pathEstaciones = result?.path.map((s: any) => s.nombre) || [];
+            await addDoc(routesCollection, {
+               start,
+               end,
+               userId: user.uid,
+               path: pathEstaciones, // Array de nombres de estaciones en la ruta
+            });
             setRoutes([]);
             fetchRoutes();
          }
