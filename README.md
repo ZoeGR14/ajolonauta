@@ -25,12 +25,15 @@
 
 -  🗺️ **Visualización de Mapas**: Integración con Google Maps para visualizar rutas de transporte público
 -  🚍 **Planificación de Rutas**: Consulta y guarda tus rutas favoritas de transporte público
+-  🤖 **Detección Automática**: Cloud Functions detectan estaciones cerradas por alta actividad de reportes
+-  🔄 **Reapertura Automática**: Estaciones cerradas se reabren automáticamente después de 15 minutos sin actividad
 -  📢 **Sistema de Avisos**: Crea y consulta avisos en tiempo real sobre el estado del transporte
 -  🆘 **Botón SOS**: Funcionalidad de emergencia para situaciones críticas
 -  👤 **Gestión de Perfil**: Sistema completo de autenticación y personalización de usuario
 -  📱 **Interfaz Intuitiva**: Diseño moderno y fácil de usar con navegación por pestañas
 -  💾 **Almacenamiento Local**: Guarda tus preferencias y rutas favoritas localmente
 -  🔐 **Autenticación Segura**: Sistema de login/registro con Firebase Authentication
+-  🔒 **Variables de Entorno**: Credenciales protegidas con EAS Secrets
 
 ---
 
@@ -48,6 +51,7 @@
 -  **Firebase** (11.9.0)
    -  Authentication - Gestión de usuarios
    -  Firestore - Base de datos en tiempo real
+   -  Cloud Functions (Gen 2) - Detección automática de estaciones cerradas
    -  Storage - Almacenamiento de archivos
 
 ### Bibliotecas Principales
@@ -82,13 +86,8 @@ Antes de comenzar, asegúrate de tener instalado:
 1. **Clona el repositorio** (o descarga el código fuente):
 
 ```bash
-<<<<<<< HEAD
-git clone https://github.com/tuusuario/app_movil.git
-cd app_movil
-=======
 git clone https://github.com/ZoeGR14/ajolonauta.git
 cd ajolonauta
->>>>>>> 4741e1066b7ba622f65b0c37eb16e030490ddb1a
 ```
 
 2. **Instala las dependencias**:
@@ -107,42 +106,64 @@ yarn install
 
 ## ⚙️ Configuración
 
-### 1. Firebase Configuration
+### 1. Variables de Entorno
 
-El proyecto ya incluye la configuración de Firebase en `FirebaseConfig.ts`. Si necesitas usar tu propia instancia de Firebase:
+El proyecto usa variables de entorno para credenciales sensibles. Crea un archivo `.env` en la raíz del proyecto:
+
+```bash
+# Firebase Configuration
+EXPO_PUBLIC_FIREBASE_API_KEY=tu-firebase-api-key
+EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN=tu-proyecto.firebaseapp.com
+EXPO_PUBLIC_FIREBASE_PROJECT_ID=tu-proyecto-id
+EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET=tu-proyecto.firebasestorage.app
+EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=tu-sender-id
+EXPO_PUBLIC_FIREBASE_APP_ID=tu-app-id
+
+# Google Maps API Key
+EXPO_PUBLIC_GOOGLE_MAPS_API_KEY=tu-google-maps-api-key
+```
+
+**Importante**: El archivo `.env` está en `.gitignore` y NO debe subirse a Git. Comparte estas credenciales con tu equipo por canales seguros (gestores de contraseñas, mensajería encriptada).
+
+### 2. Firebase Configuration
 
 1. Crea un proyecto en [Firebase Console](https://console.firebase.google.com/)
-2. Habilita **Authentication** y **Firestore**
-3. Obtén las credenciales de tu proyecto
-4. Actualiza el archivo `FirebaseConfig.ts`:
+2. Habilita **Authentication** (Email/Password) y **Firestore Database**
+3. Habilita **Cloud Functions** para las funciones de detección automática
+4. Copia las credenciales a tu archivo `.env`
 
-```typescript
-const firebaseConfig = {
-   apiKey: "TU_API_KEY",
-   authDomain: "TU_AUTH_DOMAIN",
-   projectId: "TU_PROJECT_ID",
-   storageBucket: "TU_STORAGE_BUCKET",
-   messagingSenderId: "TU_MESSAGING_SENDER_ID",
-   appId: "TU_APP_ID",
-};
+### 3. Google Maps API
+
+1. Obtén una API Key en [Google Cloud Console](https://console.cloud.google.com/)
+2. Habilita **Maps SDK for Android** (y iOS si usas iPhone)
+3. **Configura restricciones** para proteger tu clave:
+   -  Application restrictions → Android apps
+   -  Agrega tu package name y SHA-1
+4. Copia la clave a tu archivo `.env`
+
+### 4. Firestore Security Rules
+
+Despliega las reglas de seguridad para proteger tu base de datos:
+
+```bash
+firebase deploy --only firestore:rules
 ```
 
-### 2. Google Maps API (Android)
+### 5. EAS Secrets (para builds en la nube)
 
-Para usar mapas en Android, necesitas configurar tu API Key:
+Configura las variables de entorno en EAS para compilar la app:
 
-1. Obtén una API Key de Google Maps en [Google Cloud Console](https://console.cloud.google.com/)
-2. Actualiza `app.json`:
-
-```json
-"android": {
-  "config": {
-    "googleMaps": {
-      "apiKey": "TU_GOOGLE_MAPS_API_KEY"
-    }
-  }
-}
+```bash
+eas env:create --name EXPO_PUBLIC_FIREBASE_API_KEY --value "tu-valor" --environment production
+eas env:create --name EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN --value "tu-valor" --environment production
+eas env:create --name EXPO_PUBLIC_FIREBASE_PROJECT_ID --value "tu-valor" --environment production
+eas env:create --name EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET --value "tu-valor" --environment production
+eas env:create --name EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID --value "tu-valor" --environment production
+eas env:create --name EXPO_PUBLIC_FIREBASE_APP_ID --value "tu-valor" --environment production
+eas env:create --name EXPO_PUBLIC_GOOGLE_MAPS_API_KEY --value "tu-valor" --environment production
 ```
+
+O consulta `SECURITY.md` para la guía completa de configuración segura.
 
 ## 🎯 Ejecución del Proyecto
 
@@ -206,12 +227,11 @@ app_movil/
 │   │   └── forgot-pass.tsx     # Recuperación de contraseña
 │   └── (tabs)/                  # Navegación principal con pestañas
 │       ├── mapa.tsx            # Visualización de mapas
-│       ├── misRutas.tsx        # Rutas del usuario
+│       ├── misRutas.tsx        # Rutas del usuario (con lógica de estaciones cerradas)
 │       ├── sos.tsx             # Botón de emergencia
 │       ├── (index)/            # Home y avisos
 │       │   ├── index.tsx       # Pantalla principal
 │       │   └── (comentarios)/  # Sistema de avisos
-│       │       ├── avisoTwitter.tsx
 │       │       ├── crearAviso.tsx
 │       │       └── leerAvisos.tsx
 │       └── (perfil)/           # Módulo de perfil
@@ -223,7 +243,15 @@ app_movil/
 │   ├── data/                   # Datos locales (metro, terminales)
 │   ├── fonts/                  # Fuentes personalizadas
 │   └── images/                 # Imágenes y iconos
-├── FirebaseConfig.ts           # Configuración de Firebase
+├── functions/                   # Cloud Functions para Firebase
+│   └── src/
+│       └── index.ts            # Funciones de detección y reapertura automática
+├── FirebaseConfig.ts           # Configuración de Firebase con variables de entorno
+├── app.config.js               # Configuración dinámica de Expo
+├── .env                        # Variables de entorno (NO SUBIR A GIT)
+├── .env.example                # Plantilla de variables de entorno
+├── firestore.rules             # Reglas de seguridad de Firestore
+├── SECURITY.md                 # Guía de configuración de seguridad
 ├── app.json                    # Configuración de Expo
 ├── package.json                # Dependencias del proyecto
 └── tsconfig.json               # Configuración de TypeScript
@@ -258,7 +286,9 @@ app_movil/
 
 -  Crear avisos sobre el estado del transporte
 -  Leer avisos de otros usuarios
--  Compartir en redes sociales (Twitter)
+-  **Detección automática**: Cloud Functions cierran estaciones con 5+ reportes en 15 minutos
+-  **Reapertura automática**: Estaciones inactivas por 15+ minutos se reabren automáticamente
+-  **Contador dinámico**: Actualización en tiempo real de cantidad de reportes
 -  Notificaciones en tiempo real
 
 ### 5. **Perfil de Usuario**
