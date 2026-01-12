@@ -12,7 +12,7 @@ export default {
          supportsTablet: true,
       },
       android: {
-         edgeToEdgeEnabled: true,
+         edgeToEdgeEnabled: false,
          package: "com.zoegr.app_movil",
          config: {
             googleMaps: {

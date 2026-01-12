@@ -17,7 +17,6 @@ import {
    KeyboardAvoidingView,
    Platform,
    ScrollView,
-   StatusBar,
    StyleSheet,
    Text,
    TextInput,
@@ -213,8 +212,6 @@ export default function AddComment() {
          style={{ flex: 1, backgroundColor: "#fff" }}
          behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
-         <StatusBar barStyle="light-content" backgroundColor="#e68059" />
-
          {/* Header Compacto */}
          <View style={styles.header}>
             <TouchableOpacity

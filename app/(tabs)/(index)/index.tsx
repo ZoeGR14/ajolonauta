@@ -13,7 +13,6 @@ import {
    Image,
    Modal,
    SafeAreaView,
-   StatusBar,
    StyleSheet,
    Text,
    TouchableOpacity,
@@ -322,8 +321,6 @@ export default function IndexScreen() {
 
    return (
       <SafeAreaView style={styles.container}>
-         <StatusBar barStyle="light-content" backgroundColor="#e63946" />
-
          {/* Header Súper Llamativo */}
          <View style={styles.headerGradient}>
             {/* Elementos decorativos para simular gradiente */}

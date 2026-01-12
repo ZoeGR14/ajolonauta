@@ -42,15 +42,14 @@ export default function RootLayout() {
 
    return (
       <View style={{ flex: 1 }}>
-         {/* StatusBar 'light' pone las letras en blanco (para fondos oscuros).
-         Si tu fondo es blanco, cámbialo a style="dark".
-      */}
-         <StatusBar style="dark" translucent />
+         {/* StatusBar sin translucent para evitar que el contenido se dibuje debajo */}
+         <StatusBar style="light" backgroundColor="#DC2626" />
          <View
             style={{
                height:
-                  Platform.OS === "android" ? RNStatusBar.currentHeight : 44,
-
+                  Platform.OS === "android"
+                     ? RNStatusBar.currentHeight || 0
+                     : 44,
                backgroundColor: "#DC2626",
             }}
          />

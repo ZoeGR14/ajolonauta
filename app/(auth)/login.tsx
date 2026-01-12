@@ -64,7 +64,7 @@ export default function LoginScreen() {
          await initializeNotifications();
          console.log("✅ Notificaciones inicializadas");
 
-         router.replace("/(tabs)");
+         // No navegamos aquí, el onAuthStateChanged en index.tsx se encargará
       } catch (error: any) {
          console.error("❌ Error en login:", error);
          Alert.alert(
