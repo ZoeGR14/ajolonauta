@@ -639,7 +639,6 @@ Este proyecto es privado y fue desarrollado como parte de un proyecto universita
 -  A **Firebase** por sus servicios de backend robustos y escalables
 -  A **Google Maps** por la API de mapas y geolocalización
 -  A todos los colaboradores del proyecto **AjoloNauta**
--  A la **Universidad** por el apoyo en este proyecto académico
 
 ---
 
@@ -650,5 +649,3 @@ Este proyecto fue desarrollado como parte de un proyecto universitario de desarr
 ---
 
 **¡Gracias por usar AjoloNauta! 🚌✨**
-
-_Versión 1.0.0 - Enero 2026_
