@@ -1,18 +1,30 @@
 {
-  "extends": "expo/tsconfig.base",
-  "compilerOptions": {
-    "strict": true,
-    "paths": {
-      "@firebase/auth": ["./node_modules/@firebase/auth/dist/index.rn.d.ts"],
-      "@/*": [
-        "./*"
-      ]
-    }
-  },
-  "include": [
-    "**/*.ts",
-    "**/*.tsx",
-    ".expo/types/**/*.ts",
-    "expo-env.d.ts"
-  ]
+   // Extiende la configuración base de TypeScript para proyectos Expo
+   // Esto incluye configuraciones optimizadas para React Native y Expo
+   "extends": "expo/tsconfig.base",
+
+   "compilerOptions": {
+      // Modo estricto: Habilita todas las verificaciones estrictas de TypeScript
+      // Incluye: noImplicitAny, strictNullChecks, strictFunctionTypes, etc.
+      "strict": true,
+
+      // Configuración de alias de rutas para imports más limpios
+      "paths": {
+         // Alias para Firebase Auth específico de React Native
+         // Apunta a las definiciones de tipos optimizadas para RN
+         "@firebase/auth": ["./node_modules/@firebase/auth/dist/index.rn.d.ts"],
+
+         // Alias "@/*" permite importar desde la raíz del proyecto
+         // Ejemplo: import { db } from '@/FirebaseConfig'
+         "@/*": ["./*"]
+      }
+   },
+
+   // Archivos que TypeScript debe incluir en la compilación
+   "include": [
+      "**/*.ts", // Todos los archivos TypeScript
+      "**/*.tsx", // Todos los archivos TypeScript React (JSX)
+      ".expo/types/**/*.ts", // Tipos generados automáticamente por Expo
+      "expo-env.d.ts" // Definiciones de tipos de entorno de Expo
+   ]
 }

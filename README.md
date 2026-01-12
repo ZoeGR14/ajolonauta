@@ -24,16 +24,20 @@
 ## ✨ Características
 
 -  🗺️ **Visualización de Mapas**: Integración con Google Maps para visualizar rutas de transporte público
--  🚍 **Planificación de Rutas**: Consulta y guarda tus rutas favoritas de transporte público
--  🤖 **Detección Automática**: Cloud Functions detectan estaciones cerradas por alta actividad de reportes
+-  🚍 **Planificación de Rutas**: Consulta y guarda tus rutas favoritas de transporte público con algoritmo de Dijkstra
+-  🤖 **Detección Automática**: Cloud Functions detectan estaciones cerradas por alta actividad de reportes (5+ en 15 minutos)
 -  🔄 **Reapertura Automática**: Estaciones cerradas se reabren automáticamente después de 15 minutos sin actividad
+-  🔔 **Notificaciones Push**: Sistema de notificaciones que alerta a usuarios cuando una estación en sus rutas guardadas se cierra
+-  📊 **Contador en Tiempo Real**: Visualización dinámica de la cantidad de reportes activos por estación
 -  📢 **Sistema de Avisos**: Crea y consulta avisos en tiempo real sobre el estado del transporte
--  🆘 **Botón SOS**: Funcionalidad de emergencia para situaciones críticas
--  👤 **Gestión de Perfil**: Sistema completo de autenticación y personalización de usuario
--  📱 **Interfaz Intuitiva**: Diseño moderno y fácil de usar con navegación por pestañas
--  💾 **Almacenamiento Local**: Guarda tus preferencias y rutas favoritas localmente
--  🔐 **Autenticación Segura**: Sistema de login/registro con Firebase Authentication
--  🔒 **Variables de Entorno**: Credenciales protegidas con EAS Secrets
+-  🗂️ **Gestión de Rutas Guardadas**: Guarda, visualiza y elimina tus rutas frecuentes con persistencia en Firestore
+-  🆘 **Botón SOS**: Funcionalidad de emergencia para situaciones críticas con acceso a contactos
+-  👤 **Gestión de Perfil**: Sistema completo de autenticación y personalización de usuario con foto de perfil
+-  📱 **Interfaz Intuitiva**: Diseño moderno con navegación por pestañas y componentes Material Design
+-  💾 **Persistencia de Datos**: AsyncStorage para datos locales y Firestore para sincronización en la nube
+-  🔐 **Autenticación Segura**: Sistema de login/registro con Firebase Authentication y persistencia de sesión
+-  🔒 **Variables de Entorno**: Credenciales protegidas con archivo env y EAS Secrets para builds de producción
+-  ⏱️ **Scheduler Automático**: Cloud Functions programadas que verifican y reabren estaciones cada 15 minutos
 
 ---
 
@@ -48,19 +52,26 @@
 
 ### Backend & Servicios
 
--  **Firebase** (11.9.0)
-   -  Authentication - Gestión de usuarios
-   -  Firestore - Base de datos en tiempo real
-   -  Cloud Functions (Gen 2) - Detección automática de estaciones cerradas
-   -  Storage - Almacenamiento de archivos
+-  **Firebase** (11.10.0)
+   -  Authentication - Gestión de usuarios y persistencia de sesión
+   -  Firestore - Base de datos en tiempo real con listeners y queries
+   -  Cloud Functions (Gen 2) - Detección automática de estaciones cerradas y reapertura programada
+   -  Cloud Messaging - Sistema de notificaciones push a usuarios afectados
+   -  Storage - Almacenamiento de archivos y fotos de perfil
+-  **Firebase Admin SDK** (13.6.0) - Para operaciones del lado del servidor
+-  **Cloud Scheduler** - Funciones programadas que ejecutan cada 15 minutos
 
 ### Bibliotecas Principales
 
--  **React Native Maps** - Visualización de mapas
+-  **React Native Maps** - Visualización de mapas con marcadores y polylines
 -  **React Native Paper** - Componentes UI Material Design
--  **React Native Reanimated** - Animaciones fluidas
--  **AsyncStorage** - Persistencia local de datos
--  **Expo Image Picker** - Selección de imágenes de perfil
+-  **React Native Reanimated** (3.18.2) - Animaciones fluidas de alto rendimiento
+-  **AsyncStorage** (2.1.2) - Persistencia local de datos
+-  **Expo Image Picker** (16.1.4) - Selección de imágenes de perfil
+-  **Expo Notifications** (0.31.4) - Sistema completo de notificaciones push
+-  **Expo Device** - Detección de dispositivos físicos para notificaciones
+-  **Expo Contacts** - Acceso a contactos de emergencia para el botón SOS
+-  **React Native Autocomplete Input** - Búsqueda predictiva de estaciones
 
 ---
 
@@ -130,7 +141,10 @@ EXPO_PUBLIC_GOOGLE_MAPS_API_KEY=tu-google-maps-api-key
 1. Crea un proyecto en [Firebase Console](https://console.firebase.google.com/)
 2. Habilita **Authentication** (Email/Password) y **Firestore Database**
 3. Habilita **Cloud Functions** para las funciones de detección automática
-4. Copia las credenciales a tu archivo `.env`
+4. Habilita **Cloud Messaging** para notificaciones push
+5. Descarga el archivo `google-services.json` para Android y colócalo en la raíz del proyecto
+6. Configura el **Firebase Admin SDK** para las Cloud Functions
+7. Copia las credenciales a tu archivo `env`
 
 ### 3. Google Maps API
 
@@ -149,7 +163,24 @@ Despliega las reglas de seguridad para proteger tu base de datos:
 firebase deploy --only firestore:rules
 ```
 
-### 5. EAS Secrets (para builds en la nube)
+### 5. Cloud Functions
+
+Despliega las Cloud Functions para detección automática y notificaciones:
+
+```bash
+cd functions
+npm install
+npm run build
+firebase deploy --only functions
+```
+
+Las funciones desplegadas incluyen:
+
+-  `detectarEstacionCerrada`: Detecta cuando una estación debe cerrarse (5+ reportes en 15 min)
+-  `reabrirEstacionesInactivas`: Se ejecuta cada 15 minutos para reabrir estaciones sin actividad
+-  `notificarUsuariosAfectados`: Envía notificaciones push a usuarios con rutas guardadas afectadas
+
+### 6. EAS Secrets (para builds en la nube)
 
 Configura las variables de entorno en EAS para compilar la app:
 
@@ -163,7 +194,35 @@ eas env:create --name EXPO_PUBLIC_FIREBASE_APP_ID --value "tu-valor" --environme
 eas env:create --name EXPO_PUBLIC_GOOGLE_MAPS_API_KEY --value "tu-valor" --environment production
 ```
 
-O consulta `SECURITY.md` para la guía completa de configuración segura.
+O consulta la documentación del proyecto para la guía completa de configuración segura.
+
+### 7. Configuración de Notificaciones Push
+
+Para habilitar las notificaciones push:
+
+1. **Obtén el Project ID de Expo**:
+
+   -  Ejecuta `npx expo login` y luego `eas project:init`
+   -  El Project ID aparecerá en tu `app.config.js` o en la consola Expo
+
+2. **Configura el proyecto en Expo**:
+
+   ```javascript
+   // El projectId ya está configurado en services/notifications.ts
+   projectId: "327e210d-776c-4591-89e8-538b2839329b";
+   ```
+
+3. **Permisos en Android**:
+
+   -  Los permisos ya están configurados en `app.config.js`:
+
+   ```javascript
+   permissions: ["RECEIVE_BOOT_COMPLETED", "VIBRATE", "NOTIFICATIONS"];
+   ```
+
+4. **Prueba las notificaciones**:
+   -  Las notificaciones se envían automáticamente cuando una estación se cierra y afecta rutas guardadas
+   -  El sistema guarda el token de notificación del usuario en Firestore automáticamente al hacer login
 
 ## 🎯 Ejecución del Proyecto
 
@@ -219,40 +278,51 @@ npm run web
 ```
 app_movil/
 ├── app/                          # Código fuente de la aplicación
-│   ├── _layout.tsx              # Layout principal
+│   ├── _layout.tsx              # Layout principal con SafeAreaProvider
 │   ├── (auth)/                  # Módulo de autenticación
 │   │   ├── index.tsx           # Pantalla de bienvenida
 │   │   ├── login.tsx           # Inicio de sesión
 │   │   ├── signup.tsx          # Registro
 │   │   └── forgot-pass.tsx     # Recuperación de contraseña
 │   └── (tabs)/                  # Navegación principal con pestañas
-│       ├── mapa.tsx            # Visualización de mapas
-│       ├── misRutas.tsx        # Rutas del usuario (con lógica de estaciones cerradas)
-│       ├── sos.tsx             # Botón de emergencia
+│       ├── mapa.tsx            # Visualización de mapas con marcadores
+│       ├── misRutas.tsx        # Rutas con algoritmo Dijkstra y detección de estaciones cerradas
+│       ├── sos.tsx             # Botón de emergencia con contactos
 │       ├── (index)/            # Home y avisos
-│       │   ├── index.tsx       # Pantalla principal
-│       │   └── (comentarios)/  # Sistema de avisos
-│       │       ├── crearAviso.tsx
-│       │       └── leerAvisos.tsx
+│       │   ├── index.tsx       # Pantalla principal con feed de avisos
+│       │   └── (comentarios)/  # Sistema de avisos/reportes
+│       │       └── crearAviso.tsx  # Crear reportes por estación
 │       └── (perfil)/           # Módulo de perfil
-│           ├── perfil.tsx
+│           ├── perfil.tsx      # Perfil con foto y datos del usuario
 │           ├── configuracion.tsx
 │           └── (guardadas)/    # Rutas guardadas
-│               └── rutasGuardadas.tsx
+│               ├── rutasGuardadas.tsx  # Lista de rutas guardadas del usuario
+│               └── [id].tsx    # Detalle individual de ruta guardada
 ├── assets/                      # Recursos estáticos
-│   ├── data/                   # Datos locales (metro, terminales)
-│   ├── fonts/                  # Fuentes personalizadas
-│   └── images/                 # Imágenes y iconos
+│   ├── data/                   # Datos locales (metro, terminales, grafo para Dijkstra)
+│   │   ├── info.ts            # Grafo del metro y funciones de cálculo de rutas
+│   │   ├── metro.json         # Datos estructurados del metro
+│   │   └── terminales.json    # Información de terminales de transporte
+│   ├── fonts/                  # Fuentes personalizadas (Poppins)
+│   └── images/                 # Imágenes, iconos y mapas de líneas
+│       └── Lineas_Metro/      # Imágenes de las líneas del metro
 ├── functions/                   # Cloud Functions para Firebase
-│   └── src/
-│       └── index.ts            # Funciones de detección y reapertura automática
+│   ├── src/
+│   │   ├── index.ts           # Funciones de detección y reapertura automática
+│   │   └── notificaciones.ts  # Sistema de notificaciones push
+│   ├── lib/                    # Código compilado de TypeScript
+│   ├── package.json           # Dependencias de Cloud Functions
+│   └── tsconfig.json          # Configuración de TypeScript para functions
+├── services/                    # Servicios de la aplicación
+│   └── notifications.ts        # Servicio de notificaciones push del cliente
 ├── FirebaseConfig.ts           # Configuración de Firebase con variables de entorno
-├── app.config.js               # Configuración dinámica de Expo
-├── .env                        # Variables de entorno (NO SUBIR A GIT)
+├── app.config.js               # Configuración dinámica de Expo con env
+├── env                         # Variables de entorno (NO SUBIR A GIT)
 ├── .env.example                # Plantilla de variables de entorno
+├── google-services.json        # Configuración de Firebase para Android
 ├── firestore.rules             # Reglas de seguridad de Firestore
-├── SECURITY.md                 # Guía de configuración de seguridad
-├── app.json                    # Configuración de Expo
+├── firebase.json               # Configuración de Firebase CLI
+├── eas.json                    # Configuración de Expo Application Services
 ├── package.json                # Dependencias del proyecto
 └── tsconfig.json               # Configuración de TypeScript
 ```
@@ -278,31 +348,50 @@ app_movil/
 ### 3. **Gestión de Rutas**
 
 -  Consulta de rutas disponibles
--  Guardar rutas favoritas
--  Información detallada de cada ruta
--  Historial de búsquedas
+-  **Algoritmo de Dijkstra** para calcular la ruta más corta entre estaciones
+-  Guardar rutas favoritas en Firestore con persistencia en la nube
+-  Información detallada de cada ruta con polylines coloreadas por línea
+-  **Detección de estaciones cerradas**: Las rutas muestran alertas cuando una estación está cerrada
+-  **Filtrado dinámico**: El algoritmo excluye automáticamente estaciones cerradas del cálculo
+-  Visualización en mapa con marcadores personalizados por línea
+-  Eliminar rutas guardadas con confirmación
+-  Ver detalle completo de rutas guardadas individuales
 
-### 4. **Sistema de Avisos**
+### 4. **Sistema de Avisos y Reportes**
 
--  Crear avisos sobre el estado del transporte
--  Leer avisos de otros usuarios
--  **Detección automática**: Cloud Functions cierran estaciones con 5+ reportes en 15 minutos
--  **Reapertura automática**: Estaciones inactivas por 15+ minutos se reabren automáticamente
--  **Contador dinámico**: Actualización en tiempo real de cantidad de reportes
--  Notificaciones en tiempo real
+-  Crear reportes/avisos sobre el estado de estaciones específicas
+-  Leer avisos de otros usuarios en tiempo real
+-  **Sistema de detección automática**:
+   -  Cloud Functions monitorean reportes en tiempo real
+   -  Estaciones con 5+ reportes en 15 minutos se marcan automáticamente como cerradas
+   -  Actualización del campo `estadoCerrada` en Firestore
+-  **Sistema de reapertura automática**:
+   -  Cloud Scheduler ejecuta cada 15 minutos
+   -  Estaciones cerradas sin reportes nuevos por 15+ minutos se reabren automáticamente
+   -  Limpieza automática de reportes antiguos
+-  **Contador dinámico**: Visualización en tiempo real de cantidad de reportes activos
+-  **Notificaciones push inteligentes**:
+   -  Sistema detecta usuarios con rutas guardadas afectadas
+   -  Envía notificaciones push automáticas cuando sus estaciones se cierran
+   -  Mensajes personalizados según la causa del cierre
+-  Listeners en tiempo real con Firestore para actualizaciones instantáneas
 
 ### 5. **Perfil de Usuario**
 
--  Edición de información personal
--  Gestión de foto de perfil
+-  Edición de información personal (nombre, email)
+-  Gestión de foto de perfil con Expo Image Picker
+-  Almacenamiento de imágenes en Firebase Storage
 -  Configuración de preferencias
--  Visualización de rutas guardadas
+-  Visualización de rutas guardadas con acceso directo
+-  Sistema de autenticación con persistencia de sesión
+-  Token de notificaciones push guardado automáticamente en Firestore
 
 ### 6. **Botón SOS**
 
--  Función de emergencia rápida
+-  Función de emergencia rápida con interfaz dedicada
+-  Acceso a contactos de emergencia del dispositivo con Expo Contacts
 -  Contacto con autoridades o contactos de emergencia
--  Compartir ubicación actual
+-  Interfaz simple y accesible para situaciones críticas
 
 ---
 
@@ -326,11 +415,119 @@ npm run lint
 
 # Resetea el proyecto (limpia archivos de ejemplo)
 npm run reset-project
+
+# Cloud Functions
+cd functions
+npm run build        # Compila TypeScript a JavaScript
+npm run deploy       # Despliega las functions a Firebase
 ```
 
 ---
 
-## 📱 Compilación
+## 🔧 Tecnologías y Arquitectura Avanzada
+
+### Algoritmo de Dijkstra
+
+El proyecto implementa el **algoritmo de Dijkstra** para calcular la ruta más corta entre dos estaciones del metro:
+
+-  Implementación optimizada en [assets/data/info.ts](assets/data/info.ts)
+-  Grafo ponderado con distancias reales entre estaciones
+-  Filtrado dinámico de estaciones cerradas
+-  Construcción automática de polylines para visualización en mapa
+
+### Cloud Functions Gen 2
+
+Sistema robusto de funciones serverless:
+
+1. **detectarEstacionCerrada**:
+
+   -  Trigger: `onDocumentUpdated` en colección `estaciones`
+   -  Verifica reportes en ventana de 15 minutos
+   -  Marca estación como cerrada si hay 5+ reportes
+   -  Envía notificaciones push a usuarios afectados
+
+2. **reabrirEstacionesInactivas**:
+
+   -  Trigger: `onSchedule` cada 15 minutos
+   -  Busca estaciones cerradas sin actividad reciente
+   -  Reabre automáticamente y limpia reportes antiguos
+   -  Actualiza colección `estaciones_cerradas`
+
+3. **notificarUsuariosAfectados**:
+   -  Busca rutas guardadas que contengan la estación cerrada
+   -  Obtiene tokens de notificación de Firestore
+   -  Envía notificaciones push mediante Firebase Cloud Messaging
+   -  Mensajes personalizados según el tipo de cierre
+
+### Sistema de Notificaciones Push
+
+-  Registro automático de dispositivos con Expo Notifications
+-  Tokens almacenados en Firestore bajo `/users/{userId}/pushToken`
+-  Canal de notificaciones configurado para Android
+-  Soporte para iOS con permisos gestionados
+-  Notificaciones en foreground y background
+
+---
+
+## �️ Estructura de Datos en Firestore
+
+### Colección: `estaciones`
+
+```typescript
+{
+  estacionId: string,              // "NombreEstacion - Línea X"
+  estacion: string,                // "NombreEstacion"
+  linea: string,                   // "Línea X"
+  estadoCerrada: boolean,          // true si está cerrada
+  fechaCierre?: number,            // timestamp del cierre
+  ultimaActualizacion: Timestamp,
+  totalReportes: number[],         // timestamps de reportes activos
+  comentarios: Reporte[],          // array de reportes
+  fechaCreacion: Timestamp
+}
+```
+
+### Colección: `estaciones_cerradas`
+
+```typescript
+{
+  estacionId: string,
+  estacion: string,
+  linea: string,
+  fechaCierre: number,
+  razon: string,                   // "Alta actividad de reportes"
+  reportesActivos: number,         // contador de reportes
+  ultimaActualizacion: Timestamp
+}
+```
+
+### Colección: `rutas_guardadas`
+
+```typescript
+{
+  userId: string,
+  start: string,                   // estación de origen
+  end: string,                     // estación de destino
+  path: string[],                  // array de estaciones en la ruta
+  createdAt: Timestamp
+}
+```
+
+### Colección: `users`
+
+```typescript
+{
+  email: string,
+  nombre: string,
+  photoURL?: string,
+  pushToken?: string,              // token de Expo para notificaciones
+  lastTokenUpdate: Timestamp
+}
+```
+
+---
+
+## �📱 Compilación
 
 ### Build de Desarrollo
 
@@ -373,7 +570,40 @@ eas build --platform all
 
 ---
 
-## 📄 Licencia
+## � Notas Importantes
+
+### Arquitectura del Proyecto
+
+-  **File-based routing**: Expo Router gestiona la navegación basándose en la estructura de carpetas
+-  **Layouts anidados**: `_layout.tsx` en cada carpeta define layouts específicos
+-  **Guards de autenticación**: Redirección automática según estado de autenticación
+-  **Real-time listeners**: Uso de `onSnapshot` de Firestore para actualizaciones en tiempo real
+
+### Variables de Entorno
+
+El proyecto usa un archivo `env` (sin punto) en lugar de `.env`:
+
+-  Las variables se cargan en `app.config.js` usando `fs.readFileSync`
+-  Se exponen a la app mediante `expo-constants` con el prefijo `EXPO_PUBLIC_`
+-  Para builds de producción, configurar en EAS Secrets
+
+### Cloud Functions
+
+-  Implementadas con Firebase Functions Gen 2
+-  Requieren Node.js 18+
+-  Se despliegan independientemente con `firebase deploy --only functions`
+-  Logs disponibles en Firebase Console
+
+### Notificaciones Push
+
+-  Requieren dispositivo físico (no funcionan en emulador)
+-  Project ID: `327e210d-776c-4591-89e8-538b2839329b`
+-  Los tokens se actualizan automáticamente en cada login
+-  Canal configurado para Android con vibración y sonido
+
+---
+
+## �📄 Licencia
 
 Este proyecto es privado y fue desarrollado como parte de un proyecto universitario.
 
@@ -381,11 +611,20 @@ Este proyecto es privado y fue desarrollado como parte de un proyecto universita
 
 ## 🙏 Agradecimientos
 
--  A la comunidad de Expo y React Native
--  A Firebase por sus servicios de backend
--  A Google Maps por la API de mapas
--  A todos los colaboradores del proyecto
+-  A la comunidad de **Expo** y **React Native** por el excelente framework
+-  A **Firebase** por sus servicios de backend robustos y escalables
+-  A **Google Maps** por la API de mapas y geolocalización
+-  A todos los colaboradores del proyecto **AjoloNauta**
+-  A la **Universidad** por el apoyo en este proyecto académico
+
+---
+
+## 👥 Desarrolladores
+
+Este proyecto fue desarrollado como parte de un proyecto universitario de desarrollo de aplicaciones móviles.
 
 ---
 
 **¡Gracias por usar AjoloNauta! 🚌✨**
+
+_Versión 1.0.0 - Enero 2026_
