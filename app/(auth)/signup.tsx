@@ -41,19 +41,22 @@ export default function SignUpScreen() {
    };
 
    const handleSignUp = async () => {
-      if (password !== confirmPassword) {
-         Alert.alert("Error", "Las contraseñas no coinciden");
-         return;
-      }
-
-      const usernameExists = await checkUsernameExists(username);
-      if (usernameExists) {
-         Alert.alert("Error", "El nombre de usuario ya está en uso.");
-         return;
-      }
+      // Activar el loader inmediatamente
+      setLoading(true);
 
       try {
-         setLoading(true); // 🔄 activa el loader
+         if (password !== confirmPassword) {
+            Alert.alert("Error", "Las contraseñas no coinciden");
+            setLoading(false);
+            return;
+         }
+
+         const usernameExists = await checkUsernameExists(username);
+         if (usernameExists) {
+            Alert.alert("Error", "El nombre de usuario ya está en uso.");
+            setLoading(false);
+            return;
+         }
 
          const userCredential = await createUserWithEmailAndPassword(
             auth,
@@ -71,16 +74,14 @@ export default function SignUpScreen() {
             email,
          });
 
-         Alert.alert("Registro Exitoso", "Cuenta creada correctamente");
-         router.replace("/(tabs)");
+         // No mostramos alert ni navegamos, el onAuthStateChanged se encargará
       } catch (error) {
          Alert.alert(
             "Error",
             "No se pudo crear la cuenta. Verifique los campos."
          );
          console.log(error);
-      } finally {
-         setLoading(false); // 🔽 desactiva el loader
+         setLoading(false);
       }
    };
 
