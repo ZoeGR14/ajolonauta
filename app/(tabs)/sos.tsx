@@ -140,7 +140,9 @@ export default function SOS() {
             <Feather name="shield" size={36} color="#fff" />
           </View>
           <Text style={styles.headerTitle}>Emergencias</Text>
-          <Text style={styles.headerSubtitle}>Ayuda rápida cuando más la necesitas</Text>
+          <Text style={styles.headerSubtitle}>
+            Ayuda rápida cuando más la necesitas
+          </Text>
         </View>
       </View>
 
@@ -179,7 +181,9 @@ export default function SOS() {
               <Feather name="user-plus" size={40} color="#9CA3AF" />
             </View>
             <Text style={styles.emptyTitle}>Sin contactos</Text>
-            <Text style={styles.emptyText}>Agrega personas de confianza para emergencias</Text>
+            <Text style={styles.emptyText}>
+              Agrega personas de confianza para emergencias
+            </Text>
           </View>
         ) : (
           <FlatList
@@ -197,13 +201,13 @@ export default function SOS() {
                   <Text style={styles.contactPhone}>{item.telefono}</Text>
                 </View>
                 <View style={styles.contactActions}>
-                  <Pressable 
+                  <Pressable
                     style={styles.actionBtn}
                     onPress={() => llamarContacto(item.telefono)}
                   >
                     <Feather name="phone" size={18} color="#fff" />
                   </Pressable>
-                  <Pressable 
+                  <Pressable
                     style={[styles.actionBtn, styles.deleteBtn]}
                     onPress={() => eliminarContacto(item.id)}
                   >
@@ -231,7 +235,12 @@ export default function SOS() {
               <Text style={styles.modalTitle}>Nuevo Contacto</Text>
             </View>
             <View style={styles.inputContainer}>
-              <Feather name="user" size={18} color="#6B7280" style={styles.inputIcon} />
+              <Feather
+                name="user"
+                size={18}
+                color="#6B7280"
+                style={styles.inputIcon}
+              />
               <TextInput
                 placeholder="Nombre del contacto"
                 placeholderTextColor="#9CA3AF"
@@ -241,7 +250,12 @@ export default function SOS() {
               />
             </View>
             <View style={styles.inputContainer}>
-              <Feather name="phone" size={18} color="#6B7280" style={styles.inputIcon} />
+              <Feather
+                name="phone"
+                size={18}
+                color="#6B7280"
+                style={styles.inputIcon}
+              />
               <TextInput
                 placeholder="Número telefónico"
                 placeholderTextColor="#9CA3AF"
@@ -608,7 +622,7 @@ const styles = StyleSheet.create({
   fab: {
     position: "absolute",
     bottom: 30,
-    right: 30,
+    right: 25,
     backgroundColor: "#059669",
     width: 60,
     height: 60,

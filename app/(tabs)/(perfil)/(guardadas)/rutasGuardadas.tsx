@@ -74,11 +74,27 @@ export default function RutasGuardadas() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Tus Rutas Guardadas</Text>
+      {/* Header Mejorado */}
+      <View style={styles.header}>
+        <View style={styles.headerIconBg}>
+          <Feather name="bookmark" size={28} color="#fff" />
+        </View>
+        <Text style={styles.title}>Tus Rutas Guardadas</Text>
+        <Text style={styles.subtitle}>
+          {routes.length}{" "}
+          {routes.length === 1 ? "ruta guardada" : "rutas guardadas"}
+        </Text>
+      </View>
+
       {routes.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Feather name="trash-2" size={48} color="#ccc" />
-          <Text style={styles.emptyText}>No tienes rutas guardadas</Text>
+          <View style={styles.emptyIconBg}>
+            <Feather name="bookmark" size={50} color="#e68059" />
+          </View>
+          <Text style={styles.emptyTitle}>No tienes rutas guardadas</Text>
+          <Text style={styles.emptyText}>
+            Guarda tus rutas favoritas para acceder rápidamente a ellas
+          </Text>
         </View>
       ) : (
         <FlatList
@@ -91,20 +107,50 @@ export default function RutasGuardadas() {
               activeOpacity={0.85}
               onLongPress={() => handleLongPress(item.id)}
             >
-              <View style={styles.routeHeader}>
-                <Feather name="map" size={20} color="#E68059" />
-                <Text style={styles.routeTitle}>Ruta #{index + 1}</Text>
+              <View style={styles.routeCardHeader}>
+                <View style={styles.routeNumberBadge}>
+                  <Text style={styles.routeNumber}>{index + 1}</Text>
+                </View>
+                <View style={styles.routeCardHeaderText}>
+                  <Text style={styles.routeTitle}>Ruta #{index + 1}</Text>
+                  <Text style={styles.routeSubtitle}>
+                    {item.path
+                      ? `${item.path.length} estaciones`
+                      : "Toca para ver detalles"}
+                  </Text>
+                </View>
+                <Feather name="chevron-right" size={24} color="#e68059" />
               </View>
+
+              <View style={styles.divider} />
+
               <View style={styles.routeDetails}>
-                <Feather name="arrow-right" size={16} color="#888" />
-                <Text style={styles.routeText}>
-                  {item.start} ➔ {item.end}
+                <View style={styles.routePoint}>
+                  <View style={styles.startDot} />
+                  <Text style={styles.routeText} numberOfLines={1}>
+                    {item.start}
+                  </Text>
+                </View>
+                <Feather name="arrow-down" size={20} color="#6B7280" />
+                <View style={styles.routePoint}>
+                  <View style={styles.endDot} />
+                  <Text style={styles.routeText} numberOfLines={1}>
+                    {item.end}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.routeFooter}>
+                <Feather name="info" size={14} color="#9CA3AF" />
+                <Text style={styles.routeHint}>
+                  Mantén presionado para eliminar
                 </Text>
               </View>
             </TouchableOpacity>
           )}
-          ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
-          contentContainerStyle={{ paddingBottom: 40, paddingTop: 8 }}
+          ItemSeparatorComponent={() => <View style={{ height: 16 }} />}
+          contentContainerStyle={{ paddingBottom: 40, paddingTop: 16 }}
+          showsVerticalScrollIndicator={false}
         />
       )}
     </View>
@@ -114,82 +160,175 @@ export default function RutasGuardadas() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 40,
+    backgroundColor: "#F9FAFB",
+  },
+  header: {
+    backgroundColor: "#e68059",
+    paddingTop: 50,
+    paddingBottom: 30,
     paddingHorizontal: 20,
-    backgroundColor: "#f8f8f8",
+    alignItems: "center",
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  headerIconBg: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: "rgba(255, 255, 255, 0.25)",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 12,
+    borderWidth: 2,
+    borderColor: "rgba(255, 255, 255, 0.3)",
   },
   title: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: "#333",
-    marginBottom: 20,
-    textAlign: "center",
+    fontSize: 24,
+    fontWeight: "900",
+    color: "#fff",
+    marginBottom: 6,
+    textShadowColor: "rgba(0, 0, 0, 0.2)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
   },
-  routeRow: {
+  subtitle: {
+    fontSize: 14,
+    color: "rgba(255, 255, 255, 0.9)",
+    fontWeight: "600",
+  },
+  routeCard: {
+    backgroundColor: "#fff",
+    marginHorizontal: 20,
+    borderRadius: 20,
+    padding: 20,
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 12,
+    elevation: 4,
+    borderLeftWidth: 4,
+    borderLeftColor: "#e68059",
+  },
+  routeCardHeader: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
+    marginBottom: 16,
+  },
+  routeNumberBadge: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#e68059",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  routeNumber: {
+    fontSize: 18,
+    fontWeight: "900",
+    color: "#fff",
+  },
+  routeCardHeaderText: {
+    flex: 1,
+  },
+  routeTitle: {
+    fontSize: 17,
+    fontWeight: "800",
+    color: "#111827",
+    marginBottom: 2,
+  },
+  routeSubtitle: {
+    fontSize: 13,
+    color: "#6B7280",
+    fontWeight: "600",
+  },
+  divider: {
+    height: 1,
+    backgroundColor: "#F3F4F6",
+    marginBottom: 16,
+  },
+  routeDetails: {
+    gap: 12,
+  },
+  routePoint: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  startDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: "#10B981",
+  },
+  endDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: "#EF4444",
+  },
+  routeText: {
+    fontSize: 16,
+    color: "#374151",
+    fontWeight: "600",
+    flex: 1,
+  },
+  routeFooter: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginTop: 16,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: "#F3F4F6",
+  },
+  routeHint: {
+    fontSize: 12,
+    color: "#9CA3AF",
+    fontStyle: "italic",
   },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "#F9FAFB",
   },
-  routeCard: {
-    backgroundColor: "#fff",
-    padding: 16,
-    margin: 10,
-    marginVertical: 8,
-    borderRadius: 14,
-    shadowColor: "#000",
-    shadowOpacity: 0.06,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 6,
-    elevation: 3,
-  },
-
-  routeHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 8,
-    gap: 10,
-  },
-
-  routeTitle: {
-    fontSize: 15,
-    fontWeight: "bold",
-    color: "#444",
-  },
-
-  routeDetails: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-
-  routeText: {
-    fontSize: 16,
-    color: "#666",
-    flexShrink: 1,
-  },
-
   loadingText: {
     marginTop: 10,
-    color: "#666",
+    color: "#6B7280",
     fontSize: 16,
+    fontWeight: "600",
   },
   emptyContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 20,
+    paddingHorizontal: 40,
   },
-
+  emptyIconBg: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: "#FFF7ED",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: "800",
+    color: "#374151",
+    marginBottom: 8,
+  },
   emptyText: {
-    marginTop: 12,
-    fontSize: 16,
-    color: "#999",
+    fontSize: 15,
+    color: "#9CA3AF",
     textAlign: "center",
-    fontStyle: "italic",
+    lineHeight: 22,
   },
 });

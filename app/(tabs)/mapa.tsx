@@ -22,6 +22,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  PanResponder,
 } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
 import geojsonData from "../../assets/data/metro.json";
@@ -59,6 +60,32 @@ export default function Mapa() {
   const [modalInfo, setModalInfo] = useState<boolean>(false);
   const slideAnim = useRef(
     new Animated.Value(Dimensions.get("window").width)
+  ).current;
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_, gestureState) => {
+        return Math.abs(gestureState.dx) > 5;
+      },
+      onPanResponderMove: (_, gestureState) => {
+        if (gestureState.dx > 0) {
+          slideAnim.setValue(
+            Dimensions.get("window").width / 2 + gestureState.dx
+          );
+        }
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        if (gestureState.dx > 50) {
+          closePanel();
+        } else {
+          Animated.spring(slideAnim, {
+            toValue: Dimensions.get("window").width / 2,
+            useNativeDriver: false,
+          }).start();
+        }
+      },
+    })
   ).current;
 
   const toggleCheckbox = useCallback((line: string) => {
@@ -131,8 +158,10 @@ export default function Mapa() {
             <View style={styles.topBarTextContainer}>
               <Text style={styles.topBarTitle}>Mapa del Metro</Text>
               <Text style={styles.topBarSubtitle}>
-                {selectedCount > 0 
-                  ? `${selectedCount} línea${selectedCount > 1 ? 's' : ''} visible${selectedCount > 1 ? 's' : ''}`
+                {selectedCount > 0
+                  ? `${selectedCount} línea${
+                      selectedCount > 1 ? "s" : ""
+                    } visible${selectedCount > 1 ? "s" : ""}`
                   : "Selecciona líneas para ver"}
               </Text>
             </View>
@@ -146,7 +175,9 @@ export default function Mapa() {
               <Feather name="alert-circle" size={20} color="#E68059" />
               {estacionesCerradas.length > 0 && (
                 <View style={[styles.miniBadge, styles.badgeDanger]}>
-                  <Text style={styles.miniBadgeText}>{estacionesCerradas.length}</Text>
+                  <Text style={styles.miniBadgeText}>
+                    {estacionesCerradas.length}
+                  </Text>
                 </View>
               )}
             </TouchableOpacity>
@@ -208,18 +239,24 @@ export default function Mapa() {
 
       {modal && (
         <Animated.View style={[styles.slidePanel, { left: slideAnim }]}>
+          {/* Handle deslizable */}
+          <View {...panResponder.panHandlers} style={styles.handleContainer}>
+            <View style={styles.handle} />
+          </View>
           {/* Header del Panel */}
           <View style={styles.panelHeader}>
             <View style={styles.panelIconBg}>
               <Feather name="layers" size={24} color="#fff" />
             </View>
             <Text style={styles.panelTitle}>Líneas del Metro</Text>
-            <Text style={styles.panelSubtitle}>Selecciona las líneas a visualizar</Text>
+            <Text style={styles.panelSubtitle}>
+              Selecciona las líneas a visualizar
+            </Text>
           </View>
-          
+
           <View style={styles.divider} />
 
-          <ScrollView 
+          <ScrollView
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 20 }}
           >
@@ -266,10 +303,10 @@ export default function Mapa() {
               onPress={handleSelectAll}
             >
               <View style={styles.selectAllIconBg}>
-                <Feather 
-                  name={isAllSelected ? "check-square" : "square"} 
-                  size={20} 
-                  color="#059669" 
+                <Feather
+                  name={isAllSelected ? "check-square" : "square"}
+                  size={20}
+                  color="#059669"
                 />
               </View>
               <Text style={styles.selectAllText}>
@@ -296,25 +333,31 @@ export default function Mapa() {
           <View style={styles.infoModalContent}>
             <View style={styles.infoModalHeader}>
               <View style={styles.infoIconBg}>
-                <Feather 
-                  name={estacionesCerradas.length > 0 ? "alert-triangle" : "check-circle"} 
-                  size={32} 
-                  color="#fff" 
+                <Feather
+                  name={
+                    estacionesCerradas.length > 0
+                      ? "alert-triangle"
+                      : "check-circle"
+                  }
+                  size={32}
+                  color="#fff"
                 />
               </View>
               <Text style={styles.infoModalTitle}>
-                {estacionesCerradas.length > 0 
-                  ? "Estaciones Cerradas" 
+                {estacionesCerradas.length > 0
+                  ? "Estaciones Cerradas"
                   : "Estado del Metro"}
               </Text>
               <Text style={styles.infoModalSubtitle}>
                 {estacionesCerradas.length > 0
-                  ? `${estacionesCerradas.length} estación${estacionesCerradas.length > 1 ? 'es' : ''} fuera de servicio`
+                  ? `${estacionesCerradas.length} estación${
+                      estacionesCerradas.length > 1 ? "es" : ""
+                    } fuera de servicio`
                   : "¡Todas las estaciones disponibles!"}
               </Text>
             </View>
 
-            <ScrollView 
+            <ScrollView
               style={styles.infoModalScroll}
               showsVerticalScrollIndicator={false}
             >
@@ -337,8 +380,8 @@ export default function Mapa() {
               )}
             </ScrollView>
 
-            <TouchableOpacity 
-              style={styles.infoModalButton} 
+            <TouchableOpacity
+              style={styles.infoModalButton}
               onPress={() => setModalInfo(false)}
             >
               <Text style={styles.infoModalButtonText}>Entendido</Text>
@@ -353,7 +396,7 @@ export default function Mapa() {
 const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: "center", alignItems: "center" },
   map: { width: "100%", height: "100%" },
-  
+
   /* Top Bar */
   topBar: {
     position: "absolute",
@@ -444,7 +487,7 @@ const styles = StyleSheet.create({
   badgeDanger: {
     backgroundColor: "#DC2626",
   },
-  
+
   /* Panel Lateral */
   slidePanel: {
     position: "absolute",
@@ -452,7 +495,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     width: Dimensions.get("window").width / 2,
     backgroundColor: "#fff",
-    paddingTop: 40,
+    paddingTop: 20,
     paddingHorizontal: 20,
     paddingBottom: 20,
     borderTopLeftRadius: 24,
@@ -463,6 +506,17 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 15,
     zIndex: 99,
+  },
+  handleContainer: {
+    alignItems: "center",
+    paddingVertical: 10,
+    marginBottom: 10,
+  },
+  handle: {
+    width: 40,
+    height: 5,
+    backgroundColor: "#E5E7EB",
+    borderRadius: 3,
   },
   panelHeader: {
     alignItems: "center",
@@ -500,7 +554,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderRadius: 1,
   },
-  
+
   /* Items de Línea */
   lineItem: {
     flexDirection: "row",
@@ -531,7 +585,7 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "800",
   },
-  
+
   /* Botón Seleccionar Todos */
   selectAllButton: {
     flexDirection: "row",
@@ -563,7 +617,7 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     color: "#059669",
   },
-  
+
   /* Botón Cerrar */
   closeButton: {
     marginTop: 10,
@@ -585,7 +639,7 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     fontSize: 15,
   },
-  
+
   /* Modal de Información */
   infoModalOverlay: {
     flex: 1,
