@@ -94,29 +94,27 @@ Antes de comenzar, asegúrate de tener instalado:
 
 ## 🚀 Instalación
 
-### Opción 1: Instalar APK (Android - Para usuarios finales)
+### Opción 1: Instalar APK (Usuario Final)
 
-Si solo quieres **usar la aplicación** sin configurar el entorno de desarrollo:
+Si solo quieres usar la aplicación sin compilar el código:
 
-1. **Descarga el APK** desde [GitHub Releases](https://github.com/ZoeGR14/ajolonauta/releases/latest)
-2. **Habilita la instalación de apps desconocidas**:
-   -  Ve a **Configuración** > **Seguridad** > **Instalar apps desconocidas**
-   -  Habilita el permiso para tu navegador o gestor de archivos
-3. **Abre el archivo APK** descargado e instala
+1. **Descarga el APK** desde la sección [Releases](https://github.com/ZoeGR14/ajolonauta/releases) de GitHub
+2. **Habilita la instalación de apps desconocidas** en tu dispositivo Android:
+   -  Ve a `Configuración > Seguridad > Instalar apps desconocidas`
+   -  Permite la instalación desde tu navegador o gestor de archivos
+3. **Abre el archivo APK** descargado y confirma la instalación
 4. **Acepta los permisos** necesarios (ubicación, notificaciones)
-5. **¡Listo!** Crea tu cuenta y comienza a usar AjoloNauta
+5. ¡Listo! Abre AjoloNauta y crea tu cuenta para comenzar
 
-**Requisitos:**
+**Requisitos**:
 
 -  Android 5.0 (API 21) o superior
--  Conexión a Internet
 -  ~50 MB de espacio disponible
+-  Conexión a Internet
 
----
+### Opción 2: Instalación desde el Código Fuente (Desarrollo)
 
-### Opción 2: Instalar desde código fuente (Para desarrolladores)
-
-Si quieres **modificar o desarrollar** la aplicación:
+Si quieres compilar y modificar la aplicación:
 
 1. **Clona el repositorio** (o descarga el código fuente):
 
@@ -639,6 +637,7 @@ Este proyecto es privado y fue desarrollado como parte de un proyecto universita
 -  A **Firebase** por sus servicios de backend robustos y escalables
 -  A **Google Maps** por la API de mapas y geolocalización
 -  A todos los colaboradores del proyecto **AjoloNauta**
+-  A la **Universidad** por el apoyo en este proyecto académico
 
 ---
 
@@ -649,3 +648,5 @@ Este proyecto fue desarrollado como parte de un proyecto universitario de desarr
 ---
 
 **¡Gracias por usar AjoloNauta! 🚌✨**
+
+_Versión 1.0.0 - Enero 2026_
