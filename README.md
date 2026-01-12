@@ -625,5 +625,3 @@ Este proyecto fue desarrollado como parte de un proyecto universitario de desarr
 ---
 
 **¡Gracias por usar AjoloNauta! 🚌✨**
-
-_Versión 1.0.0 - Enero 2026_
