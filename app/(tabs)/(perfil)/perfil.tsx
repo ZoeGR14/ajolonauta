@@ -12,6 +12,7 @@ import {
 } from "firebase/storage";
 import React, { useCallback, useEffect, useState } from "react";
 import {
+   ActivityIndicator,
    Alert,
    BackHandler,
    Image,
@@ -30,6 +31,7 @@ export default function MyAccountScreen() {
    const [user, setUser] = useState<User | null>(null);
    const [username, setUsername] = useState("Cargando...");
    const [email, setEmail] = useState("Cargando...");
+   const [uploading, setUploading] = useState(false);
 
    useEffect(() => {
       const user = auth.currentUser;
@@ -78,9 +80,19 @@ export default function MyAccountScreen() {
 
       if (!result.canceled) {
          const selectedImageUri = result.assets[0].uri;
+         // Mostrar imagen local y activar loader
          setImage(selectedImageUri);
-         // Automáticamente subir la imagen después de seleccionarla
-         await uploadImageFromUri(selectedImageUri);
+         setUploading(true);
+
+         try {
+            // Subir imagen
+            await uploadImageFromUri(selectedImageUri);
+            Alert.alert("¡Éxito!", "Imagen de perfil actualizada");
+         } catch (error) {
+            // El error ya se manejó en uploadImageFromUri
+         } finally {
+            setUploading(false);
+         }
       }
    };
 
@@ -121,11 +133,12 @@ export default function MyAccountScreen() {
          setImages([url]); // Reemplazar la imagen anterior con la nueva
          setImage(url); // Actualizar la imagen mostrada con la URL de Firebase
          console.log("Image uploaded and URL retrieved: ", url);
-         Alert.alert("¡Éxito!", "Imagen de perfil actualizada");
+         // No mostrar Alert aquí, se manejará en pickImage
       } catch (error: any) {
          console.error("Error uploading image: ", error);
          Alert.alert("Error al subir!", error.message);
          setImage(images.length > 0 ? images[0] : defaultImage); // Revertir a la imagen anterior si falla
+         throw error; // Re-lanzar el error para manejarlo en pickImage
       }
    };
 
@@ -183,11 +196,20 @@ export default function MyAccountScreen() {
             <View style={styles.decorativeCircle1} />
             <View style={styles.decorativeCircle2} />
             <View style={styles.decorativeCircle3} />
-            
+
             <View style={styles.headerContent}>
                <View style={styles.imageContainer}>
                   <Image source={{ uri: image }} style={styles.profileImage} />
-                  <TouchableOpacity style={styles.editButton} onPress={pickImage}>
+                  {uploading && (
+                     <View style={styles.uploadingOverlay}>
+                        <ActivityIndicator size="large" color="#fff" />
+                     </View>
+                  )}
+                  <TouchableOpacity
+                     style={styles.editButton}
+                     onPress={pickImage}
+                     disabled={uploading}
+                  >
                      <Feather name="camera" size={18} color="#fff" />
                   </TouchableOpacity>
                </View>
@@ -213,13 +235,13 @@ export default function MyAccountScreen() {
             </View>
          </View>
 
-         <ScrollView 
-            style={styles.scrollContent} 
+         <ScrollView
+            style={styles.scrollContent}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 30 }}
          >
             <Text style={styles.sectionTitle}>Opciones</Text>
-            
+
             <Option
                icon="bookmark"
                label="Rutas guardadas"
@@ -232,7 +254,7 @@ export default function MyAccountScreen() {
                description="Actualiza tu información"
                onPress={() => router.push("./configuracion")}
             />
-            
+
             <TouchableOpacity
                style={styles.logoutButton}
                onPress={handleLogout}
@@ -257,13 +279,19 @@ const Option = ({
    description?: string;
    onPress?: () => void;
 }) => (
-   <TouchableOpacity style={styles.option} onPress={onPress} activeOpacity={0.8}>
+   <TouchableOpacity
+      style={styles.option}
+      onPress={onPress}
+      activeOpacity={0.8}
+   >
       <View style={styles.optionIconBg}>
          <Feather name={icon as any} size={22} color="#E68059" />
       </View>
       <View style={styles.optionContent}>
          <Text style={styles.optionText}>{label}</Text>
-         {description && <Text style={styles.optionDescription}>{description}</Text>}
+         {description && (
+            <Text style={styles.optionDescription}>{description}</Text>
+         )}
       </View>
       <Feather name="chevron-right" size={20} color="#9CA3AF" />
    </TouchableOpacity>
@@ -274,7 +302,7 @@ const styles = StyleSheet.create({
       flex: 1,
       backgroundColor: "#F9FAFB",
    },
-   
+
    /* Header Dramático */
    header: {
       backgroundColor: "#E68059",
@@ -326,6 +354,17 @@ const styles = StyleSheet.create({
       borderWidth: 4,
       borderColor: "#fff",
    },
+   uploadingOverlay: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      borderRadius: 60,
+      backgroundColor: "rgba(0, 0, 0, 0.5)",
+      justifyContent: "center",
+      alignItems: "center",
+   },
    editButton: {
       position: "absolute",
       bottom: 0,
@@ -344,7 +383,7 @@ const styles = StyleSheet.create({
       shadowRadius: 4,
       elevation: 5,
    },
-   
+
    /* Tarjeta de Información */
    infoCard: {
       backgroundColor: "#fff",
@@ -383,7 +422,7 @@ const styles = StyleSheet.create({
       backgroundColor: "#F3F4F6",
       marginVertical: 16,
    },
-   
+
    /* Contenido */
    scrollContent: {
       flex: 1,
@@ -397,7 +436,7 @@ const styles = StyleSheet.create({
       marginBottom: 16,
       marginTop: 10,
    },
-   
+
    /* Opciones */
    option: {
       flexDirection: "row",
@@ -435,7 +474,7 @@ const styles = StyleSheet.create({
       color: "#6B7280",
       fontWeight: "600",
    },
-   
+
    /* Botón de Logout */
    logoutButton: {
       flexDirection: "row",
