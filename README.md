@@ -94,6 +94,30 @@ Antes de comenzar, asegúrate de tener instalado:
 
 ## 🚀 Instalación
 
+### Opción 1: Instalar APK (Android - Para usuarios finales)
+
+Si solo quieres **usar la aplicación** sin configurar el entorno de desarrollo:
+
+1. **Descarga el APK** desde [GitHub Releases](https://github.com/ZoeGR14/ajolonauta/releases/latest)
+2. **Habilita la instalación de apps desconocidas**:
+   -  Ve a **Configuración** > **Seguridad** > **Instalar apps desconocidas**
+   -  Habilita el permiso para tu navegador o gestor de archivos
+3. **Abre el archivo APK** descargado e instala
+4. **Acepta los permisos** necesarios (ubicación, notificaciones)
+5. **¡Listo!** Crea tu cuenta y comienza a usar AjoloNauta
+
+**Requisitos:**
+
+-  Android 5.0 (API 21) o superior
+-  Conexión a Internet
+-  ~50 MB de espacio disponible
+
+---
+
+### Opción 2: Instalar desde código fuente (Para desarrolladores)
+
+Si quieres **modificar o desarrollar** la aplicación:
+
 1. **Clona el repositorio** (o descarga el código fuente):
 
 ```bash
